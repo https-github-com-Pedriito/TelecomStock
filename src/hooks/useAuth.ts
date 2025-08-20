@@ -11,6 +11,7 @@ const defaultUsers: User[] = [
     email: 'admin@telecom.com',
     role: 'ADMIN',
     createdAt: new Date(),
+    isActive: true,
   },
   {
     id: '2',
@@ -18,6 +19,7 @@ const defaultUsers: User[] = [
     email: 'manager@telecom.com',
     role: 'MANAGER',
     createdAt: new Date(),
+    isActive: true,
   },
   {
     id: '3',
@@ -25,6 +27,7 @@ const defaultUsers: User[] = [
     email: 'technicien@telecom.com',
     role: 'TECHNICIEN',
     createdAt: new Date(),
+    isActive: true,
   },
 ];
 
@@ -56,6 +59,7 @@ export function useAuth() {
       ...userData,
       id: uuidv4(),
       createdAt: new Date(),
+      isActive: true,
     };
     setUsers(prev => [...prev, newUser]);
     return newUser;

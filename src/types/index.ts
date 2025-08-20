@@ -30,6 +30,7 @@ export interface User {
   email: string;
   role: 'ADMIN' | 'MANAGER' | 'TECHNICIEN';
   createdAt: Date;
+  isActive: boolean;
 }
 
 export interface AuthState {
@@ -37,4 +38,26 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique';
+export interface Fournisseur {
+  id: string;
+  nom: string;
+  contact: string;
+  email: string;
+  telephone: string;
+  adresse: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RapportMensuel {
+  mois: string;
+  annee: number;
+  totalEntrees: number;
+  totalSorties: number;
+  articlesAjoutes: number;
+  mouvementsParCategorie: Record<string, { entrees: number; sorties: number }>;
+  topArticles: Array<{ nom: string; quantite: number }>;
+  alertesStock: number;
+}
+
+export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'utilisateurs' | 'rapports';

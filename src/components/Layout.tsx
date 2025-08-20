@@ -9,7 +9,10 @@ import {
   History,
   AlertTriangle,
   LogOut,
-  Shield
+  Shield,
+  Truck,
+  Users,
+  FileText
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -61,6 +64,24 @@ export function Layout({
       label: 'Historique', 
       icon: History, 
       permission: 'view_historique' 
+    },
+    { 
+      id: 'fournisseurs' as ViewMode, 
+      label: 'Fournisseurs', 
+      icon: Truck, 
+      permission: 'manage_users' 
+    },
+    { 
+      id: 'utilisateurs' as ViewMode, 
+      label: 'Utilisateurs', 
+      icon: Users, 
+      permission: 'manage_users' 
+    },
+    { 
+      id: 'rapports' as ViewMode, 
+      label: 'Rapports', 
+      icon: FileText, 
+      permission: 'manage_users' 
     },
   ].filter(item => hasPermission(item.permission));
 

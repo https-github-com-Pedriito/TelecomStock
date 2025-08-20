@@ -8,12 +8,13 @@ import { Plus, Search, Filter, Download } from 'lucide-react';
 interface ArticlesProps {
   articles: Article[];
   hasPermission: (permission: string) => boolean;
+  fournisseurs?: Array<{ id: string; nom: string }>;
   onAddArticle: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'codeBarres'>) => Article;
   onUpdateArticle: (id: string, updates: Partial<Article>) => void;
   onDeleteArticle: (id: string) => void;
 }
 
-export function Articles({ articles, hasPermission, onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
+export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,6 +184,7 @@ export function Articles({ articles, hasPermission, onAddArticle, onUpdateArticl
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveArticle}
           article={editingArticle}
+          fournisseurs={fournisseurs}
         />
       )}
 

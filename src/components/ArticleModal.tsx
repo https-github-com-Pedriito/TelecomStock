@@ -7,6 +7,7 @@ interface ArticleModalProps {
   onClose: () => void;
   onSave: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'codeBarres'>) => void;
   article?: Article;
+  fournisseurs?: Array<{ id: string; nom: string }>;
 }
 
 const categories = [
@@ -27,7 +28,7 @@ const localisations = [
   'Magasin local',
 ];
 
-export function ArticleModal({ isOpen, onClose, onSave, article }: ArticleModalProps) {
+export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = [] }: ArticleModalProps) {
   const [formData, setFormData] = useState({
     nom: '',
     categorie: '',
@@ -120,14 +121,17 @@ export function ArticleModal({ isOpen, onClose, onSave, article }: ArticleModalP
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Fournisseur *
             </label>
-            <input
-              type="text"
+            <select
               value={formData.fournisseur}
               onChange={(e) => setFormData({ ...formData, fournisseur: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
-          </div>
+              <option value="">Sélectionner un fournisseur</option>
+              {fournisseurs.map(fournisseur => (
+                <option key={fournisseur.id} value={fournisseur.nom}>{fournisseur.nom}</option>
+              ))}
+            </select>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

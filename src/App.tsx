@@ -9,6 +9,9 @@ import { Articles } from './pages/Articles';
 import { Mouvements } from './pages/Mouvements';
 import { Scanner } from './pages/Scanner';
 import { Historique } from './pages/Historique';
+import { Fournisseurs } from './pages/Fournisseurs';
+import { Utilisateurs } from './pages/Utilisateurs';
+import { Rapports } from './pages/Rapports';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
@@ -17,20 +20,28 @@ function App() {
   const {
     articles,
     mouvements,
+    fournisseurs,
     addArticle,
     updateArticle,
     deleteArticle,
     addMouvement,
+    addFournisseur,
+    updateFournisseur,
+    deleteFournisseur,
     getArticleByCodeBarres,
     getArticlesWithAlerts,
     getMouvementsWithArticles,
   } = useStock();
 
   const {
+    users,
     currentUser,
     isAuthenticated,
     login,
     logout,
+    addUser,
+    updateUser,
+    deleteUser,
     hasPermission,
   } = useAuth();
 
@@ -106,6 +117,7 @@ function App() {
           <Articles
             articles={articles}
             hasPermission={hasPermission}
+            fournisseurs={fournisseurs}
             onAddArticle={addArticle}
             onUpdateArticle={updateArticle}
             onDeleteArticle={deleteArticle}
@@ -132,6 +144,33 @@ function App() {
           <Historique
             mouvements={mouvementsWithArticles}
             articles={articles}
+          />
+        ) : null;
+      case 'fournisseurs':
+        return hasPermission('manage_users') ? (
+          <Fournisseurs
+            fournisseurs={fournisseurs}
+            onAddFournisseur={addFournisseur}
+            onUpdateFournisseur={updateFournisseur}
+            onDeleteFournisseur={deleteFournisseur}
+          />
+        ) : null;
+      case 'utilisateurs':
+        return hasPermission('manage_users') ? (
+          <Utilisateurs
+            users={users}
+            currentUser={currentUser!}
+            onAddUser={addUser}
+            onUpdateUser={updateUser}
+            onDeleteUser={deleteUser}
+          />
+        ) : null;
+      case 'rapports':
+        return hasPermission('manage_users') ? (
+          <Rapports
+            articles={articles}
+            mouvements={mouvementsWithArticles}
+            articlesWithAlerts={getArticlesWithAlerts()}
           />
         ) : null;
       default:
