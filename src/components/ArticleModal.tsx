@@ -87,6 +87,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Nom de l'article */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Nom de l'article *
@@ -100,6 +101,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
             />
           </div>
 
+          {/* Catégorie */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Catégorie *
@@ -117,6 +119,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
             </select>
           </div>
 
+          {/* Fournisseur */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Fournisseur *
@@ -126,13 +129,15 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
               onChange={(e) => setFormData({ ...formData, fournisseur: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
-            />
+            >
               <option value="">Sélectionner un fournisseur</option>
               {fournisseurs.map(fournisseur => (
                 <option key={fournisseur.id} value={fournisseur.nom}>{fournisseur.nom}</option>
               ))}
             </select>
+          </div>
 
+          {/* Localisation */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Localisation *
@@ -150,6 +155,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
             </select>
           </div>
 
+          {/* Seuil minimum et Stock initial */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -179,6 +185,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
             </div>
           </div>
 
+          {/* Boutons d'action */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"

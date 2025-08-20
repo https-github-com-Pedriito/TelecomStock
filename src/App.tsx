@@ -82,6 +82,12 @@ function App() {
         return hasPermission('use_scanner');
       case 'historique':
         return hasPermission('view_historique');
+      case 'fournisseurs':
+        return hasPermission('manage_users');
+      case 'utilisateurs':
+        return hasPermission('manage_users');
+      case 'rapports':
+        return hasPermission('manage_users');
       default:
         return false;
     }
