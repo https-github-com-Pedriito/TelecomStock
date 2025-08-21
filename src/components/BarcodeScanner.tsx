@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { ScanLine, X, Flashlight, FlashlightOff } from 'lucide-react';
+import { ScanLine, X, Flashlight, FlashlightOff, Camera } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -12,6 +12,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [flashOn, setFlashOn] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [manualInput, setManualInput] = useState('');
+  const [error, setError] = useState<string>('');
 
   useEffect(() => {
     startCamera();
@@ -22,6 +23,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   const startCamera = async () => {
     try {
+      setError('');
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment',
@@ -37,6 +39,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       }
     } catch (error) {
       console.error('Erreur d\'accès à la caméra:', error);
+      setError('Impossible d\'accéder à la caméra. Utilisez la saisie manuelle.');
     }
   };
 
@@ -75,9 +78,14 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
   // Simulation de détection de code-barres (dans une vraie app, utilisez une librairie comme QuaggaJS)
   const handleVideoClick = () => {
-    // Pour la démo, on simule un scan en générant un code-barres aléatoire
-    const demoBarcode = `TEL${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    onScan(demoBarcode);
+    // Simuler un scan avec un code-barres existant pour la démo
+    const demoBarcodes = [
+      'TEL17358901234567890123',
+      'TEL17358901234567890124', 
+      'TEL17358901234567890125'
+    ];
+    const randomBarcode = demoBarcodes[Math.floor(Math.random() * demoBarcodes.length)];
+    onScan(randomBarcode);
   };
 
   return (
@@ -103,7 +111,15 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
       {/* Camera View */}
       <div className="flex-1 relative">
-        {isScanning ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center h-full text-white p-8">
+            <Camera className="w-16 h-16 mb-4 text-gray-400" />
+            <p className="text-center mb-4">{error}</p>
+            <p className="text-sm text-gray-300 text-center">
+              Utilisez la saisie manuelle ci-dessous pour continuer
+            </p>
+          </div>
+        ) : isScanning ? (
           <>
             <video
               ref={videoRef}
@@ -131,7 +147,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             {/* Instructions */}
             <div className="absolute bottom-20 left-0 right-0 text-center text-white px-4">
               <p className="text-lg mb-2">Pointez vers un code-barres</p>
-              <p className="text-sm opacity-75">Appuyez sur l'écran pour simuler un scan</p>
+              <p className="text-sm opacity-75">Appuyez sur l'écran pour simuler un scan (démo)</p>
             </div>
           </>
         ) : (
@@ -143,12 +159,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
       {/* Manual Input */}
       <div className="bg-gray-900 p-4">
+        <p className="text-white text-sm mb-2">Saisie manuelle :</p>
         <form onSubmit={handleManualSubmit} className="flex gap-2">
           <input
             type="text"
             value={manualInput}
             onChange={(e) => setManualInput(e.target.value)}
-            placeholder="Ou saisissez le code-barres manuellement"
+            placeholder="Saisissez le code-barres"
             className="flex-1 px-3 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-blue-500 focus:outline-none"
           />
           <button

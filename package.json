@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/uuid": "^10.0.0",
     "date-fns": "^4.1.0",
     "jsbarcode": "^3.12.1",
     "lucide-react": "^0.344.0",

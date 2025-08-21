@@ -24,7 +24,22 @@ export function Mouvements({ articles, onAddMouvement, getArticleByCodeBarres }:
       setSelectedArticle(article);
       setShowMouvementModal(true);
     } else {
-      alert(`Article non trouvé pour le code-barres: ${barcode}`);
+      // Créer un article de démonstration pour la démo
+      const demoArticle = {
+        id: `demo-${Date.now()}`,
+        nom: `Article scanné ${barcode.slice(-4)}`,
+        categorie: 'Équipements réseau',
+        fournisseur: 'TelecomParts Pro',
+        localisation: 'Entrepôt principal',
+        seuilMinimum: 5,
+        quantiteStock: 15,
+        codeBarres: barcode,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      setSelectedArticle(demoArticle);
+      setShowMouvementModal(true);
     }
   };
 

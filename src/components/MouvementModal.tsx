@@ -57,6 +57,12 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type }: Mouve
     e.preventDefault();
     if (!article) return;
 
+    // Pour les articles de démonstration, on simule juste l'enregistrement
+    if (article.id.startsWith('demo-')) {
+      alert(`Mouvement ${type} simulé pour l'article: ${article.nom}`);
+      onClose();
+      return;
+    }
     onSave({
       articleId: article.id,
       type,
