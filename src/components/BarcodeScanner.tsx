@@ -10,6 +10,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [flashOn, setFlashOn] = useState(false);
+  const [torchSupported, setTorchSupported] = useState(true);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [manualInput, setManualInput] = useState('');
   const [error, setError] = useState<string>('');
@@ -33,6 +34,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       });
       
       setStream(mediaStream);
+      const track = mediaStream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+      setTorchSupported(Boolean(capabilities.torch));
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         setIsScanning(true);
@@ -65,6 +69,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         } catch (error) {
           console.error('Erreur flash:', error);
         }
+      } else {
+        setTorchSupported(false);
       }
     }
   };
@@ -94,12 +100,22 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       <div className="flex items-center justify-between p-4 bg-black text-white">
         <h2 className="text-lg font-semibold">Scanner code-barres</h2>
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleFlash}
-            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-          >
-            {flashOn ? <FlashlightOff size={20} /> : <Flashlight size={20} />}
-          </button>
+          <div className="flex flex-col items-center">
+            <button
+              onClick={toggleFlash}
+              disabled={!torchSupported}
+              className={`p-2 rounded-lg bg-gray-800 transition-colors ${
+                torchSupported ? 'hover:bg-gray-700' : 'opacity-50 cursor-not-allowed'
+              }`}
+            >
+              {flashOn ? <FlashlightOff size={20} /> : <Flashlight size={20} />}
+            </button>
+            {!torchSupported && (
+              <span className="text-xs text-red-400 mt-1">
+                Flash non supporté
+              </span>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
