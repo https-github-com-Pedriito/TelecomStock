@@ -13,6 +13,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [manualInput, setManualInput] = useState('');
   const [error, setError] = useState<string>('');
+  const detectorRef = useRef<BarcodeDetector | null>(null);
+  const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
     startCamera();
@@ -24,6 +26,12 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const startCamera = async () => {
     try {
       setError('');
+
+      if (!('BarcodeDetector' in window)) {
+        setError("Le scan n'est pas supporté sur ce navigateur. Utilisez la saisie manuelle.");
+        return;
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment',
@@ -31,19 +39,49 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           height: { ideal: 1080 },
         },
       });
-      
+
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        await videoRef.current.play();
+
+        detectorRef.current = new BarcodeDetector({ formats: ['code_128', 'ean_13', 'ean_8'] });
         setIsScanning(true);
+        scanFrame();
       }
     } catch (error) {
-      console.error('Erreur d\'accès à la caméra:', error);
-      setError('Impossible d\'accéder à la caméra. Utilisez la saisie manuelle.');
+      console.error("Erreur d'accès à la caméra:", error);
+      setError("Impossible d'accéder à la caméra. Utilisez la saisie manuelle.");
     }
   };
 
+  const scanFrame = async () => {
+    if (!detectorRef.current || !videoRef.current) return;
+
+    try {
+      const barcodes = await detectorRef.current.detect(videoRef.current);
+      if (barcodes.length > 0) {
+        onScan(barcodes[0].rawValue);
+        stopCamera();
+        return;
+      }
+    } catch (err) {
+      console.error('Erreur de scan:', err);
+    }
+
+    frameRef.current = requestAnimationFrame(scanFrame);
+  };
+
   const stopCamera = () => {
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+
+    if (detectorRef.current) {
+      detectorRef.current = null;
+    }
+
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
@@ -74,18 +112,6 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     if (manualInput.trim()) {
       onScan(manualInput.trim());
     }
-  };
-
-  // Simulation de détection de code-barres (dans une vraie app, utilisez une librairie comme QuaggaJS)
-  const handleVideoClick = () => {
-    // Simuler un scan avec un code-barres existant pour la démo
-    const demoBarcodes = [
-      'TEL17358901234567890123',
-      'TEL17358901234567890124', 
-      'TEL17358901234567890125'
-    ];
-    const randomBarcode = demoBarcodes[Math.floor(Math.random() * demoBarcodes.length)];
-    onScan(randomBarcode);
   };
 
   return (
@@ -125,8 +151,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
               ref={videoRef}
               autoPlay
               playsInline
-              className="w-full h-full object-cover cursor-crosshair"
-              onClick={handleVideoClick}
+              className="w-full h-full object-cover"
             />
             
             {/* Scanner Overlay */}
@@ -146,8 +171,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
             {/* Instructions */}
             <div className="absolute bottom-20 left-0 right-0 text-center text-white px-4">
-              <p className="text-lg mb-2">Pointez vers un code-barres</p>
-              <p className="text-sm opacity-75">Appuyez sur l'écran pour simuler un scan (démo)</p>
+              <p className="text-lg">Pointez vers un code-barres</p>
             </div>
           </>
         ) : (
