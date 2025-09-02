@@ -73,6 +73,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     e.preventDefault();
     if (manualInput.trim()) {
       onScan(manualInput.trim());
+      setManualInput('');
     }
   };
 
