@@ -36,6 +36,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     localisation: '',
     seuilMinimum: 0,
     quantiteStock: 0,
+    codeBarres: '',  // Ajout du champ codeBarres
   });
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         localisation: article.localisation,
         seuilMinimum: article.seuilMinimum,
         quantiteStock: article.quantiteStock,
+        codeBarres: article.codeBarres,
       });
     } else {
       setFormData({
@@ -56,13 +58,30 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         localisation: '',
         seuilMinimum: 0,
         quantiteStock: 0,
+        codeBarres: barcodeFromURL || '',
       });
     }
   }, [article]);
 
+  // Récupérer le code-barres de l'URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const barcodeFromURL = urlParams.get('barcode');
+
+  // Ajouter le code-barres dans le formulaire
+  useEffect(() => {
+    if (barcodeFromURL && !article) {
+      setFormData(prev => ({
+        ...prev,
+        codeBarres: barcodeFromURL
+      }));
+    }
+  }, [barcodeFromURL, article]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    // Ne pas inclure le code-barres dans les données sauvegardées
+    const { codeBarres, ...articleData } = formData;
+    onSave(articleData);
     onClose();
   };
 
@@ -87,6 +106,21 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Code-barres */}
+          {barcodeFromURL && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Code-barres
+              </label>
+              <input
+                type="text"
+                value={barcodeFromURL}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                disabled
+              />
+            </div>
+          )}
+
           {/* Nom de l'article */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

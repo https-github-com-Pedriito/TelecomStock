@@ -18,39 +18,24 @@ interface MouvementModalProps {
   type: 'ENTREE' | 'SORTIE';
 }
 
-const projets = [
-  'Installation Fibre Zone A',
-  'Maintenance Réseau B',
-  'Upgrade 5G Site C',
-  'Intervention Urgence',
-  'Formation équipes',
-];
-
-const techniciens = [
-  'Pierre Martin',
-  'Marie Dubois',
-  'Jean Lefebvre',
-  'Sophie Bernard',
-  'Luc Moreau',
-];
+// Interface simplifiée pour le scan rapide, pas besoin de projets ou techniciens
 
 export function MouvementModal({ isOpen, onClose, onSave, article, type }: MouvementModalProps) {
   const [formData, setFormData] = useState({
     quantite: 1,
-    utilisateur: 'Utilisateur actuel', // TODO: Récupérer de l'authentification
-    projet: '',
-    technicien: '',
+    utilisateur: 'Utilisateur actuel',
     commentaire: '',
   });
+
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     setFormData({
       quantite: 1,
       utilisateur: 'Utilisateur actuel',
-      projet: '',
-      technicien: '',
       commentaire: '',
     });
+    setShowDetails(false);
   }, [article, type]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -108,75 +93,78 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type }: Mouve
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Contrôle de quantité avec boutons + et - */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Quantité *
               </label>
-              <input
-                type="number"
-                min="1"
-                max={type === 'SORTIE' ? article.quantiteStock : undefined}
-                value={formData.quantite}
-                onChange={(e) => setFormData({ ...formData, quantite: parseInt(e.target.value) || 1 })}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  !isStockSuffisant ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
-                required
-              />
-              {!isStockSuffisant && (
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, quantite: Math.max(1, prev.quantite - 1) }))}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xl font-bold"
+                >
+                  -
+                </button>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    min="1"
+                    max={type === 'SORTIE' ? article.quantiteStock : undefined}
+                    value={formData.quantite}
+                    onChange={(e) => setFormData(prev => ({ ...prev, quantite: parseInt(e.target.value) || 1 }))}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-xl ${
+                      !isStockSufficient ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                    required
+                  />
+                  <p className="text-sm text-gray-500 text-center mt-1">
+                    Stock actuel: {article.quantiteStock}
+                    {type === 'ENTREE' && ` → ${article.quantiteStock + formData.quantite}`}
+                    {type === 'SORTIE' && ` → ${article.quantiteStock - formData.quantite}`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, quantite: prev.quantite + 1 }))}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xl font-bold"
+                >
+                  +
+                </button>
+              </div>
+              {!isStockSufficient && (
                 <p className="text-sm text-red-600 mt-1">Stock insuffisant</p>
               )}
             </div>
 
-            {type === 'SORTIE' && (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Projet
-                  </label>
-                  <select
-                    value={formData.projet}
-                    onChange={(e) => setFormData({ ...formData, projet: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Sélectionner un projet</option>
-                    {projets.map(projet => (
-                      <option key={projet} value={projet}>{projet}</option>
-                    ))}
-                  </select>
-                </div>
+            {/* Bouton pour afficher plus de détails */}
+            <button
+              type="button"
+              onClick={() => setShowDetails(!showDetails)}
+              className="w-full px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              {showDetails ? 'Masquer les détails' : 'Ajouter des détails'}
+            </button>
 
+            {/* Section détails */}
+            {showDetails && (
+              <div className="space-y-4 pt-4 border-t">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Technicien
+                    Commentaire
                   </label>
-                  <select
-                    value={formData.technicien}
-                    onChange={(e) => setFormData({ ...formData, technicien: e.target.value })}
+                  <textarea
+                    value={formData.commentaire}
+                    onChange={(e) => setFormData(prev => ({ ...prev, commentaire: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Sélectionner un technicien</option>
-                    {techniciens.map(tech => (
-                      <option key={tech} value={tech}>{tech}</option>
-                    ))}
-                  </select>
+                    rows={3}
+                    placeholder="Commentaire optionnel..."
+                  />
                 </div>
-              </>
+              </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Commentaire
-              </label>
-              <textarea
-                value={formData.commentaire}
-                onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                rows={3}
-                placeholder="Commentaire optionnel..."
-              />
-            </div>
-
+            {/* Boutons d'action */}
             <div className="flex gap-3 pt-4">
               <button
                 type="button"
@@ -189,12 +177,12 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type }: Mouve
                 type="submit"
                 disabled={!isStockSufficient}
                 className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
-                  isStockSuffisant 
+                  isStockSufficient 
                     ? 'bg-blue-600 hover:bg-blue-700'
                     : 'bg-gray-400 cursor-not-allowed'
                 }`}
               >
-                Confirmer
+                Confirmer le {type === 'ENTREE' ? 'dépôt' : 'retrait'}
               </button>
             </div>
           </form>

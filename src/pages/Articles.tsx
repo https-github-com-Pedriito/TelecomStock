@@ -22,6 +22,19 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
   const [labelToPrint, setLabelToPrint] = useState<Article | null>(null);
 
   const canManageArticles = hasPermission('manage_articles');
+  
+  // Récupération des paramètres d'URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const shouldCreateArticle = urlParams.get('create') === 'true';
+  const barcodeFromURL = urlParams.get('barcode');
+
+  // Ouvrir automatiquement le modal si on vient du scanner
+  React.useEffect(() => {
+    if (shouldCreateArticle && barcodeFromURL && canManageArticles) {
+      setEditingArticle(undefined);
+      setIsModalOpen(true);
+    }
+  }, [shouldCreateArticle, barcodeFromURL, canManageArticles]);
 
   const categories = Array.from(new Set(articles.map(a => a.categorie))).sort();
 
