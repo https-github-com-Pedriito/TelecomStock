@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { User } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -101,8 +101,8 @@ export function useAuth() {
         'manage_inventory'
       ],
       TECHNICIEN: [
-        'use_scanner',
-        'manage_mouvements'
+  'use_scanner',
+  'manage_mouvements'
       ]
     };
 

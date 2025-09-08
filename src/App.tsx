@@ -12,6 +12,7 @@ import { Historique } from './pages/Historique';
 import { Fournisseurs } from './pages/Fournisseurs';
 import { Utilisateurs } from './pages/Utilisateurs';
 import { Rapports } from './pages/Rapports';
+import { Inventory } from './pages/Inventory';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
@@ -25,6 +26,8 @@ function App() {
     updateArticle,
     deleteArticle,
     addMouvement,
+    addInventoryEntry,
+    finalizeInventoryReport,
     addFournisseur,
     updateFournisseur,
     deleteFournisseur,
@@ -88,6 +91,8 @@ function App() {
         return hasPermission('manage_users');
       case 'rapports':
         return hasPermission('manage_users');
+      case 'inventory':
+        return hasPermission('view_inventory');
       default:
         return false;
     }
@@ -133,6 +138,8 @@ function App() {
         return hasPermission('view_mouvements') ? (
           <Mouvements
             articles={articles}
+            mouvements={mouvements}
+            currentUser={currentUser!}
             onAddMouvement={addMouvement}
             getArticleByCodeBarres={getArticleByCodeBarres}
           />
@@ -143,6 +150,8 @@ function App() {
             articles={articles}
             getArticleByCodeBarres={getArticleByCodeBarres}
             onAddMouvement={addMouvement}
+            onAddArticle={addArticle}
+            fournisseurs={fournisseurs}
           />
         ) : null;
       case 'historique':
@@ -177,6 +186,16 @@ function App() {
             articles={articles}
             mouvements={mouvementsWithArticles}
             articlesWithAlerts={getArticlesWithAlerts()}
+          />
+        ) : null;
+      case 'inventory':
+        return hasPermission('view_inventory') ? (
+          <Inventory
+            articles={articles}
+            currentUser={currentUser}
+            addInventoryEntry={addInventoryEntry}
+            finalizeInventoryReport={finalizeInventoryReport}
+            getArticleByCodeBarres={getArticleByCodeBarres}
           />
         ) : null;
       default:

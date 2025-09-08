@@ -9,7 +9,7 @@ interface ArticlesProps {
   articles: Article[];
   hasPermission: (permission: string) => boolean;
   fournisseurs?: Array<{ id: string; nom: string }>;
-  onAddArticle: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'codeBarres'>) => Article;
+  onAddArticle: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => Article;
   onUpdateArticle: (id: string, updates: Partial<Article>) => void;
   onDeleteArticle: (id: string) => void;
 }
@@ -46,7 +46,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     return matchesSearch && matchesCategory;
   });
 
-  const handleSaveArticle = (articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'codeBarres'>) => {
+  const handleSaveArticle = (articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingArticle) {
       onUpdateArticle(editingArticle.id, articleData);
     } else {

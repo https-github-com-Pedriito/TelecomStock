@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { Article, Mouvement, Fournisseur } from '../types';
+import { InventoryEntry, InventoryReport } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 const defaultFournisseurs: Fournisseur[] = [
@@ -40,12 +41,27 @@ export function useStock() {
   const [articles, setArticles] = useLocalStorage<Article[]>('articles', []);
   const [mouvements, setMouvements] = useLocalStorage<Mouvement[]>('mouvements', []);
   const [fournisseurs, setFournisseurs] = useLocalStorage<Fournisseur[]>('fournisseurs', defaultFournisseurs);
+  const [inventoryEntries, setInventoryEntries] = useLocalStorage<InventoryEntry[]>('inventoryEntries', []);
+  const [inventoryReports, setInventoryReports] = useLocalStorage<InventoryReport[]>('inventoryReports', []);
 
-  const addArticle = useCallback((articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'codeBarres'>) => {
+  const addArticle = useCallback((articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // If a codeBarres is provided, first check if an article with the same barcode already exists
+    // to prevent duplicate entries. If it exists, return the existing article instead of creating a new one.
+    const providedCode = articleData.codeBarres && articleData.codeBarres.trim() !== '' ? articleData.codeBarres.trim() : undefined;
+    if (providedCode) {
+      const existing = articles.find(a => a.codeBarres === providedCode);
+      if (existing) {
+        // Return the existing article — caller can choose how to proceed (edit, use it, show warning, etc.)
+        return existing;
+      }
+    }
+
+    // Otherwise create a new article (use provided codeBarres if present, else generate one)
+    const idFromCode = providedCode;
     const newArticle: Article = {
       ...articleData,
-      id: uuidv4(),
-      codeBarres: `TEL${Date.now()}${Math.floor(Math.random() * 1000)}`,
+      id: idFromCode || uuidv4(),
+      codeBarres: providedCode || `TEL${Date.now()}${Math.floor(Math.random() * 1000)}`,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -111,6 +127,44 @@ export function useStock() {
     return newFournisseur;
   }, [setFournisseurs]);
 
+  const addInventoryEntry = useCallback((entryData: Omit<InventoryEntry, 'id' | 'dateHeure'>) => {
+    const newEntry: InventoryEntry = {
+      ...entryData,
+      id: uuidv4(),
+      dateHeure: new Date(),
+    };
+    setInventoryEntries(prev => [...prev, newEntry]);
+    return newEntry;
+  }, [setInventoryEntries]);
+
+  const finalizeInventoryReport = useCallback((managerId: string, mois: number, annee: number) => {
+    // Aggregate entries for the given month
+    const entriesForMonth = inventoryEntries.filter(e => {
+      const date = new Date(e.dateHeure);
+      return date.getMonth() + 1 === mois && date.getFullYear() === annee;
+    });
+    const map: Record<string, { totalCompte: number; parUtilisateur: Array<{ utilisateurId: string; quantite: number }> }> = {};
+    entriesForMonth.forEach(e => {
+      if (!map[e.articleId]) map[e.articleId] = { totalCompte: 0, parUtilisateur: [] };
+      map[e.articleId].totalCompte += e.quantiteCompte;
+      map[e.articleId].parUtilisateur.push({ utilisateurId: e.utilisateurId, quantite: e.quantiteCompte });
+    });
+
+    const items = Object.keys(map).map(articleId => ({ articleId, totalCompte: map[articleId].totalCompte, parUtilisateur: map[articleId].parUtilisateur }));
+
+    const report: InventoryReport = {
+      id: uuidv4(),
+      mois,
+      annee,
+      items,
+      createdBy: managerId,
+      createdAt: new Date(),
+    };
+
+    setInventoryReports(prev => [...prev, report]);
+    return report;
+  }, [inventoryEntries, setInventoryReports]);
+
   const updateFournisseur = useCallback((id: string, updates: Partial<Fournisseur>) => {
     setFournisseurs(prev => prev.map(fournisseur => 
       fournisseur.id === id ? { ...fournisseur, ...updates, updatedAt: new Date() } : fournisseur
@@ -125,10 +179,14 @@ export function useStock() {
     articles,
     mouvements,
     fournisseurs,
+  inventoryEntries,
+  inventoryReports,
     addArticle,
     updateArticle,
     deleteArticle,
     addMouvement,
+  addInventoryEntry,
+  finalizeInventoryReport,
     addFournisseur,
     updateFournisseur,
     deleteFournisseur,

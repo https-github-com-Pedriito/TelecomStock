@@ -60,4 +60,22 @@ export interface RapportMensuel {
   alertesStock: number;
 }
 
-export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'utilisateurs' | 'rapports';
+export interface InventoryEntry {
+  id: string;
+  articleId: string;
+  quantiteCompte: number;
+  utilisateurId: string;
+  utilisateurRole: 'MANAGER' | 'TECHNICIEN' | string;
+  dateHeure: Date;
+}
+
+export interface InventoryReport {
+  id: string;
+  mois: number; // 1-12
+  annee: number;
+  items: Array<{ articleId: string; totalCompte: number; parUtilisateur: Array<{ utilisateurId: string; quantite: number }>}>
+  createdBy: string; // manager id
+  createdAt: Date;
+}
+
+export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'utilisateurs' | 'rapports' | 'inventory';

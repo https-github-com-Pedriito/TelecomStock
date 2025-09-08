@@ -5,7 +5,8 @@ import { X, Package } from 'lucide-react';
 interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt' | 'codeBarres'>) => void;
+  // Now include codeBarres in the payload so the hook can use it as the article id when present.
+  onSave: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => void;
   article?: Article;
   fournisseurs?: Array<{ id: string; nom: string }>;
 }
@@ -79,9 +80,16 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Ne pas inclure le code-barres dans les données sauvegardées
-    const { codeBarres, ...articleData } = formData;
-    onSave(articleData);
+    // Include codeBarres in the saved payload so it can be used as the unique id.
+    onSave({
+      nom: formData.nom,
+      categorie: formData.categorie,
+      fournisseur: formData.fournisseur,
+      localisation: formData.localisation,
+      seuilMinimum: formData.seuilMinimum,
+      quantiteStock: formData.quantiteStock,
+      codeBarres: formData.codeBarres,
+    });
     onClose();
   };
 

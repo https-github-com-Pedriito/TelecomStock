@@ -83,6 +83,12 @@ export function Layout({
       icon: FileText, 
       permission: 'manage_users' 
     },
+    { 
+      id: 'inventory' as ViewMode, 
+      label: 'Inventaire', 
+      icon: FileText, 
+      permission: 'view_inventory' 
+    },
   ].filter(item => hasPermission(item.permission));
 
   const getRoleBadgeColor = (role: string) => {

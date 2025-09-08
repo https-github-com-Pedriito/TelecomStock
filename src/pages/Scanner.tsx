@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Article, Mouvement } from '../types';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { MouvementModal } from '../components/MouvementModal';
@@ -8,9 +8,11 @@ interface ScannerProps {
   articles: Article[];
   getArticleByCodeBarres: (codeBarres: string) => Article | undefined;
   onAddMouvement: (mouvement: Omit<Mouvement, 'id' | 'dateHeure'>) => Mouvement;
+  onAddArticle: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => Article;
+  fournisseurs: Array<{ id: string; nom: string; }>;
 }
 
-export function Scanner({ articles, getArticleByCodeBarres, onAddMouvement }: ScannerProps) {
+export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [] }: ScannerProps) {
   const [showScanner, setShowScanner] = useState(false);
   const [showMouvementModal, setShowMouvementModal] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
@@ -25,25 +27,48 @@ export function Scanner({ articles, getArticleByCodeBarres, onAddMouvement }: Sc
     setShowScanner(false);
     const article = getArticleByCodeBarres(barcode);
     
-    if (article) {
-      setSelectedArticle(article);
-      setShowMouvementModal(true);
-      setScanResult({
-        article,
-        barcode,
-        timestamp: new Date(),
-      });
-    } else {
-      // Redirection vers la page Articles avec le code-barres
-      window.location.href = `/articles?create=true&barcode=${barcode}`;
-    }
+    setSelectedArticle(article || {
+      id: 'new',
+      nom: '',
+      categorie: '',
+      fournisseur: '',
+      localisation: '',
+      seuilMinimum: 0,
+      quantiteStock: 0,
+      codeBarres: barcode,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    setShowMouvementModal(true);
+    setScanResult({
+      article: article || null,
+      barcode,
+      timestamp: new Date(),
+    });
   };
 
-  const handleSaveMouvement = (mouvementData: Omit<Mouvement, 'id' | 'dateHeure'>) => {
-    onAddMouvement(mouvementData);
+  const handleSave = (data: any) => {
+    if (data.nom) {
+      // Création d'un nouvel article
+      const nouvelArticle = onAddArticle({
+        ...data,
+        codeBarres: scanResult?.barcode || ''
+      });
+      setSelectedArticle(nouvelArticle);
+      alert('Article créé avec succès !');
+    } else if (data.articleId && data.quantite) {
+      // Mouvement de stock
+      onAddMouvement({
+        articleId: data.articleId,
+        quantite: data.quantite,
+        type: data.type || 'ENTREE',
+        utilisateur: data.utilisateur || 'Utilisateur actuel',
+        commentaire: data.commentaire
+      });
+      alert('Mouvement enregistré avec succès !');
+    }
     setSelectedArticle(undefined);
     setShowMouvementModal(false);
-    alert('Mouvement enregistré avec succès !');
   };
 
   const startScanForType = (type: 'ENTREE' | 'SORTIE') => {
@@ -190,9 +215,10 @@ export function Scanner({ articles, getArticleByCodeBarres, onAddMouvement }: Sc
           setShowMouvementModal(false);
           setSelectedArticle(undefined);
         }}
-        onSave={handleSaveMouvement}
+        onSave={handleSave}
         article={selectedArticle}
         type={mouvementType}
+        fournisseurs={fournisseurs}
       />
     </div>
   );
