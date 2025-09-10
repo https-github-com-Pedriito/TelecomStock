@@ -10,7 +10,7 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: ArticleCardProps) {
-  const isLowStock = article.quantiteStock <= article.seuilMinimum;
+  const isLowStock = article.quantite_stock <= article.seuil_minimum;
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
@@ -55,7 +55,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
           <Package size={16} />
           <span>Stock: </span>
           <span className={`font-semibold ${isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
-            {article.quantiteStock}
+            {article.quantite_stock}
           </span>
           {isLowStock && (
             <div className="flex items-center gap-1 text-orange-600">
@@ -73,7 +73,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">Fournisseur: {article.fournisseur}</span>
           <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-            {article.codeBarres}
+            {article.code_barres}
           </div>
         </div>
       </div>

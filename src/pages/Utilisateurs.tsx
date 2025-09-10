@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '../types';
 import { UserModal } from '../components/UserModal';
 import { Plus, Search, Edit2, Trash2, Users, Shield, CheckCircle, XCircle } from 'lucide-react';
@@ -8,15 +8,34 @@ import { fr } from 'date-fns/locale';
 interface UtilisateursProps {
   users: User[];
   currentUser: User;
-  onAddUser: (user: Omit<User, 'id' | 'createdAt'>) => User;
-  onUpdateUser: (id: string, updates: Partial<User>) => void;
-  onDeleteUser: (id: string) => void;
+  onAddUser: (user: Omit<User, 'id' | 'created_at' | 'updated_at'>) => Promise<User>;
+  onUpdateUser: (id: string, updates: Partial<User>) => Promise<void>;
+  onDeleteUser: (id: string) => Promise<void>;
+  onRefreshUsers?: () => Promise<void>; 
 }
 
-export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDeleteUser }: UtilisateursProps) {
+export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDeleteUser, onRefreshUsers }: UtilisateursProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  // Fonction pour afficher une notification
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    // Masquer automatiquement après 5 secondes
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+  // Recharger les utilisateurs à chaque visite de la page
+  useEffect(() => {
+    if (onRefreshUsers) {
+      onRefreshUsers();
+    }
+  }, []); // Se déclenche uniquement au montage du composant
 
   const filteredUsers = users.filter(user =>
     user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -24,13 +43,28 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSaveUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
-    if (editingUser) {
-      onUpdateUser(editingUser.id, userData);
-    } else {
-      onAddUser(userData);
+  const handleSaveUser = async (userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      if (editingUser) {
+        await onUpdateUser(editingUser.id, userData);
+        const hasPasswordChange = 'password' in userData && userData.password;
+        if (hasPasswordChange) {
+          showNotification('success', `Utilisateur ${userData.prenom} ${userData.nom} modifié avec succès. Le mot de passe a été mis à jour.`);
+        } else {
+          showNotification('success', `Utilisateur ${userData.prenom} ${userData.nom} modifié avec succès.`);
+        }
+      } else {
+        await onAddUser(userData);
+        showNotification('success', `Utilisateur ${userData.prenom} ${userData.nom} créé avec succès.`);
+      }
+      setEditingUser(undefined);
+      setIsModalOpen(false);
+    } catch (error) {
+      const operation = editingUser ? 'modification' : 'création';
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+      showNotification('error', `Erreur lors de la ${operation} de l'utilisateur : ${errorMessage}`);
+      console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
     }
-    setEditingUser(undefined);
   };
 
   const handleEditUser = (user: User) => {
@@ -38,38 +72,55 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = async (id: string) => {
     if (id === currentUser.id) {
-      alert('Vous ne pouvez pas supprimer votre propre compte');
+      showNotification('error', 'Vous ne pouvez pas supprimer votre propre compte');
       return;
     }
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-      onDeleteUser(id);
+    
+    const userToDelete = users.find(u => u.id === id);
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userToDelete?.prenom} ${userToDelete?.nom} ?`)) {
+      try {
+        await onDeleteUser(id);
+        showNotification('success', `Utilisateur ${userToDelete?.prenom} ${userToDelete?.nom} supprimé avec succès.`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+        showNotification('error', `Erreur lors de la suppression de l'utilisateur : ${errorMessage}`);
+        console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+      }
     }
   };
 
-  const toggleUserStatus = (user: User) => {
+    const toggleUserActive = async (user: User) => {
     if (user.id === currentUser.id) {
-      alert('Vous ne pouvez pas désactiver votre propre compte');
+      showNotification('error', 'Vous ne pouvez pas désactiver votre propre compte');
       return;
     }
-    onUpdateUser(user.id, { isActive: !user.isActive });
+    try {
+      await onUpdateUser(user.id, { is_active: !user.is_active });
+      const action = user.is_active ? 'désactivé' : 'activé';
+      showNotification('success', `Utilisateur ${user.prenom} ${user.nom} ${action} avec succès.`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+      showNotification('error', `Erreur lors de la modification du statut de l'utilisateur : ${errorMessage}`);
+      console.error('Erreur lors du changement de statut:', error);
+    }
   };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'bg-red-100 text-red-800';
-      case 'MANAGER': return 'bg-blue-100 text-blue-800';
-      case 'TECHNICIEN': return 'bg-green-100 text-green-800';
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'manager': return 'bg-blue-100 text-blue-800';
+      case 'technicien': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getRoleLabel = (role: string) => {
     switch (role) {
-      case 'ADMIN': return 'Administrateur';
-      case 'MANAGER': return 'Manager';
-      case 'TECHNICIEN': return 'Technicien';
+      case 'admin': return 'Administrateur';
+      case 'manager': return 'Manager';
+      case 'technicien': return 'Technicien';
       default: return role;
     }
   };
@@ -151,20 +202,20 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
                     </td>
                     <td className="py-3 px-4">
                       <button
-                        onClick={() => toggleUserStatus(user)}
+                        onClick={() => toggleUserActive(user)}
                         disabled={user.id === currentUser.id}
                         className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          user.isActive
+                          user.is_active
                             ? 'bg-green-100 text-green-800 hover:bg-green-200'
                             : 'bg-red-100 text-red-800 hover:bg-red-200'
                         } ${user.id === currentUser.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                       >
-                        {user.isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                        {user.isActive ? 'Actif' : 'Inactif'}
+                        {user.is_active ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                        {user.is_active ? 'Actif' : 'Inactif'}
                       </button>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">
-                      {format(new Date(user.createdAt), 'dd/MM/yyyy', { locale: fr })}
+                      {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: fr })}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
@@ -204,6 +255,34 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
         onSave={handleSaveUser}
         user={editingUser}
       />
+
+      {/* Notification */}
+      {notification && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md ${
+          notification.type === 'success' 
+            ? 'bg-green-100 border border-green-400 text-green-700' 
+            : 'bg-red-100 border border-red-400 text-red-700'
+        }`}>
+          <div className="flex items-start gap-2">
+            <div className="flex-shrink-0">
+              {notification.type === 'success' ? (
+                <CheckCircle size={20} className="text-green-600" />
+              ) : (
+                <XCircle size={20} className="text-red-600" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+            <button
+              onClick={() => setNotification(null)}
+              className="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600"
+            >
+              <XCircle size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

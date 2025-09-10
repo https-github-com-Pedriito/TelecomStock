@@ -21,7 +21,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   scannerRef.current = new Html5Qrcode("reader");
 
         await scannerRef.current.start(
-          { facingMode: "environment" }, // caméra arrière
+          { facingMode: "environment" }, 
           {
             fps: 30,
             qrbox: { width: 800, height: 250 },

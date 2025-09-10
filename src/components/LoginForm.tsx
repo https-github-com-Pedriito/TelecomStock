@@ -1,24 +1,35 @@
 import React, { useState } from 'react';
 import { User, LogIn, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 interface LoginFormProps {
-  onLogin: (email: string, password: string) => void;
-  error?: string;
+  onLogin: (email: string, password: string) => Promise<void>;
+  error: string | null;
 }
 
 export function LoginForm({ onLogin, error }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { loading: isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    console.log('Form submitted');
+    
+    if (!email || !password) {
+      console.log('Email or password missing');
+      return;
+    }
+    
     try {
+      console.log('LoginForm: Attempting login with email:', email);
+      console.log('LoginForm: Calling onLogin...');
       await onLogin(email, password);
-    } finally {
-      setIsLoading(false);
+      console.log('LoginForm: onLogin completed');
+    } catch (err) {
+      console.error('LoginForm: Login error:', err);
+      // L'erreur est déjà gérée via le prop error
     }
   };
 

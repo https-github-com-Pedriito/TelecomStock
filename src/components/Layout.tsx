@@ -1,6 +1,5 @@
 import React from 'react';
 import { ViewMode } from '../types';
-import { User } from '../types';
 import { 
   LayoutDashboard, 
   Package, 
@@ -19,7 +18,12 @@ interface LayoutProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
   alertsCount: number;
-  currentUser: User;
+  currentUser: {
+    id: string;
+    nom: string;
+    email: string;
+    role: 'admin' | 'manager' | 'technicien';
+  };
   onLogout: () => void;
   hasPermission: (permission: string) => boolean;
   children: React.ReactNode;

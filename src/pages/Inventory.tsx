@@ -144,7 +144,7 @@ export function Inventory({ articles, currentUser, users, addInventoryEntry, fin
   };
 
   const finalize = () => {
-    if (currentUser.role !== 'MANAGER' && currentUser.role !== 'ADMIN') {
+    if (currentUser.role !== 'manager' && currentUser.role !== 'admin') {
       return alert("Seul le manager peut finaliser l'inventaire");
     }
     const now = new Date();
@@ -188,7 +188,7 @@ export function Inventory({ articles, currentUser, users, addInventoryEntry, fin
             <ScanLine size={16} />
             Ouvrir le scanner
           </button>
-          {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
+          {(currentUser.role === 'manager' || currentUser.role === 'admin') && (
             <button 
               onClick={finalize} 
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"

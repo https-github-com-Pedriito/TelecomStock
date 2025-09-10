@@ -4,17 +4,16 @@ export interface Article {
   categorie: string;
   fournisseur: string;
   localisation: string;
-  seuilMinimum: number;
-  quantiteStock: number;
-  codeBarres: string;
-  createdAt: Date;
-  updatedAt: Date;
+  seuil_minimum: number;
+  quantite_stock: number;
+  code_barres: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface Mouvement {
   id: string;
-  articleId: string;
-  article?: Article;
+  article: Article;  // L'API retourne toujours l'objet article complet
   quantite: number;
   type: 'ENTREE' | 'SORTIE';
   utilisateur: string;
@@ -22,15 +21,60 @@ export interface Mouvement {
   technicien?: string;
   dateHeure: Date;
   commentaire?: string;
+  created_at: Date;
 }
 
-export interface User {
+// Type pour créer un mouvement (utilisé dans le frontend)
+export interface CreateMouvementData {
+  article_id: string;  // Pour l'envoi à l'API
+  quantite: number;
+  type: 'ENTREE' | 'SORTIE';
+  utilisateur: string;
+  projet?: string;
+  technicien?: string;
+  commentaire?: string;
+}
+
+export interface UserProfile {
   id: string;
   nom: string;
+  prenom: string;
   email: string;
-  role: 'ADMIN' | 'MANAGER' | 'TECHNICIEN';
+  role: 'admin' | 'manager' | 'technicien';
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+}
+
+// This is what we get from the API
+export interface User {
+  id: string;
+  email: string;
+  nom: string;
+  prenom: string;
+  role: 'admin' | 'manager' | 'technicien';
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+}
+
+export type Fournisseur = {
+  id: string;
+  nom: string;
+  adresse?: string;
+  telephone?: string;
+  email?: string;
   createdAt: Date;
-  isActive: boolean;
+  updatedAt: Date;
+  contact: string;
+}
+
+export interface InventoryEntry {
+  id: string;
+  articleId: string;
+  quantiteReelle: number;
+  dateHeure: Date;
+  utilisateur: string;
 }
 
 export interface AuthState {
@@ -38,16 +82,7 @@ export interface AuthState {
   isAuthenticated: boolean;
 }
 
-export interface Fournisseur {
-  id: string;
-  nom: string;
-  contact: string;
-  email: string;
-  telephone: string;
-  adresse: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+
 
 export interface RapportMensuel {
   mois: string;
@@ -60,11 +95,8 @@ export interface RapportMensuel {
   alertesStock: number;
 }
 
-export interface InventoryEntry {
-  id: string;
+export interface InventoryItem {
   articleId: string;
-  quantiteCompte: number;
-  utilisateurId: string;
   utilisateurRole: 'MANAGER' | 'TECHNICIEN' | string;
   dateHeure: Date;
 }

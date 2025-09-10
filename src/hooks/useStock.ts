@@ -1,197 +1,266 @@
-import { useCallback } from 'react';
-import { useLocalStorage } from './useLocalStorage';
-import { Article, Mouvement, Fournisseur } from '../types';
-import { InventoryEntry, InventoryReport } from '../types';
-import { v4 as uuidv4 } from 'uuid';
-
-const defaultFournisseurs: Fournisseur[] = [
-  {
-    id: '1',
-    nom: 'TelecomParts Pro',
-    contact: 'Jean Dupont',
-    email: 'contact@telecomparts.com',
-    telephone: '01 23 45 67 89',
-    adresse: '123 Rue de la Technologie, 75001 Paris',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-  },
-  {
-    id: '2',
-    nom: 'Équipements Réseau France',
-    contact: 'Marie Martin',
-    email: 'info@equipements-reseau.fr',
-    telephone: '01 98 76 54 32',
-    adresse: '456 Avenue des Télécoms, 69000 Lyon',
-    createdAt: new Date('2024-02-10'),
-    updatedAt: new Date('2024-02-10'),
-  },
-  {
-    id: '3',
-    nom: 'Fibre Optique Solutions',
-    contact: 'Pierre Durand',
-    email: 'commercial@fibre-solutions.com',
-    telephone: '04 56 78 90 12',
-    adresse: '789 Boulevard de l\'Innovation, 13000 Marseille',
-    createdAt: new Date('2024-03-05'),
-    updatedAt: new Date('2024-03-05'),
-  },
-];
+import { useState, useCallback, useEffect } from 'react';
+import { Article, Mouvement, Fournisseur, CreateMouvementData } from '../types';
+import { api } from '../lib/api';
 
 export function useStock() {
-  const [articles, setArticles] = useLocalStorage<Article[]>('articles', []);
-  const [mouvements, setMouvements] = useLocalStorage<Mouvement[]>('mouvements', []);
-  const [fournisseurs, setFournisseurs] = useLocalStorage<Fournisseur[]>('fournisseurs', defaultFournisseurs);
-  const [inventoryEntries, setInventoryEntries] = useLocalStorage<InventoryEntry[]>('inventoryEntries', []);
-  const [inventoryReports, setInventoryReports] = useLocalStorage<InventoryReport[]>('inventoryReports', []);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [mouvements, setMouvements] = useState<Mouvement[]>([]);
+  const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addArticle = useCallback((articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
-    // If a codeBarres is provided, first check if an article with the same barcode already exists
-    // to prevent duplicate entries. If it exists, return the existing article instead of creating a new one.
-    const providedCode = articleData.codeBarres && articleData.codeBarres.trim() !== '' ? articleData.codeBarres.trim() : undefined;
-    if (providedCode) {
-      const existing = articles.find(a => a.codeBarres === providedCode);
-      if (existing) {
-        // Return the existing article — caller can choose how to proceed (edit, use it, show warning, etc.)
-        return existing;
+  // Charger les données initiales
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('Chargement des articles...');
+        const articlesResponse = await api.get<Article[]>('/articles');
+        console.log('Articles reçus:', articlesResponse);
+        setArticles(articlesResponse);
+
+        console.log('Chargement des mouvements...');
+        const mouvementsResponse = await api.get<Mouvement[]>('/mouvements');
+        console.log('Mouvements reçus:', mouvementsResponse);
+        setMouvements(mouvementsResponse);
+
+        console.log('Chargement des fournisseurs...');
+        const fournisseursResponse = await api.get<Fournisseur[]>('/fournisseurs');
+        console.log('Fournisseurs reçus:', fournisseursResponse);
+        setFournisseurs(fournisseursResponse);
+      } catch (err) {
+        console.error('Erreur lors du chargement des données:', err);
+        setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      } finally {
+        setLoading(false);
       }
-    }
-
-    // Otherwise create a new article (use provided codeBarres if present, else generate one)
-    const idFromCode = providedCode;
-    const newArticle: Article = {
-      ...articleData,
-      id: idFromCode || uuidv4(),
-      codeBarres: providedCode || `TEL${Date.now()}${Math.floor(Math.random() * 1000)}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setArticles(prev => [...prev, newArticle]);
-    return newArticle;
-  }, [setArticles]);
-
-  const updateArticle = useCallback((id: string, updates: Partial<Article>) => {
-    setArticles(prev => prev.map(article => 
-      article.id === id ? { ...article, ...updates, updatedAt: new Date() } : article
-    ));
-  }, [setArticles]);
-
-  const deleteArticle = useCallback((id: string) => {
-    setArticles(prev => prev.filter(article => article.id !== id));
-    setMouvements(prev => prev.filter(mouvement => mouvement.articleId !== id));
-  }, [setArticles, setMouvements]);
-
-  const addMouvement = useCallback((mouvementData: Omit<Mouvement, 'id' | 'dateHeure'>) => {
-    const newMouvement: Mouvement = {
-      ...mouvementData,
-      id: uuidv4(),
-      dateHeure: new Date(),
     };
 
-    // Mettre à jour le stock de l'article
-    const article = articles.find(a => a.id === mouvementData.articleId);
-    if (article) {
-      const newQuantite = mouvementData.type === 'ENTREE' 
-        ? article.quantiteStock + mouvementData.quantite
-        : article.quantiteStock - mouvementData.quantite;
+    fetchData();
+  }, []);
+
+  // Articles
+  const createArticle = useCallback(async (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      console.log('Création d\'un nouvel article:', article);
+      const newArticle = await api.post<Article>('/articles', article);
+      console.log('Article créé:', newArticle);
+      setArticles(prev => [...prev, newArticle]);
       
-      updateArticle(article.id, { quantiteStock: Math.max(0, newQuantite) });
+      // Si l'article a un stock initial > 0, créer automatiquement un mouvement d'ENTRÉE
+      if (article.quantite_stock && article.quantite_stock > 0) {
+        console.log('Création automatique d\'un mouvement d\'ENTRÉE pour le stock initial:', article.quantite_stock);
+        const mouvementData = {
+          type: 'ENTREE' as const,
+          quantite: article.quantite_stock,
+          article_id: newArticle.id,
+          utilisateur: 'Système - Stock initial',
+          commentaire: `Stock initial lors de la création de l'article`
+        };
+        
+        try {
+          const mouvement = await api.post<Mouvement>('/mouvements', mouvementData);
+          console.log('Mouvement d\'entrée automatique créé:', mouvement);
+          setMouvements(prev => [...prev, mouvement]);
+        } catch (mouvErr) {
+          console.error('Erreur lors de la création du mouvement automatique:', mouvErr);
+          // Ne pas faire échouer la création de l'article pour cela
+        }
+      }
+      
+      return newArticle;
+    } catch (err) {
+      console.error('Erreur lors de la création de l\'article:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
     }
+  }, []);
 
-    setMouvements(prev => [...prev, newMouvement]);
-    return newMouvement;
-  }, [articles, updateArticle, setMouvements]);
-
-  const getArticleByCodeBarres = useCallback((codeBarres: string) => {
-    return articles.find(article => article.codeBarres === codeBarres);
+  const updateArticle = useCallback(async (id: string, data: Partial<Article>) => {
+    try {
+      console.log('Mise à jour de l\'article:', id, data);
+      
+      // Si on modifie la quantité de stock, on doit créer un mouvement
+      let ancienneQuantite = 0;
+      if (data.quantite_stock !== undefined) {
+        const articleActuel = articles.find(a => a.id === id);
+        if (articleActuel) {
+          ancienneQuantite = articleActuel.quantite_stock || 0;
+        }
+      }
+      
+      const updatedArticle = await api.put<Article>(`/articles/${id}`, data);
+      console.log('Article mis à jour:', updatedArticle);
+      setArticles(prev => prev.map(a => a.id === id ? updatedArticle : a));
+      
+      // Créer un mouvement si la quantité a changé
+      if (data.quantite_stock !== undefined && data.quantite_stock !== ancienneQuantite) {
+        const difference = data.quantite_stock - ancienneQuantite;
+        if (difference !== 0) {
+          console.log('Quantité modifiée de', ancienneQuantite, 'à', data.quantite_stock, '- différence:', difference);
+          
+          const mouvementData = {
+            type: difference > 0 ? 'ENTREE' as const : 'SORTIE' as const,
+            quantite: Math.abs(difference),
+            article_id: id,
+            utilisateur: 'Système - Modification stock',
+            commentaire: `Ajustement de stock: ${ancienneQuantite} → ${data.quantite_stock}`
+          };
+          
+          try {
+            const mouvement = await api.post<Mouvement>('/mouvements', mouvementData);
+            console.log('Mouvement automatique créé:', mouvement);
+            setMouvements(prev => [...prev, mouvement]);
+          } catch (mouvErr) {
+            console.error('Erreur lors de la création du mouvement automatique:', mouvErr);
+            // Ne pas faire échouer la mise à jour de l'article pour cela
+          }
+        }
+      }
+      
+      return updatedArticle;
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour de l\'article:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
   }, [articles]);
 
-  const getArticlesWithAlerts = useCallback(() => {
-    return articles.filter(article => article.quantiteStock <= article.seuilMinimum);
-  }, [articles]);
+  const deleteArticle = useCallback(async (id: string) => {
+    try {
+      console.log('Suppression de l\'article:', id);
+      const result = await api.delete(`/articles/${id}`);
+      console.log('Article supprimé, résultat:', result);
+      setArticles(prev => prev.filter(a => a.id !== id));
+    } catch (err) {
+      console.error('Erreur lors de la suppression de l\'article:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
+  }, []);
 
-  const getMouvementsWithArticles = useCallback(() => {
-    return mouvements.map(mouvement => ({
-      ...mouvement,
-      article: articles.find(a => a.id === mouvement.articleId)
-    }));
-  }, [mouvements, articles]);
+  // Mouvements
+  const createMouvement = useCallback(async (mouvement: CreateMouvementData) => {
+    try {
+      console.log('useStock - Création d\'un nouveau mouvement:', mouvement);
+      
+      const newMouvement = await api.post<Mouvement>('/mouvements', mouvement);
+      console.log('useStock - Mouvement créé:', newMouvement);
+      setMouvements(prev => [...prev, newMouvement]);
+      
+      // La mise à jour de l'article est maintenant gérée par le backend
+      // Rafraîchissons la liste des articles pour avoir les quantités à jour
+      const articlesResponse = await api.get<Article[]>('/articles');
+      setArticles(articlesResponse);
 
-  const addFournisseur = useCallback((fournisseurData: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newFournisseur: Fournisseur = {
-      ...fournisseurData,
-      id: uuidv4(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setFournisseurs(prev => [...prev, newFournisseur]);
-    return newFournisseur;
-  }, [setFournisseurs]);
+      return newMouvement;
+    } catch (err) {
+      console.error('useStock - Erreur lors de la création du mouvement:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
+  }, []);
 
-  const addInventoryEntry = useCallback((entryData: Omit<InventoryEntry, 'id' | 'dateHeure'>) => {
-    const newEntry: InventoryEntry = {
-      ...entryData,
-      id: uuidv4(),
-      dateHeure: new Date(),
-    };
-    setInventoryEntries(prev => [...prev, newEntry]);
-    return newEntry;
-  }, [setInventoryEntries]);
+  // Fournisseurs
+  const createFournisseur = useCallback(async (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newFournisseur = await api.post<Fournisseur>('/fournisseurs', fournisseur);
+      setFournisseurs(prev => [...prev, newFournisseur]);
+      return newFournisseur;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
+  }, []);
 
-  const finalizeInventoryReport = useCallback((managerId: string, mois: number, annee: number) => {
-    // Aggregate entries for the given month
-    const entriesForMonth = inventoryEntries.filter(e => {
-      const date = new Date(e.dateHeure);
-      return date.getMonth() + 1 === mois && date.getFullYear() === annee;
-    });
-    const map: Record<string, { totalCompte: number; parUtilisateur: Array<{ utilisateurId: string; quantite: number }> }> = {};
-    entriesForMonth.forEach(e => {
-      if (!map[e.articleId]) map[e.articleId] = { totalCompte: 0, parUtilisateur: [] };
-      map[e.articleId].totalCompte += e.quantiteCompte;
-      map[e.articleId].parUtilisateur.push({ utilisateurId: e.utilisateurId, quantite: e.quantiteCompte });
-    });
+  const updateFournisseur = useCallback(async (id: string, data: Partial<Fournisseur>) => {
+    try {
+      const updatedFournisseur = await api.put<Fournisseur>(`/fournisseurs/${id}`, data);
+      setFournisseurs(prev => prev.map(f => f.id === id ? updatedFournisseur : f));
+      return updatedFournisseur;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
+  }, []);
 
-    const items = Object.keys(map).map(articleId => ({ articleId, totalCompte: map[articleId].totalCompte, parUtilisateur: map[articleId].parUtilisateur }));
+  const deleteFournisseur = useCallback(async (id: string) => {
+    try {
+      await api.delete(`/fournisseurs/${id}`);
+      setFournisseurs(prev => prev.filter(f => f.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
+  }, []);
 
-    const report: InventoryReport = {
-      id: uuidv4(),
-      mois,
-      annee,
-      items,
-      createdBy: managerId,
-      createdAt: new Date(),
-    };
+  // Fonctions de rafraîchissement
+  const refreshArticles = useCallback(async () => {
+    try {
+      console.log('Rafraîchissement des articles...');
+      const articlesResponse = await api.get<Article[]>('/articles');
+      console.log('Articles rafraîchis:', articlesResponse);
+      setArticles(articlesResponse);
+    } catch (err) {
+      console.error('Erreur lors du rafraîchissement des articles:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    }
+  }, []);
 
-    setInventoryReports(prev => [...prev, report]);
-    return report;
-  }, [inventoryEntries, setInventoryReports]);
+  const refreshMouvements = useCallback(async () => {
+    try {
+      console.log('Rafraîchissement des mouvements...');
+      const mouvementsResponse = await api.get<Mouvement[]>('/mouvements');
+      console.log('Mouvements rafraîchis:', mouvementsResponse);
+      setMouvements(mouvementsResponse);
+    } catch (err) {
+      console.error('Erreur lors du rafraîchissement des mouvements:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    }
+  }, []);
 
-  const updateFournisseur = useCallback((id: string, updates: Partial<Fournisseur>) => {
-    setFournisseurs(prev => prev.map(fournisseur => 
-      fournisseur.id === id ? { ...fournisseur, ...updates, updatedAt: new Date() } : fournisseur
-    ));
-  }, [setFournisseurs]);
+  const refreshFournisseurs = useCallback(async () => {
+    try {
+      console.log('Rafraîchissement des fournisseurs...');
+      const fournisseursResponse = await api.get<Fournisseur[]>('/fournisseurs');
+      console.log('Fournisseurs rafraîchis:', fournisseursResponse);
+      setFournisseurs(fournisseursResponse);
+    } catch (err) {
+      console.error('Erreur lors du rafraîchissement des fournisseurs:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    }
+  }, []);
 
-  const deleteFournisseur = useCallback((id: string) => {
-    setFournisseurs(prev => prev.filter(fournisseur => fournisseur.id !== id));
-  }, [setFournisseurs]);
+  const refreshAll = useCallback(async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        refreshArticles(),
+        refreshMouvements(),
+        refreshFournisseurs()
+      ]);
+    } catch (err) {
+      console.error('Erreur lors du rafraîchissement complet:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshArticles, refreshMouvements, refreshFournisseurs]);
 
   return {
     articles,
     mouvements,
     fournisseurs,
-  inventoryEntries,
-  inventoryReports,
-    addArticle,
+    loading,
+    error,
+    createArticle,
     updateArticle,
     deleteArticle,
-    addMouvement,
-  addInventoryEntry,
-  finalizeInventoryReport,
-    addFournisseur,
+    createMouvement,
+    createFournisseur,
     updateFournisseur,
     deleteFournisseur,
-    getArticleByCodeBarres,
-    getArticlesWithAlerts,
-    getMouvementsWithArticles,
+    refreshArticles,
+    refreshMouvements,
+    refreshFournisseurs,
+    refreshAll,
   };
 }

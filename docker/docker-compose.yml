@@ -1,0 +1,69 @@
+
+services:
+  db:
+    image: postgres:14
+    container_name: telecomstock_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: telecomstock
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - telecomstock_network
+
+  api:
+    build: 
+      context: ../api
+      dockerfile: Dockerfile
+    container_name: telecomstock_api
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=adminpassword
+      - DB_NAME=telecomstock
+      - JWT_SECRET=votre_secret_jwt_super_secure
+      - API_PORT=3443
+      - SSL_KEY=/usr/src/app/localhost+2-key.pem
+      - SSL_CERT=/usr/src/app/localhost+2.pem
+    ports:
+      - "0.0.0.0:3443:3443"  # HTTPS only, accessible depuis n'importe quelle interface
+    depends_on:
+      - db
+    networks:
+      - telecomstock_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../api:/usr/src/app
+      - /usr/src/app/node_modules
+      - ../localhost+2-key.pem:/usr/src/app/localhost+2-key.pem:ro
+      - ../localhost+2.pem:/usr/src/app/localhost+2.pem:ro
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: telecomstock_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.com
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    networks:
+      - telecomstock_network
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
+
+networks:
+  telecomstock_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

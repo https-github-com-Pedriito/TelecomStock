@@ -30,10 +30,10 @@ interface MouvementModalProps {
     categorie?: string;
     fournisseur?: string;
     localisation?: string;
-    seuilMinimum?: number;
-    quantiteStock?: number;
+    seuil_minimum?: number;
+    quantite_stock?: number;
     // Champs pour mouvement
-    articleId?: string;
+    article_id?: string;
     quantite?: number;
     type?: 'ENTREE' | 'SORTIE';
     utilisateur?: string;
@@ -59,7 +59,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
     // Champs pour mouvement
     quantite: 1,
     utilisateur: `${currentUser.prenom} ${currentUser.nom}`,
-    commentaire: '',
+    commentaire: type === 'ENTREE' ? 'Entrée via scanner' : 'Sortie via scanner',
   });
 
   const [showDetails, setShowDetails] = useState(false);
@@ -88,8 +88,8 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         seuilMinimum: 0,
         quantiteStock: 0,
         quantite: 1,
-        utilisateur: 'Utilisateur actuel',
-        commentaire: '',
+        utilisateur: `${currentUser.prenom} ${currentUser.nom}`,
+        commentaire: type === 'ENTREE' ? 'Entrée via scanner' : 'Sortie via scanner',
       });
     } else {
       setFormData({
@@ -97,15 +97,15 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         categorie: article?.categorie || '',
         fournisseur: article?.fournisseur || '',
         localisation: article?.localisation || '',
-        seuilMinimum: article?.seuilMinimum || 0,
-        quantiteStock: article?.quantiteStock || 0,
+        seuilMinimum: article?.seuil_minimum || 0,
+        quantiteStock: article?.quantite_stock || 0,
         quantite: 1,
-        utilisateur: 'Utilisateur actuel',
-        commentaire: '',
+        utilisateur: `${currentUser.prenom} ${currentUser.nom}`,
+        commentaire: type === 'ENTREE' ? 'Entrée via scanner' : 'Sortie via scanner',
       });
     }
     setShowDetails(false);
-  }, [article, isNewArticle]);
+  }, [article, isNewArticle, type, currentUser]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,13 +119,20 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
           categorie: formData.categorie,
           fournisseur: formData.fournisseur,
           localisation: formData.localisation,
-          seuilMinimum: formData.seuilMinimum,
-          quantiteStock: formData.quantiteStock
+          seuil_minimum: formData.seuilMinimum,
+          quantite_stock: formData.quantiteStock
         }));
       } else if (article) {
         // Mouvement de stock
+        console.log('Création d\'un mouvement avec les données:', {
+          article_id: article.id,
+          quantite: formData.quantite,
+          type,
+          utilisateur: formData.utilisateur,
+          commentaire: formData.commentaire
+        });
         await Promise.resolve(onSave({
-          articleId: article.id,
+          article_id: article.id,
           quantite: formData.quantite,
           type,
           utilisateur: formData.utilisateur,
@@ -141,7 +148,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
 
   if (!isOpen || !article) return null;
 
-  const isStockSufficient = type === 'ENTREE' || formData.quantite <= article.quantiteStock;
+  const isStockSufficient = type === 'ENTREE' || formData.quantite <= (article.quantite_stock || 0);
 
   return (
     // Backdrop: clic ferme la modale
@@ -176,10 +183,10 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
             <p className="text-sm text-gray-600">{article.categorie}</p>
             <div className="flex items-center gap-2 mt-2">
               <ScanLine size={16} className="text-gray-400" />
-              <span className="text-sm font-mono">{article.codeBarres}</span>
+              <span className="text-sm font-mono">{article.code_barres}</span>
             </div>
             <p className="text-sm text-gray-600 mt-1">
-              Stock actuel: <span className="font-medium">{article.quantiteStock}</span>
+              Stock actuel: <span className="font-medium">{article.quantite_stock}</span>
             </p>
           </div>
 

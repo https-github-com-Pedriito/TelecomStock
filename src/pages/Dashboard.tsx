@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Article, Mouvement } from '../types';
 import { Package, TrendingUp, TrendingDown, AlertTriangle, BarChart3 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -8,15 +8,23 @@ interface DashboardProps {
   articles: Article[];
   mouvements: Mouvement[];
   articlesWithAlerts: Article[];
+  onRefreshData?: () => Promise<void>;
 }
 
-export function Dashboard({ articles, mouvements, articlesWithAlerts }: DashboardProps) {
+export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshData }: DashboardProps) {
+  // Rafraîchir les données à chaque visite de la page
+  useEffect(() => {
+    if (onRefreshData) {
+      onRefreshData();
+    }
+  }, []); // Se déclenche uniquement au montage du composant
+
   const recentMouvements = mouvements
     .sort((a, b) => new Date(b.dateHeure).getTime() - new Date(a.dateHeure).getTime())
     .slice(0, 10);
 
   const totalArticles = articles.length;
-  const totalStock = articles.reduce((sum, article) => sum + article.quantiteStock, 0);
+  const totalStock = articles.reduce((sum, article) => sum + (article.quantite_stock || 0), 0);
   const entreesDuJour = mouvements.filter(m => 
     m.type === 'ENTREE' && 
     new Date(m.dateHeure).toDateString() === new Date().toDateString()
@@ -27,7 +35,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts }: Dashboar
   ).length;
 
   const categoriesStats = articles.reduce((acc, article) => {
-    acc[article.categorie] = (acc[article.categorie] || 0) + article.quantiteStock;
+    acc[article.categorie] = (acc[article.categorie] || 0) + (article.quantite_stock || 0);
     return acc;
   }, {} as Record<string, number>);
 
@@ -101,7 +109,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts }: Dashboar
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-orange-600">
-                      {article.quantiteStock} / {article.seuilMinimum}
+                      {article.quantite_stock} / {article.seuil_minimum}
                     </p>
                   </div>
                 </div>
@@ -153,7 +161,8 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts }: Dashboar
               </thead>
               <tbody>
                 {recentMouvements.map(mouvement => {
-                  const article = articles.find(a => a.id === mouvement.articleId);
+                  // L'API retourne toujours l'objet article complet
+                  const article = mouvement.article;
                   return (
                     <tr key={mouvement.id} className="border-b hover:bg-gray-50">
                       <td className="py-2">

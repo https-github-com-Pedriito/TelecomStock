@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Fournisseur } from '../types';
 import { FournisseurModal } from '../components/FournisseurModal';
 import { Plus, Search, Edit2, Trash2, Truck, Mail, Phone, MapPin } from 'lucide-react';
@@ -7,29 +7,47 @@ import { fr } from 'date-fns/locale';
 
 interface FournisseursProps {
   fournisseurs: Fournisseur[];
-  onAddFournisseur: (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => Fournisseur;
-  onUpdateFournisseur: (id: string, updates: Partial<Fournisseur>) => void;
-  onDeleteFournisseur: (id: string) => void;
+  onAddFournisseur: (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Fournisseur>;
+  onUpdateFournisseur: (id: string, updates: Partial<Fournisseur>) => Promise<void>;
+  onDeleteFournisseur: (id: string) => Promise<void>;
+  onRefreshFournisseurs?: () => Promise<void>;
 }
 
-export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisseur, onDeleteFournisseur }: FournisseursProps) {
+export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisseur, onDeleteFournisseur, onRefreshFournisseurs }: FournisseursProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Rafraîchir les fournisseurs à chaque visite de la page
+  useEffect(() => {
+    if (onRefreshFournisseurs) {
+      onRefreshFournisseurs();
+    }
+  }, []); // Se déclenche uniquement au montage du composant
 
   const filteredFournisseurs = fournisseurs.filter(fournisseur =>
     fournisseur.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fournisseur.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fournisseur.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (fournisseur.contact?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (fournisseur.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
-  const handleSaveFournisseur = (fournisseurData: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingFournisseur) {
-      onUpdateFournisseur(editingFournisseur.id, fournisseurData);
-    } else {
-      onAddFournisseur(fournisseurData);
+  const handleSaveFournisseur = async (fournisseurData: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      setLoading(true);
+      if (editingFournisseur) {
+        await onUpdateFournisseur(editingFournisseur.id, fournisseurData);
+      } else {
+        await onAddFournisseur(fournisseurData);
+      }
+      setEditingFournisseur(undefined);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du fournisseur:', error);
+      alert('Une erreur est survenue lors de la sauvegarde du fournisseur');
+    } finally {
+      setLoading(false);
     }
-    setEditingFournisseur(undefined);
   };
 
   const handleEditFournisseur = (fournisseur: Fournisseur) => {
@@ -37,9 +55,17 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
     setIsModalOpen(true);
   };
 
-  const handleDeleteFournisseur = (id: string) => {
+  const handleDeleteFournisseur = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce fournisseur ?')) {
-      onDeleteFournisseur(id);
+      try {
+        setLoading(true);
+        await onDeleteFournisseur(id);
+      } catch (error) {
+        console.error('Erreur lors de la suppression du fournisseur:', error);
+        alert('Une erreur est survenue lors de la suppression du fournisseur');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

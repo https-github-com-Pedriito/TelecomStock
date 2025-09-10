@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Article } from '../types';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleModal } from '../components/ArticleModal';
@@ -9,12 +9,13 @@ interface ArticlesProps {
   articles: Article[];
   hasPermission: (permission: string) => boolean;
   fournisseurs?: Array<{ id: string; nom: string }>;
-  onAddArticle: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => Article;
+  onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
   onUpdateArticle: (id: string, updates: Partial<Article>) => void;
   onDeleteArticle: (id: string) => void;
+  onRefreshArticles?: () => Promise<void>;
 }
 
-export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
+export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle, onRefreshArticles }: ArticlesProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +23,13 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
   const [labelToPrint, setLabelToPrint] = useState<Article | null>(null);
 
   const canManageArticles = hasPermission('manage_articles');
+  
+  // Rafraîchir les articles à chaque visite de la page
+  useEffect(() => {
+    if (onRefreshArticles) {
+      onRefreshArticles();
+    }
+  }, []); // Se déclenche uniquement au montage du composant
   
   // Récupération des paramètres d'URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -40,20 +48,11 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.codeBarres.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.fournisseur.toLowerCase().includes(searchTerm.toLowerCase());
+                         article.code_barres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         article.fournisseur?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || article.categorie === filterCategory;
     return matchesSearch && matchesCategory;
   });
-
-  const handleSaveArticle = (articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (editingArticle) {
-      onUpdateArticle(editingArticle.id, articleData);
-    } else {
-      onAddArticle(articleData);
-    }
-    setEditingArticle(undefined);
-  };
 
   const handleEditArticle = (article: Article) => {
     setEditingArticle(article);
@@ -61,9 +60,18 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
   };
 
   const handleDeleteArticle = (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
       onDeleteArticle(id);
     }
+  };
+
+  const handleSaveArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
+    if (editingArticle) {
+      onUpdateArticle(editingArticle.id, articleData);
+    } else {
+      onAddArticle(articleData);
+    }
+    setEditingArticle(undefined);
   };
 
   const handlePrintLabel = (article: Article) => {
@@ -82,9 +90,9 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       article.categorie,
       article.fournisseur,
       article.localisation,
-      article.quantiteStock,
-      article.seuilMinimum,
-      article.codeBarres,
+      article.quantite_stock,
+      article.seuil_minimum,
+      article.code_barres,
     ]);
 
     const csvContent = [headers, ...data]
@@ -207,7 +215,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
           <div className="p-8 text-center">
             <h2 className="text-xl font-bold mb-4">{labelToPrint.nom}</h2>
             <div className="mb-4">
-              <BarcodeGenerator value={labelToPrint.codeBarres} />
+              <BarcodeGenerator value={labelToPrint.code_barres || ''} />
             </div>
             <p className="text-sm text-gray-600">{labelToPrint.categorie}</p>
             <p className="text-sm text-gray-600">{labelToPrint.localisation}</p>

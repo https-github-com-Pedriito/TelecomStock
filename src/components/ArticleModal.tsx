@@ -6,7 +6,7 @@ interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
   // Now include codeBarres in the payload so the hook can use it as the article id when present.
-  onSave: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => void;
   article?: Article;
   fournisseurs?: Array<{ id: string; nom: string }>;
 }
@@ -35,9 +35,9 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     categorie: '',
     fournisseur: '',
     localisation: '',
-    seuilMinimum: 0,
-    quantiteStock: 0,
-    codeBarres: '',  // Ajout du champ codeBarres
+    seuil_minimum: 0,
+    quantite_stock: 0,
+    code_barres: '',  // Ajout du champ code_barres
   });
 
   useEffect(() => {
@@ -47,9 +47,9 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         categorie: article.categorie,
         fournisseur: article.fournisseur,
         localisation: article.localisation,
-        seuilMinimum: article.seuilMinimum,
-        quantiteStock: article.quantiteStock,
-        codeBarres: article.codeBarres,
+        seuil_minimum: article.seuil_minimum,
+        quantite_stock: article.quantite_stock,
+        code_barres: article.code_barres,
       });
     } else {
       setFormData({
@@ -57,9 +57,9 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         categorie: '',
         fournisseur: '',
         localisation: '',
-        seuilMinimum: 0,
-        quantiteStock: 0,
-        codeBarres: barcodeFromURL || '',
+        seuil_minimum: 0,
+        quantite_stock: 0,
+        code_barres: barcodeFromURL || '',
       });
     }
   }, [article]);
@@ -73,23 +73,27 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     if (barcodeFromURL && !article) {
       setFormData(prev => ({
         ...prev,
-        codeBarres: barcodeFromURL
+        code_barres: barcodeFromURL
       }));
     }
   }, [barcodeFromURL, article]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Include codeBarres in the saved payload so it can be used as the unique id.
-    onSave({
+    console.log('Données du formulaire avant envoi:', formData);
+    
+    const articleData = {
       nom: formData.nom,
       categorie: formData.categorie,
       fournisseur: formData.fournisseur,
       localisation: formData.localisation,
-      seuilMinimum: formData.seuilMinimum,
-      quantiteStock: formData.quantiteStock,
-      codeBarres: formData.codeBarres,
-    });
+      seuil_minimum: Number(formData.seuil_minimum) || 0,
+      quantite_stock: Number(formData.quantite_stock) || 0,
+      code_barres: formData.code_barres,
+    };
+    
+    console.log('Données envoyées à l\'API:', articleData);
+    onSave(articleData);
     onClose();
   };
 
@@ -206,8 +210,11 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
               <input
                 type="number"
                 min="0"
-                value={formData.seuilMinimum}
-                onChange={(e) => setFormData({ ...formData, seuilMinimum: parseInt(e.target.value) || 0 })}
+                value={formData.seuil_minimum}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : Number(e.target.value);
+                  setFormData({ ...formData, seuil_minimum: value });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
@@ -220,8 +227,11 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
               <input
                 type="number"
                 min="0"
-                value={formData.quantiteStock}
-                onChange={(e) => setFormData({ ...formData, quantiteStock: parseInt(e.target.value) || 0 })}
+                value={formData.quantite_stock}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : Number(e.target.value);
+                  setFormData({ ...formData, quantite_stock: value });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>

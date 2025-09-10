@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Article, Mouvement } from '../types';
+import { Article, CreateMouvementData } from '../types';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { MouvementModal } from '../components/MouvementModal';
 import { ScanLine, Package, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react';
@@ -7,12 +7,13 @@ import { ScanLine, Package, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react
 interface ScannerProps {
   articles: Article[];
   getArticleByCodeBarres: (codeBarres: string) => Article | undefined;
-  onAddMouvement: (mouvement: Omit<Mouvement, 'id' | 'dateHeure'>) => Mouvement;
-  onAddArticle: (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => Article;
+  onAddMouvement: (mouvement: CreateMouvementData) => void;
+  onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
   fournisseurs: Array<{ id: string; nom: string; }>;
+  currentUser: { id: string; nom: string; prenom: string; };
 }
 
-export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [] }: ScannerProps) {
+export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [], currentUser }: ScannerProps) {
   const [showScanner, setShowScanner] = useState(false);
   const [showMouvementModal, setShowMouvementModal] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
@@ -25,7 +26,9 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
 
   const handleScan = (barcode: string) => {
     setShowScanner(false);
+    console.log('🔍 Code-barres scanné:', barcode);
     const article = getArticleByCodeBarres(barcode);
+    console.log('📦 Article trouvé:', article);
     
     setSelectedArticle(article || {
       id: 'new',
@@ -33,11 +36,11 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       categorie: '',
       fournisseur: '',
       localisation: '',
-      seuilMinimum: 0,
-      quantiteStock: 0,
-      codeBarres: barcode,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      seuil_minimum: 0,
+      quantite_stock: 0,
+      code_barres: barcode,
+      created_at: new Date(),
+      updated_at: new Date()
     });
     setShowMouvementModal(true);
     setScanResult({
@@ -52,14 +55,14 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       // Création d'un nouvel article
       const nouvelArticle = onAddArticle({
         ...data,
-        codeBarres: scanResult?.barcode || ''
+        code_barres: scanResult?.barcode || ''
       });
       setSelectedArticle(nouvelArticle);
       alert('Article créé avec succès !');
-    } else if (data.articleId && data.quantite) {
+    } else if (data.article_id && data.quantite) {
       // Mouvement de stock
       onAddMouvement({
-        articleId: data.articleId,
+        article_id: data.article_id,
         quantite: data.quantite,
         type: data.type || 'ENTREE',
         utilisateur: data.utilisateur || 'Utilisateur actuel',
@@ -149,7 +152,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
                     <h3 className="font-semibold text-green-900">{scanResult.article.nom}</h3>
                     <p className="text-sm text-green-700">{scanResult.article.categorie}</p>
                     <div className="mt-3 space-y-1 text-sm">
-                      <p><span className="text-green-600">Stock:</span> {scanResult.article.quantiteStock}</p>
+                      <p><span className="text-green-600">Stock:</span> {scanResult.article.quantite_stock}</p>
                       <p><span className="text-green-600">Localisation:</span> {scanResult.article.localisation}</p>
                       <p><span className="text-green-600">Fournisseur:</span> {scanResult.article.fournisseur}</p>
                     </div>
@@ -219,6 +222,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
         article={selectedArticle}
         type={mouvementType}
         fournisseurs={fournisseurs}
+        currentUser={currentUser}
       />
     </div>
   );
