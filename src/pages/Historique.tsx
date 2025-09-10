@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Article, Mouvement } from '../types';
 import { Search, Filter, Download, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
@@ -7,17 +7,9 @@ import { fr } from 'date-fns/locale';
 interface HistoriqueProps {
   mouvements: Mouvement[];
   articles: Article[];
-  onRefreshMouvements?: () => Promise<void>;
 }
 
-export function Historique({ mouvements, articles, onRefreshMouvements }: HistoriqueProps) {
-  // Rafraîchir les mouvements à chaque visite de la page
-  useEffect(() => {
-    if (onRefreshMouvements) {
-      onRefreshMouvements();
-    }
-  }, []); // Se déclenche uniquement au montage du composant
-
+export function Historique({ mouvements, articles }: HistoriqueProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'' | 'ENTREE' | 'SORTIE'>('');
   const [filterUser, setFilterUser] = useState('');

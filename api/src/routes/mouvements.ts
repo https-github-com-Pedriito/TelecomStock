@@ -77,6 +77,22 @@ router.post('/', authMiddleware, async (req, res) => {
 
     console.log('Données validées:', { finalArticleId, type, quantite, utilisateur, projet, technicien, commentaire });
 
+    // Récupérer prénom et nom depuis le token utilisateur si disponible
+    let utilisateurNom = utilisateur;
+    console.log('Utilisateur reçu dans le body:', utilisateur);
+    console.log('Informations du token req.user:', req.user);
+    // Priorité : utilisateur transmis par le frontend
+    if (utilisateurNom) {
+      // Utilise la valeur reçue
+      utilisateurNom = utilisateur;
+    } else if (req.user && req.user.prenom && req.user.nom) {
+      // Sinon, utilise le nom/prénom du token
+      utilisateurNom = `${req.user.prenom} ${req.user.nom}`;
+    } else {
+      utilisateurNom = 'Utilisateur inconnu';
+    }
+    console.log('Utilisateur final utilisé:', utilisateurNom);
+
     // Vérifier que l'article existe
     const article = await articleRepository.findOne({ where: { id: finalArticleId } });
     if (!article) {
@@ -97,7 +113,7 @@ router.post('/', authMiddleware, async (req, res) => {
       article,
       type,
       quantite: Number(quantite),
-      utilisateur: utilisateur || 'Utilisateur inconnu',
+      utilisateur: utilisateurNom,
       projet,
       technicien,
       commentaire,

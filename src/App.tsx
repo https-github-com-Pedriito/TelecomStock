@@ -37,8 +37,6 @@ function App() {
     updateArticle,
     deleteArticle,
     createMouvement,
-    refreshArticles,
-    refreshMouvements,
     refreshFournisseurs,
     refreshAll
   } = useStock();
@@ -47,7 +45,7 @@ function App() {
     return articles.filter(article => article.quantite_stock <= article.seuil_minimum);
   };
 
-  const addArticle = async (articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addArticle = async (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
     await createArticle(articleData);
   };
 
@@ -306,7 +304,7 @@ function App() {
     }
   }, [currentView, isAuthenticated, hasPermission]);
 
-  const handleAddArticle = (articleData: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>): Article => {
+  const handleAddArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>): Article => {
     // Return a temporary article object while the real one is being created
     const tempArticle: Article = {
       id: 'temp_' + new Date().getTime(),
@@ -380,7 +378,6 @@ function App() {
             onAddArticle={handleAddArticle}
             onUpdateArticle={updateArticle}
             onDeleteArticle={deleteArticle}
-            onRefreshArticles={refreshArticles}
           />
         );
       case 'mouvements':
@@ -388,7 +385,6 @@ function App() {
           <Mouvements
             articles={articles}
             mouvements={mouvements}
-            onRefreshMouvements={refreshMouvements}
           />
         );
       case 'scanner':
@@ -407,7 +403,6 @@ function App() {
           <Historique
             mouvements={mouvements}
             articles={articles}
-            onRefreshMouvements={refreshMouvements}
           />
         );
       case 'fournisseurs':
@@ -454,6 +449,18 @@ function App() {
         return null;
     }
   };
+
+  // Afficher une page de chargement pendant la vérification de l'authentification
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Vérification de la session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !currentUserForComponents) {
     return (

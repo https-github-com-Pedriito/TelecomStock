@@ -34,10 +34,11 @@ CREATE TABLE mouvements (
     article_id UUID REFERENCES articles(id),
     quantite INTEGER NOT NULL,
     type VARCHAR(50) CHECK (type IN ('ENTREE', 'SORTIE')),
-    utilisateur_id UUID REFERENCES users(id),
+    utilisateur VARCHAR(255),
     projet VARCHAR(255),
     technicien VARCHAR(255),
     commentaire TEXT,
+    dateheure TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

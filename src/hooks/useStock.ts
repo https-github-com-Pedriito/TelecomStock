@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Article, Mouvement, Fournisseur, CreateMouvementData } from '../types';
 import { api } from '../lib/api';
+import { useAuth } from './useAuth';
 
 export function useStock() {
+  const { user } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [mouvements, setMouvements] = useState<Mouvement[]>([]);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
@@ -39,7 +41,7 @@ export function useStock() {
   }, []);
 
   // Articles
-  const createArticle = useCallback(async (article: Omit<Article, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createArticle = useCallback(async (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       console.log('Création d\'un nouvel article:', article);
       const newArticle = await api.post<Article>('/articles', article);
@@ -102,7 +104,7 @@ export function useStock() {
             type: difference > 0 ? 'ENTREE' as const : 'SORTIE' as const,
             quantite: Math.abs(difference),
             article_id: id,
-            utilisateur: 'Système - Modification stock',
+            utilisateur: user ? `${user.prenom} ${user.nom}` : 'Utilisateur inconnu',
             commentaire: `Ajustement de stock: ${ancienneQuantite} → ${data.quantite_stock}`
           };
           

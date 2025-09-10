@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { api } from '../lib/api';
 import { Article } from '../types';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleModal } from '../components/ArticleModal';
@@ -12,24 +14,26 @@ interface ArticlesProps {
   onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
   onUpdateArticle: (id: string, updates: Partial<Article>) => void;
   onDeleteArticle: (id: string) => void;
-  onRefreshArticles?: () => Promise<void>;
 }
 
-export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle, onRefreshArticles }: ArticlesProps) {
+export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [labelToPrint, setLabelToPrint] = useState<Article | null>(null);
+  const [barcodesLoaded, setBarcodesLoaded] = useState(false);
 
   const canManageArticles = hasPermission('manage_articles');
   
-  // Rafraîchir les articles à chaque visite de la page
-  useEffect(() => {
-    if (onRefreshArticles) {
-      onRefreshArticles();
-    }
-  }, []); // Se déclenche uniquement au montage du composant
+  // Commenté pour éviter le double rafraîchissement
+  // Les articles sont déjà rafraîchis par le système d'onglets dans App.tsx
+  // useEffect(() => {
+  //   if (onRefreshArticles) {
+  //     onRefreshArticles();
+  //   }
+  // }, []);
   
   // Récupération des paramètres d'URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -43,6 +47,18 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       setIsModalOpen(true);
     }
   }, [shouldCreateArticle, barcodeFromURL, canManageArticles]);
+
+  // S'assurer que tous les codes-barres sont générés après le chargement des articles
+  React.useEffect(() => {
+    if (articles.length > 0 && !barcodesLoaded) {
+      // Petite temporisation pour laisser le temps aux composants de se monter
+      const timer = setTimeout(() => {
+        console.log(`✅ Codes-barres prêts pour ${articles.length} articles`);
+        setBarcodesLoaded(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [articles, barcodesLoaded]);
 
   const categories = Array.from(new Set(articles.map(a => a.categorie))).sort();
 
@@ -67,7 +83,24 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
   const handleSaveArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
     if (editingArticle) {
+      // Vérifier si le stock a changé
+      const oldStock = editingArticle.quantite_stock;
+      const newStock = articleData.quantite_stock;
       onUpdateArticle(editingArticle.id, articleData);
+      // Si le stock a changé, créer un mouvement
+      if (typeof newStock === 'number' && typeof oldStock === 'number' && newStock !== oldStock && user) {
+        const type = newStock > oldStock ? 'ENTREE' : 'SORTIE';
+        const quantite = Math.abs(newStock - oldStock);
+        const utilisateurNom = `${user.prenom} ${user.nom}`;
+        console.log('Création mouvement avec utilisateur:', utilisateurNom);
+        api.createMouvement({
+          article_id: editingArticle.id,
+          quantite,
+          type,
+          utilisateur: utilisateurNom,
+          commentaire: `Modification du stock via fiche article`
+        });
+      }
     } else {
       onAddArticle(articleData);
     }
@@ -111,7 +144,19 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
-          <p className="text-gray-600">{filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''}</p>
+          <p className="text-gray-600">
+            {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''}
+            {!barcodesLoaded && articles.length > 0 && (
+              <span className="ml-2 text-sm text-blue-600">
+                ⏳ Génération des codes-barres...
+              </span>
+            )}
+            {barcodesLoaded && articles.length > 0 && (
+              <span className="ml-2 text-sm text-green-600">
+                ✅ Codes-barres prêts
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <button

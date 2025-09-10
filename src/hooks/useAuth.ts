@@ -9,38 +9,99 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+// Variable globale pour éviter les appels multiples
+let isCheckingAuth = false;
+let authPromise: Promise<User | null> | null = null;
+
 export function useAuth() {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    loading: true,
-    error: null,
-    isAuthenticated: false
+  const [state, setState] = useState<AuthState>(() => {
+    const token = localStorage.getItem('auth_token');
+    return {
+      user: null,
+      loading: !!token,
+      error: null,
+      isAuthenticated: false
+    };
   });
 
   const checkAuth = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setState(prev => ({ ...prev, loading: false }));
-        return;
+    // Si une vérification est déjà en cours, attendre le résultat
+    if (authPromise) {
+      console.log('checkAuth - Attente de la vérification en cours...');
+      try {
+        const user = await authPromise;
+        if (user) {
+          setState({
+            user,
+            loading: false,
+            error: null,
+            isAuthenticated: true
+          });
+        } else {
+          setState(prev => ({ ...prev, loading: false, isAuthenticated: false }));
+        }
+      } catch (error) {
+        setState({
+          user: null,
+          loading: false,
+          error: error instanceof Error ? error.message : 'Erreur de vérification de session',
+          isAuthenticated: false
+        });
       }
+      return;
+    }
 
-      const profile = await api.getProfile();
-      setState({
-        user: profile,
-        loading: false,
-        error: null,
-        isAuthenticated: true
-      });
+    if (isCheckingAuth) {
+      console.log('checkAuth - Vérification déjà en cours, ignore');
+      return;
+    }
+
+    console.log('checkAuth - Début de la vérification');
+    isCheckingAuth = true;
+
+    authPromise = (async (): Promise<User | null> => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        console.log('checkAuth - Token trouvé:', token ? 'Oui' : 'Non');
+        
+        if (!token) {
+          return null;
+        }
+
+        console.log('checkAuth - Vérification du profil...');
+        const profile = await api.getProfile();
+        console.log('checkAuth - Profil récupéré:', profile);
+        return profile;
+      } catch (error) {
+        console.error('Error checking auth:', error);
+        console.log('checkAuth - Suppression du token invalide');
+        localStorage.removeItem('auth_token');
+        throw error;
+      }
+    })();
+
+    try {
+      const user = await authPromise;
+      if (user) {
+        setState({
+          user,
+          loading: false,
+          error: null,
+          isAuthenticated: true
+        });
+      } else {
+        setState(prev => ({ ...prev, loading: false, isAuthenticated: false }));
+      }
     } catch (error) {
-      console.error('Error checking auth:', error);
-      localStorage.removeItem('auth_token');
       setState({
         user: null,
         loading: false,
         error: error instanceof Error ? error.message : 'Erreur de vérification de session',
         isAuthenticated: false
       });
+    } finally {
+      isCheckingAuth = false;
+      authPromise = null;
     }
   }, []);
 
@@ -55,6 +116,9 @@ export function useAuth() {
         error: null,
         isAuthenticated: true
       });
+      // Réinitialiser les flags globaux
+      isCheckingAuth = false;
+      authPromise = null;
       return { token, user };
     } catch (error) {
       console.error('Error signing in:', error);
@@ -78,6 +142,9 @@ export function useAuth() {
         error: null,
         isAuthenticated: false
       });
+      // Réinitialiser les flags globaux
+      isCheckingAuth = false;
+      authPromise = null;
     } catch (error) {
       console.error('Error signing out:', error);
       setState({
@@ -86,13 +153,19 @@ export function useAuth() {
         error: error instanceof Error ? error.message : 'Erreur de déconnexion',
         isAuthenticated: false
       });
+      // Réinitialiser les flags globaux même en cas d'erreur
+      isCheckingAuth = false;
+      authPromise = null;
       throw error;
     }
   }, []);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    const token = localStorage.getItem('auth_token');
+    if (token && !state.isAuthenticated && !isCheckingAuth) {
+      checkAuth();
+    }
+  }, [checkAuth, state.isAuthenticated]);
 
   return {
     user: state.user,
@@ -102,4 +175,4 @@ export function useAuth() {
     signIn,
     signOut
   };
-} 
+}

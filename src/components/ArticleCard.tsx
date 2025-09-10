@@ -16,7 +16,11 @@ interface ArticleCardProps {
 export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: ArticleCardProps) {
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
   const { user } = useAuth();
-  const canShowBarcode = user && (user.role === 'admin' || user.role === 'manager');
+  // Afficher les codes-barres pour tous, même si l'auth n'est pas encore chargée
+  const canShowBarcode = true; // Toujours afficher les codes-barres
+  
+  // Debug: Log pour chaque article
+  console.log(`🎯 ArticleCard "${article.nom}" - user: ${user ? 'connecté' : 'null'}, code_barres: "${article.code_barres}", id: "${article.id}"`);
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
@@ -63,7 +67,9 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
             <div id={`barcode-container-${article.id}`} className="mb-1">
               <BarcodeGenerator value={article.code_barres || article.id || ''} />
             </div>
-            <span className="text-xs text-gray-500 mb-2">Code-barre du produit</span>
+            <span className="text-xs text-gray-500 mb-2">
+              {article.code_barres ? `Code: ${article.code_barres}` : 'Code-barres généré depuis ID'}
+            </span>
             <div className="flex gap-2">
               <button
                 className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
@@ -137,7 +143,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">Fournisseur: {article.fournisseur}</span>
           <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-            {article.code_barres}
+            Code: {article.code_barres || 'Non défini'}
           </div>
         </div>
       </div>
