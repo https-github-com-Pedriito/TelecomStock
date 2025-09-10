@@ -34,9 +34,9 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
   };
 
   const demoAccounts = [
-    { email: 'admin@telecom.com', role: 'Admin - Accès complet' },
-    { email: 'manager@telecom.com', role: 'Manager - Inventaire et scanner' },
-    { email: 'technicien@telecom.com', role: 'Technicien - Scanner uniquement' },
+    { email: 'admin@telecom.com', role: 'Admin - Accès complet', password: 'admin123' },
+    { email: 'manager@telecom.com', role: 'Manager - Inventaire et scanner', password: 'manager123' },
+    { email: 'tech@telecom.com', role: 'Technicien - Scanner uniquement', password: 'tech123' },
   ];
 
   return (
@@ -118,7 +118,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
                 key={account.email}
                 onClick={() => {
                   setEmail(account.email);
-                  setPassword('password');
+                  setPassword(account.password);
                 }}
                 className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -128,7 +128,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
             ))}
           </div>
           <p className="text-xs text-gray-500 text-center mt-3">
-            Mot de passe : <code className="bg-gray-100 px-1 rounded">password</code>
+            Cliquez sur un compte pour remplir automatiquement les champs
           </p>
         </div>
       </div>
