@@ -2,7 +2,6 @@ import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BarcodeGenerator } from './BarcodeGenerator';
-import { useAuth } from '../hooks/useAuth';
 import { Article } from '../types';
 import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer } from 'lucide-react';
 
@@ -15,12 +14,8 @@ interface ArticleCardProps {
 
 export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: ArticleCardProps) {
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
-  const { user } = useAuth();
-  // Afficher les codes-barres pour tous, même si l'auth n'est pas encore chargée
-  const canShowBarcode = true; // Toujours afficher les codes-barres
-  
-  // Debug: Log pour chaque article
-  console.log(`🎯 ArticleCard "${article.nom}" - user: ${user ? 'connecté' : 'null'}, code_barres: "${article.code_barres}", id: "${article.id}"`);
+  // Afficher les codes-barres pour tous
+  const canShowBarcode = true;
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${

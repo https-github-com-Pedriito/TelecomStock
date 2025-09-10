@@ -88,17 +88,45 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       const newStock = articleData.quantite_stock;
       onUpdateArticle(editingArticle.id, articleData);
       // Si le stock a changé, créer un mouvement
-      if (typeof newStock === 'number' && typeof oldStock === 'number' && newStock !== oldStock && user) {
+      if (typeof newStock === 'number' && typeof oldStock === 'number' && newStock !== oldStock) {
         const type = newStock > oldStock ? 'ENTREE' : 'SORTIE';
         const quantite = Math.abs(newStock - oldStock);
-        const utilisateurNom = `${user.prenom} ${user.nom}`;
-        console.log('Création mouvement avec utilisateur:', utilisateurNom);
+        
+        // Gestion robuste du nom d'utilisateur
+        let utilisateurNom = 'Utilisateur inconnu';
+        
+        if (user && user.prenom && user.nom) {
+          utilisateurNom = `${user.prenom.trim()} ${user.nom.trim()}`.trim();
+        } else if (user && user.email) {
+          utilisateurNom = user.email;
+        }
+        // Sinon, l'API utilisera les informations du token JWT
+        
+        console.log('🔍 Debug mouvement frontend:', {
+          user: user,
+          userExists: !!user,
+          prenom: user?.prenom,
+          nom: user?.nom,
+          email: user?.email,
+          utilisateurNom: utilisateurNom,
+          type: type,
+          quantite: quantite
+        });
+        
         api.createMouvement({
           article_id: editingArticle.id,
           quantite,
           type,
           utilisateur: utilisateurNom,
           commentaire: `Modification du stock via fiche article`
+        });
+      } else {
+        console.log('⚠️  Mouvement non créé:', {
+          newStock: newStock,
+          oldStock: oldStock,
+          stockChanged: newStock !== oldStock,
+          userExists: !!user,
+          user: user
         });
       }
     } else {

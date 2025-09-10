@@ -1,15 +1,14 @@
-import React, { useState, useMemo } from 'react';
-import { Article, Mouvement } from '../types';
+import { useState, useMemo } from 'react';
+import { Mouvement } from '../types';
 import { Search, Filter, Download, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface HistoriqueProps {
   mouvements: Mouvement[];
-  articles: Article[];
 }
 
-export function Historique({ mouvements, articles }: HistoriqueProps) {
+export function Historique({ mouvements }: HistoriqueProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'' | 'ENTREE' | 'SORTIE'>('');
   const [filterUser, setFilterUser] = useState('');
@@ -17,11 +16,9 @@ export function Historique({ mouvements, articles }: HistoriqueProps) {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const mouvementsWithArticles = useMemo(() => {
-    return mouvements.map(mouvement => ({
-      ...mouvement,
-      article: articles.find(a => a.id === mouvement.articleId)
-    }));
-  }, [mouvements, articles]);
+    // Les mouvements ont déjà l'objet article complet selon l'interface
+    return mouvements;
+  }, [mouvements]);
 
   const users = useMemo(() => {
     return Array.from(new Set(mouvements.map(m => m.utilisateur))).sort();
@@ -31,9 +28,7 @@ export function Historique({ mouvements, articles }: HistoriqueProps) {
     let filtered = mouvementsWithArticles.filter(mouvement => {
       const matchesSearch = !searchTerm || (
         mouvement.article?.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mouvement.article?.codeBarres.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mouvement.projet?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mouvement.technicien?.toLowerCase().includes(searchTerm.toLowerCase())
+        mouvement.article?.code_barres.toLowerCase().includes(searchTerm.toLowerCase())
       );
       const matchesType = !filterType || mouvement.type === filterType;
       const matchesUser = !filterUser || mouvement.utilisateur === filterUser;
@@ -75,18 +70,16 @@ export function Historique({ mouvements, articles }: HistoriqueProps) {
   const exportToCSV = () => {
     const headers = [
       'Date', 'Type', 'Article', 'Code-barres', 'Quantité', 
-      'Utilisateur', 'Projet', 'Technicien', 'Commentaire'
+      'Utilisateur', 'Commentaire'
     ];
     
     const data = filteredMouvements.map(mouvement => [
       format(new Date(mouvement.dateHeure), 'dd/MM/yyyy HH:mm', { locale: fr }),
       mouvement.type,
       mouvement.article?.nom || 'Article supprimé',
-      mouvement.article?.codeBarres || '',
+      mouvement.article?.code_barres || '',
       mouvement.quantite,
       mouvement.utilisateur,
-      mouvement.projet || '',
-      mouvement.technicien || '',
       mouvement.commentaire || '',
     ]);
 
@@ -205,7 +198,6 @@ export function Historique({ mouvements, articles }: HistoriqueProps) {
                     </div>
                   </th>
                   <th className="text-left py-3 px-4">Utilisateur</th>
-                  <th className="text-left py-3 px-4">Projet/Technicien</th>
                   <th className="text-left py-3 px-4">Commentaire</th>
                 </tr>
               </thead>
@@ -227,15 +219,11 @@ export function Historique({ mouvements, articles }: HistoriqueProps) {
                     <td className="py-3 px-4">
                       <div>
                         <p className="font-medium text-sm">{mouvement.article?.nom || 'Article supprimé'}</p>
-                        <p className="text-xs text-gray-500 font-mono">{mouvement.article?.codeBarres}</p>
+                        <p className="text-xs text-gray-500 font-mono">{mouvement.article?.code_barres}</p>
                       </div>
                     </td>
                     <td className="py-3 px-4 font-medium">{mouvement.quantite}</td>
                     <td className="py-3 px-4 text-sm">{mouvement.utilisateur}</td>
-                    <td className="py-3 px-4 text-sm">
-                      {mouvement.projet && <p>{mouvement.projet}</p>}
-                      {mouvement.technicien && <p className="text-gray-600">{mouvement.technicien}</p>}
-                    </td>
                     <td className="py-3 px-4 text-sm text-gray-600 max-w-xs truncate">
                       {mouvement.commentaire}
                     </td>

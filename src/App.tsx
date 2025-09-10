@@ -402,7 +402,6 @@ function App() {
         return hasPermission('view_historique') && (
           <Historique
             mouvements={mouvements}
-            articles={articles}
           />
         );
       case 'fournisseurs':

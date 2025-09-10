@@ -100,11 +100,19 @@ export function useStock() {
         if (difference !== 0) {
           console.log('Quantité modifiée de', ancienneQuantite, 'à', data.quantite_stock, '- différence:', difference);
           
+          // Gestion robuste du nom d'utilisateur
+          let utilisateurNom = 'Utilisateur inconnu';
+          if (user && user.prenom && user.nom) {
+            utilisateurNom = `${user.prenom.trim()} ${user.nom.trim()}`.trim();
+          } else if (user && user.email) {
+            utilisateurNom = user.email;
+          }
+          
           const mouvementData = {
             type: difference > 0 ? 'ENTREE' as const : 'SORTIE' as const,
             quantite: Math.abs(difference),
             article_id: id,
-            utilisateur: user ? `${user.prenom} ${user.nom}` : 'Utilisateur inconnu',
+            utilisateur: utilisateurNom,
             commentaire: `Ajustement de stock: ${ancienneQuantite} → ${data.quantite_stock}`
           };
           
@@ -125,7 +133,7 @@ export function useStock() {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       throw err;
     }
-  }, [articles]);
+  }, [articles, user]);
 
   const deleteArticle = useCallback(async (id: string) => {
     try {

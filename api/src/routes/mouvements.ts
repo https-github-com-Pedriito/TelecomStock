@@ -79,19 +79,29 @@ router.post('/', authMiddleware, async (req, res) => {
 
     // Récupérer prénom et nom depuis le token utilisateur si disponible
     let utilisateurNom = utilisateur;
-    console.log('Utilisateur reçu dans le body:', utilisateur);
-    console.log('Informations du token req.user:', req.user);
-    // Priorité : utilisateur transmis par le frontend
-    if (utilisateurNom) {
-      // Utilise la valeur reçue
-      utilisateurNom = utilisateur;
+    console.log('🔍 Debug utilisateur reçu dans le body:', JSON.stringify(utilisateur));
+    console.log('🔍 Debug informations du token req.user:', JSON.stringify(req.user));
+    
+    // Vérifier si l'utilisateur transmis est valide (pas vide, pas juste des espaces)
+    const isUtilisateurValide = utilisateurNom && 
+                               typeof utilisateurNom === 'string' && 
+                               utilisateurNom.trim().length > 0 &&
+                               utilisateurNom.trim() !== 'undefined undefined' &&
+                               !utilisateurNom.includes('undefined');
+    
+    if (isUtilisateurValide) {
+      // Utilise la valeur reçue, nettoyée
+      utilisateurNom = utilisateurNom.trim();
+      console.log('✅ Utilisation du nom transmis:', utilisateurNom);
     } else if (req.user && req.user.prenom && req.user.nom) {
       // Sinon, utilise le nom/prénom du token
       utilisateurNom = `${req.user.prenom} ${req.user.nom}`;
+      console.log('✅ Utilisation du nom du token:', utilisateurNom);
     } else {
       utilisateurNom = 'Utilisateur inconnu';
+      console.log('❌ Aucun nom valide trouvé, utilisation de "Utilisateur inconnu"');
     }
-    console.log('Utilisateur final utilisé:', utilisateurNom);
+    console.log('🎯 Utilisateur final utilisé:', utilisateurNom);
 
     // Vérifier que l'article existe
     const article = await articleRepository.findOne({ where: { id: finalArticleId } });

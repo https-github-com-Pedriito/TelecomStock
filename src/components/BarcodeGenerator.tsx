@@ -19,7 +19,6 @@ export function BarcodeGenerator({
   useEffect(() => {
     if (canvasRef.current && value) {
       try {
-        console.log(`🔄 Génération code-barres pour: "${value}"`);
         JsBarcode(canvasRef.current, value, {
           format: "CODE128",
           width,
@@ -28,12 +27,9 @@ export function BarcodeGenerator({
           fontSize: 12,
           textMargin: 5,
         });
-        console.log(`✅ Code-barres généré avec succès pour: "${value}"`);
       } catch (error) {
-        console.error(`❌ Erreur génération code-barres pour "${value}":`, error);
+        console.error('Erreur génération code-barres:', error);
       }
-    } else {
-      console.log(`⚠️  Génération code-barres impossible - canvas: ${!!canvasRef.current}, value: "${value}"`);
     }
   }, [value, width, height, displayValue]);
 
