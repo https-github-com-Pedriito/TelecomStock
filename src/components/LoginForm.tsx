@@ -46,7 +46,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
           <div className="bg-blue-600 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
             <User className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">TelecomStock Pro</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Decimale Stock</h1>
           <p className="text-gray-600">Connectez-vous à votre compte</p>
         </div>
 

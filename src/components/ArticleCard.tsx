@@ -1,4 +1,8 @@
 import React from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { BarcodeGenerator } from './BarcodeGenerator';
+import { useAuth } from '../hooks/useAuth';
 import { Article } from '../types';
 import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer } from 'lucide-react';
 
@@ -11,6 +15,8 @@ interface ArticleCardProps {
 
 export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: ArticleCardProps) {
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
+  const { user } = useAuth();
+  const canShowBarcode = user && (user.role === 'admin' || user.role === 'manager');
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
@@ -50,7 +56,65 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
         </div>
       </div>
 
-      <div className="space-y-3">
+  <div className="space-y-3">
+        {canShowBarcode && (
+          <div className="flex flex-col items-center mb-2">
+            {/* Barcode canvas */}
+            <div id={`barcode-container-${article.id}`} className="mb-1">
+              <BarcodeGenerator value={article.code_barres || article.id || ''} />
+            </div>
+            <span className="text-xs text-gray-500 mb-2">Code-barre du produit</span>
+            <div className="flex gap-2">
+              <button
+                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                onClick={() => {
+                  const container = document.getElementById(`barcode-container-${article.id}`);
+                  if (!container) return;
+                  const canvas = container.querySelector('canvas');
+                  if (!canvas) return;
+                  const win = window.open('', 'PrintBarcode');
+                  if (win) {
+                    win.document.write('<img src="' + canvas.toDataURL() + '" style="width:300px" />');
+                    win.document.close();
+                    win.focus();
+                    win.print();
+                  }
+                }}
+              >Imprimer</button>
+              <button
+                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
+                onClick={() => {
+                  const container = document.getElementById(`barcode-container-${article.id}`);
+                  if (!container) {
+                    alert('Impossible de trouver le code-barres.');
+                    return;
+                  }
+                  const canvas = container.querySelector('canvas');
+                  if (!canvas) {
+                    alert('Le code-barres n\'est pas généré.');
+                    return;
+                  }
+                  try {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    if (!dataUrl.startsWith('data:image/png')) {
+                      toast.error('Erreur lors de la génération de l\'image.');
+                      return;
+                    }
+                    const link = document.createElement('a');
+                    link.download = `barcode-${article.code_barres || article.id}.png`;
+                    link.href = dataUrl;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    toast.success('Le code-barres a bien été téléchargé.');
+                  } catch (err) {
+                    toast.error('Erreur lors du téléchargement du code-barres.');
+                  }
+                }}
+              >Télécharger</button>
+            </div>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Package size={16} />
           <span>Stock: </span>
@@ -77,6 +141,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
           </div>
         </div>
       </div>
-    </div>
+  <ToastContainer position="bottom-right" autoClose={2500} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+  </div>
   );
 }

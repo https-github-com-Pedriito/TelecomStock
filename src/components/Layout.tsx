@@ -111,7 +111,7 @@ export function Layout({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold">TelecomStock Pro</h1>
+              <h1 className="text-xl font-bold">Decimale Stock</h1>
               {alertsCount > 0 && hasPermission('view_dashboard') && (
                 <div className="flex items-center gap-2 bg-orange-500 px-3 py-1 rounded-full text-sm font-medium">
                   <AlertTriangle size={16} />
