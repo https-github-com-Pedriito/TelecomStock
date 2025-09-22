@@ -4,8 +4,8 @@ import fs from 'fs';
 
 // Configuration des certificats
 function getHttpsConfig() {
-  const certPath = './192.168.1.46.pem';
-  const keyPath = './192.168.1.46-key.pem';
+  const certPath = './192.168.1.53+2.pem';
+  const keyPath = './192.168.1.53+2-key.pem';
   
   try {
     console.log('🔐 Chargement des certificats SSL...');
@@ -17,7 +17,7 @@ function getHttpsConfig() {
     console.warn('⚠️ Certificats principaux non trouvés. Exécutez: npm run cert:generate');
     
     // Fallback vers les anciens certificats si disponibles
-    const fallbackCerts = ['192.168.1.53+2.pem', 'localhost+2.pem', 'localhost+1.pem'];
+    const fallbackCerts = ['localhost+2.pem', 'localhost+1.pem'];
     for (const fallbackCert of fallbackCerts) {
       const fallbackKey = fallbackCert.replace('.pem', '-key.pem');
       if (fs.existsSync(fallbackCert) && fs.existsSync(fallbackKey)) {
@@ -45,9 +45,4 @@ export default defineConfig({
     host: true, // nécessaire pour accéder depuis d'autres appareils
     https: getHttpsConfig(),
   },
-  define: {
-    // Configuration API HTTPS pour tous les environnements
-    'import.meta.env.VITE_API_URL': '"https://192.168.1.46:3443"',
-    'import.meta.env.VITE_API_URL_HTTPS': '"https://192.168.1.46:3443"',
-  }
 });

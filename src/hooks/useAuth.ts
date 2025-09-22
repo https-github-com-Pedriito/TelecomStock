@@ -27,7 +27,7 @@ export function useAuth() {
   const checkAuth = useCallback(async () => {
     // Si une vérification est déjà en cours, attendre le résultat
     if (authPromise) {
-      console.log('checkAuth - Attente de la vérification en cours...');
+      console.log('[DEBUG] checkAuth - Attente de la vérification en cours...');
       try {
         const user = await authPromise;
         if (user) {
@@ -52,11 +52,11 @@ export function useAuth() {
     }
 
     if (isCheckingAuth) {
-      console.log('checkAuth - Vérification déjà en cours, ignore');
+      console.log('[DEBUG] checkAuth - Vérification déjà en cours, ignore');
       return;
     }
 
-    console.log('checkAuth - Début de la vérification');
+    console.log('[DEBUG] checkAuth - Début de la vérification');
     isCheckingAuth = true;
 
     authPromise = (async (): Promise<User | null> => {
@@ -107,9 +107,11 @@ export function useAuth() {
 
   const signIn = useCallback(async (email: string, password: string) => {
     try {
+      console.log('[DEBUG] signIn - Tentative de connexion pour:', email);
       setState(prev => ({ ...prev, loading: true, error: null }));
       const { token, user } = await api.login(email, password);
       localStorage.setItem('auth_token', token);
+      console.log('[DEBUG] signIn - Connexion réussie pour:', user.email);
       setState({
         user,
         loading: false,
@@ -121,7 +123,7 @@ export function useAuth() {
       authPromise = null;
       return { token, user };
     } catch (error) {
-      console.error('Error signing in:', error);
+      console.error('[DEBUG] Error signing in:', error);
       setState({
         user: null,
         loading: false,

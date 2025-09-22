@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ViewMode, Article, Mouvement, User, Fournisseur, InventoryEntry, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
 import { useAuth } from './hooks/useAuth';
+import { useNotifications } from './components/Notification';
 import { api } from './lib/api';
 import { Layout } from './components/Layout';
 import { LoginForm } from './components/LoginForm';
@@ -14,11 +15,15 @@ import { Fournisseurs } from './pages/Fournisseurs';
 import { Utilisateurs } from './pages/Utilisateurs';
 import { Rapports } from './pages/Rapports';
 import { Inventory } from './pages/Inventory';
+import DebugConsole from './components/DebugConsole';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [loginError, setLoginError] = useState('');
   
+  // Système de notifications
+  const { showStockNotification, NotificationContainer } = useNotifications();
+
   const {
     user,
     loading: authLoading,
@@ -39,7 +44,7 @@ function App() {
     createMouvement,
     refreshFournisseurs,
     refreshAll
-  } = useStock();
+  } = useStock(showStockNotification); // Passer le callback de notification
 
   const getArticlesWithAlerts = () => {
     return articles.filter(article => article.quantite_stock <= article.seuil_minimum);
@@ -465,6 +470,8 @@ function App() {
     return (
       <>
         <LoginForm onLogin={handleLogin} error={loginError} />
+        <NotificationContainer />
+        <DebugConsole />
       </>
     );
   }
@@ -481,6 +488,8 @@ function App() {
       >
         {renderCurrentView()}
       </Layout>
+      <NotificationContainer />
+      <DebugConsole />
     </>
   );
 }

@@ -29,8 +29,8 @@ services:
       - DB_NAME=telecomstock
       - JWT_SECRET=votre_secret_jwt_super_secure
       - API_PORT=3443
-      - SSL_KEY=/usr/src/app/192.168.1.53+2-key.pem
-      - SSL_CERT=/usr/src/app/192.168.1.53+2.pem
+      - SSL_KEY=/usr/src/app/192.168.1.46-key.pem
+      - SSL_CERT=/usr/src/app/192.168.1.46.pem
     ports:
       - "0.0.0.0:3443:3443"  # HTTPS
       - "0.0.0.0:3080:3080"  # HTTP pour développement mobile
@@ -43,8 +43,8 @@ services:
     volumes:
       - ../api:/usr/src/app
       - /usr/src/app/node_modules
-      - ../192.168.1.53+2-key.pem:/usr/src/app/192.168.1.53+2-key.pem:ro
-      - ../192.168.1.53+2.pem:/usr/src/app/192.168.1.53+2.pem:ro
+      - ../192.168.1.46-key.pem:/usr/src/app/192.168.1.46-key.pem:ro
+      - ../192.168.1.46.pem:/usr/src/app/192.168.1.46.pem:ro
 
   pgadmin:
     image: dpage/pgadmin4

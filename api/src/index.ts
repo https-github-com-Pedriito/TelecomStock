@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
 import https from 'https';
+import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { AppDataSource } from './data-source';
@@ -10,6 +11,7 @@ import { articlesRouter } from './routes/articles';
 import { mouvementsRouter } from './routes/mouvements';
 import { usersRouter } from './routes/users';
 import { fournisseursRouter } from './routes/fournisseurs';
+import { realtimeService } from './services/realtime';
 
 const app = express();
 const httpPort = process.env.API_PORT || 3001;
@@ -41,6 +43,18 @@ app.get('/', (req, res) => {
   });
 });
 
+// Endpoint de test pour mobile
+app.get('/test', (req, res) => {
+  res.json({
+    status: 'success',
+    message: 'API accessible depuis mobile',
+    timestamp: new Date().toISOString(),
+    userAgent: req.headers['user-agent'],
+    origin: req.headers.origin,
+    ip: req.ip || req.connection.remoteAddress
+  });
+});
+
 // Routes
 app.use('/auth', authRouter);
 app.use('/articles', articlesRouter);
@@ -55,8 +69,8 @@ AppDataSource.initialize().then(() => {
   
   // Log the current directory and certificate paths
   console.log('Current directory:', __dirname);
-  const keyPath = process.env.SSL_KEY || path.join(__dirname, '../localhost+2-key.pem');
-  const certPath = process.env.SSL_CERT || path.join(__dirname, '../localhost+2.pem');
+  const keyPath = process.env.SSL_KEY || path.join(__dirname, '../192.168.1.53+2-key.pem');
+  const certPath = process.env.SSL_CERT || path.join(__dirname, '../192.168.1.53+2.pem');
   console.log('Looking for certificates at:', {
     keyPath,
     certPath
@@ -75,14 +89,6 @@ AppDataSource.initialize().then(() => {
     cert: fs.readFileSync(certPath)
   };
 
-  // Start HTTPS server only
-  const server = https.createServer(httpsOptions, app);
-  
-  // Add error handling
-  server.on('error', (error: any) => {
-    console.error('HTTPS Server Error:', error);
-  });
-
   // Add request logging middleware
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -90,9 +96,31 @@ AppDataSource.initialize().then(() => {
     next();
   });
 
-  server.listen(Number(httpsPort), '0.0.0.0', () => {
-    console.log(`HTTPS Server running on port ${httpsPort}`);
-    console.log(`Server accepting connections from: https://${process.env.HOST || 'localhost'}:${httpsPort}`);
+  // Start HTTPS server
+  const httpsServer = https.createServer(httpsOptions, app);
+  
+  // Initialize Socket.IO with HTTPS server
+  realtimeService.init(httpsServer);
+  
+  // Add error handling for HTTPS
+  httpsServer.on('error', (error: any) => {
+    console.error('HTTPS Server Error:', error);
+  });
+
+  httpsServer.listen(Number(httpsPort), '0.0.0.0', () => {
+    console.log(`✅ HTTPS Server running on port ${httpsPort}`);
+    console.log(`🔗 HTTPS URL: https://${process.env.HOST || 'localhost'}:${httpsPort}`);
+    console.log(`🔄 WebSocket temps réel activé sur HTTPS`);
+  });
+
+  // Start HTTP server for mobile development (port 3080)
+  const httpPort = 3080;
+  const httpServer = http.createServer(app);
+  
+  httpServer.listen(httpPort, '0.0.0.0', () => {
+    console.log(`✅ HTTP Server (mobile dev) running on port ${httpPort}`);
+    console.log(`📱 HTTP URL: http://${process.env.HOST || 'localhost'}:${httpPort}`);
+    console.log(`🔧 Use HTTP for mobile if HTTPS certificates are rejected`);
   });
 }).catch(error => {
   console.error('Database connection failed:', error);

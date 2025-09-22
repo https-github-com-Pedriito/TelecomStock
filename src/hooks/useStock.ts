@@ -2,14 +2,49 @@ import { useState, useCallback, useEffect } from 'react';
 import { Article, Mouvement, Fournisseur, CreateMouvementData } from '../types';
 import { api } from '../lib/api';
 import { useAuth } from './useAuth';
+import { useRealtimeSync } from './useRealtimeSync';
 
-export function useStock() {
+// Type pour le callback de notification
+type StockNotificationCallback = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => void;
+
+export function useStock(onStockChange?: StockNotificationCallback) {
   const { user } = useAuth();
   const [articles, setArticles] = useState<Article[]>([]);
   const [mouvements, setMouvements] = useState<Mouvement[]>([]);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Synchronisation temps réel (utilisé pour ses effets de bord)
+  useRealtimeSync({
+    onArticlesChange: async () => {
+      console.log('🔄 Articles changés - rechargement...');
+      try {
+        const response = await api.get<Article[]>('/articles');
+        setArticles(response);
+      } catch (err) {
+        console.error('Erreur lors du rechargement des articles:', err);
+      }
+    },
+    onMouvementsChange: async () => {
+      console.log('🔄 Mouvements changés - rechargement...');
+      try {
+        const response = await api.get<Mouvement[]>('/mouvements');
+        setMouvements(response);
+      } catch (err) {
+        console.error('Erreur lors du rechargement des mouvements:', err);
+      }
+    },
+    onFournisseursChange: async () => {
+      console.log('🔄 Fournisseurs changés - rechargement...');
+      try {
+        const response = await api.get<Fournisseur[]>('/fournisseurs');
+        setFournisseurs(response);
+      } catch (err) {
+        console.error('Erreur lors du rechargement des fournisseurs:', err);
+      }
+    }
+  });
 
   // Charger les données initiales
   useEffect(() => {
@@ -135,14 +170,30 @@ export function useStock() {
     }
   }, [articles, user]);
 
-  const deleteArticle = useCallback(async (id: string) => {
+  const deleteArticle = useCallback(async (id: string, force: boolean = false) => {
     try {
-      console.log('Suppression de l\'article:', id);
-      const result = await api.delete(`/articles/${id}`);
+      console.log('Suppression de l\'article:', id, 'force:', force);
+      
+      const url = force ? `/articles/${id}?force=true` : `/articles/${id}`;
+      const result = await api.delete(url);
+      
       console.log('Article supprimé, résultat:', result);
       setArticles(prev => prev.filter(a => a.id !== id));
-    } catch (err) {
+      
+      return result;
+    } catch (err: any) {
       console.error('Erreur lors de la suppression de l\'article:', err);
+      
+      // Si c'est une erreur 409 (conflit), c'est qu'il y a des mouvements associés
+      if (err.response?.status === 409) {
+        // Retourner l'erreur avec les options pour permettre à l'UI de gérer
+        throw {
+          ...err,
+          canForceDelete: true,
+          data: err.response.data
+        };
+      }
+      
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       throw err;
     }
@@ -162,13 +213,26 @@ export function useStock() {
       const articlesResponse = await api.get<Article[]>('/articles');
       setArticles(articlesResponse);
 
+      // Trouver l'article concerné et afficher la notification
+      if (onStockChange && mouvement.article_id) {
+        const articleConcerne = articlesResponse.find(a => a.id === mouvement.article_id);
+        if (articleConcerne) {
+          onStockChange(
+            articleConcerne.nom,
+            articleConcerne.quantite_stock,
+            mouvement.type,
+            articleConcerne.seuil_minimum
+          );
+        }
+      }
+
       return newMouvement;
     } catch (err) {
       console.error('useStock - Erreur lors de la création du mouvement:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       throw err;
     }
-  }, []);
+  }, [onStockChange]);
 
   // Fournisseurs
   const createFournisseur = useCallback(async (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -254,6 +318,14 @@ export function useStock() {
       setLoading(false);
     }
   }, [refreshArticles, refreshMouvements, refreshFournisseurs]);
+
+  // Synchronisation temps réel
+  useRealtimeSync({
+    onArticlesChange: refreshArticles,
+    onMouvementsChange: refreshMouvements, 
+    onFournisseursChange: refreshFournisseurs,
+    debug: true
+  });
 
   return {
     articles,

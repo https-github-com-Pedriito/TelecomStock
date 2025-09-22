@@ -75,10 +75,9 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     setIsModalOpen(true);
   };
 
-  const handleDeleteArticle = (id: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
-      onDeleteArticle(id);
-    }
+  const handleDeleteArticle = async (id: string, force: boolean = false) => {
+    // Ne pas afficher de confirmation ici - elle est gérée dans ArticleCard
+    return await onDeleteArticle(id, force);
   };
 
   const handleSaveArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {

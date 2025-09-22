@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Article, CreateMouvementData } from '../types';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { MouvementModal } from '../components/MouvementModal';
-import { ScanLine, Package, CheckCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { ScanLine, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface ScannerProps {
   articles: Article[];
@@ -18,11 +18,6 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
   const [showMouvementModal, setShowMouvementModal] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
   const [mouvementType, setMouvementType] = useState<'ENTREE' | 'SORTIE'>('ENTREE');
-  const [scanResult, setScanResult] = useState<{
-    article: Article | null;
-    barcode: string;
-    timestamp: Date;
-  } | null>(null);
 
   const handleScan = (barcode: string) => {
     setShowScanner(false);
@@ -43,11 +38,6 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       updated_at: new Date()
     });
     setShowMouvementModal(true);
-    setScanResult({
-      article: article || null,
-      barcode,
-      timestamp: new Date(),
-    });
   };
 
   const handleSave = (data: any) => {
@@ -55,7 +45,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       // Création d'un nouvel article
       const nouvelArticle = onAddArticle({
         ...data,
-        code_barres: scanResult?.barcode || ''
+        code_barres: selectedArticle?.code_barres || ''
       });
       setSelectedArticle(nouvelArticle);
       alert('Article créé avec succès !');
@@ -126,70 +116,6 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
           </div>
         </button>
       </div>
-
-      {/* Scan Result */}
-      {scanResult && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <h2 className="text-lg font-semibold">Résultat du scan</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-sm text-gray-600">Code-barres scanné:</p>
-              <p className="font-mono text-lg">{scanResult.barcode}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {scanResult.timestamp.toLocaleString('fr-FR')}
-              </p>
-            </div>
-
-            {scanResult.article ? (
-              <div className="border border-green-200 bg-green-50 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <Package className="w-5 h-5 text-green-600 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-green-900">{scanResult.article.nom}</h3>
-                    <p className="text-sm text-green-700">{scanResult.article.categorie}</p>
-                    <div className="mt-3 space-y-1 text-sm">
-                      <p><span className="text-green-600">Stock:</span> {scanResult.article.quantite_stock}</p>
-                      <p><span className="text-green-600">Localisation:</span> {scanResult.article.localisation}</p>
-                      <p><span className="text-green-600">Fournisseur:</span> {scanResult.article.fournisseur}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="border border-red-200 bg-red-50 rounded-lg p-4">
-                <div className="flex items-center gap-3">
-                  <Package className="w-5 h-5 text-red-600" />
-                  <div>
-                    <h3 className="font-semibold text-red-900">Article non trouvé</h3>
-                    <p className="text-sm text-red-700">
-                      Aucun article ne correspond à ce code-barres dans votre base de données.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => startScanForType('ENTREE')}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-              >
-                Entrée
-              </button>
-              <button
-                onClick={() => startScanForType('SORTIE')}
-                className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors"
-              >
-                Sortie
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Instructions */}
       <div className="bg-blue-50 rounded-lg p-6">

@@ -5,32 +5,46 @@ class ApiService {
   private token: string | null;
 
   constructor() {
-    // Configuration de l'API
-    const host = window.location.hostname;
-    const protocol = 'https:'; // Forcer HTTPS pour l'API
-    const apiPort = '3443';    // Port de l'API
+    // Configuration HTTPS complète basée sur les variables d'environnement Vite
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrlHttps = import.meta.env.VITE_API_URL_HTTPS;
     
-    // En développement, on utilise localhost
-    // En production, on utilise l'IP ou le nom de domaine du serveur
-    if (host === 'localhost' || host === '127.0.0.1') {
-      // En local, on pointe toujours vers localhost:3443
-      this.baseUrl = `${protocol}//localhost:${apiPort}`;
+    // Utiliser les variables d'environnement en priorité, sinon détection automatique
+    if (apiUrl) {
+      this.baseUrl = apiUrl;
+      console.log('[DEBUG] API URL from environment:', apiUrl);
+    } else if (apiUrlHttps) {
+      this.baseUrl = apiUrlHttps;
+      console.log('[DEBUG] API HTTPS URL from environment:', apiUrlHttps);
     } else {
-      // Sur mobile ou en production, on utilise l'adresse du serveur
-      this.baseUrl = `${protocol}//${host}:${apiPort}`;
+      // Fallback: détection automatique
+      const host = window.location.hostname;
+      const isSecureContext = window.location.protocol === 'https:';
+      
+      if (host === 'localhost' || host === '127.0.0.1') {
+        this.baseUrl = isSecureContext ? `https://${host}:3443` : `http://${host}:3080`;
+      } else {
+        // Utiliser HTTPS par défaut pour les accès distants
+        this.baseUrl = `https://${host}:3443`;
+      }
+      console.log('[DEBUG] API URL auto-detected:', this.baseUrl);
     }
     
-    console.log('API Configuration:', {
-      url: this.baseUrl,
-      protocol: protocol,
-      host: host
+    console.log('[DEBUG] Final API Configuration:', {
+      baseUrl: this.baseUrl,
+      protocol: this.baseUrl.startsWith('https') ? 'HTTPS' : 'HTTP',
+      isSecureContext: window.location.protocol === 'https:',
+      host: window.location.hostname
     });
-
-    console.log('API URL:', this.baseUrl); // Pour le débogage
     this.token = localStorage.getItem('auth_token');
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
+  private async requestWithFallback(endpoint: string, options: RequestInit = {}): Promise<any> {
+    // Plus de fallback nécessaire - HTTPS fonctionne sur mobile
+    return await this.request(endpoint, options);
+  }
+
+  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     try {
       console.log('=== API Request Start ===');
       console.log('User Agent:', navigator.userAgent);
@@ -48,7 +62,7 @@ class ApiService {
       };
 
       const url = `${this.baseUrl}${endpoint}`;
-      console.log('Fetching:', url); // Pour le débogage
+      console.log('[DEBUG] Fetching:', url); // Pour le débogage
 
       const fetchOptions = {
         ...options,
@@ -57,24 +71,36 @@ class ApiService {
         credentials: 'include' as RequestCredentials
       };
 
+      console.log('[DEBUG] Fetch options:', fetchOptions);
+
       const response = await fetch(url, fetchOptions);
+
+      console.log('[DEBUG] Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorMessage;
+        let errorData;
         try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.message || 'Une erreur est survenue';
+          errorData = JSON.parse(errorText);
         } catch {
-          errorMessage = errorText || `Erreur HTTP ${response.status}`;
+          errorData = { message: errorText || `Erreur HTTP ${response.status}` };
         }
-        console.error('API Error:', {
+        
+        console.error('[DEBUG] API Error:', {
           status: response.status,
           statusText: response.statusText,
-          message: errorMessage,
+          data: errorData,
           url
         });
-        throw new Error(errorMessage);
+        
+        // Créer une erreur avec toutes les informations
+        const error = new Error(errorData.message || 'Une erreur est survenue');
+        (error as any).response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: errorData
+        };
+        throw error;
       }
 
       // Gérer les réponses vides (comme 204 No Content)
@@ -115,28 +141,28 @@ class ApiService {
     return response;
   }
 
-  // Méthodes CRUD génériques
+  // Méthodes CRUD génériques avec fallback
   async get<T>(endpoint: string) {
-    return this.request(endpoint) as Promise<T>;
+    return this.requestWithFallback(endpoint) as Promise<T>;
   }
 
   async post<T>(endpoint: string, data: any) {
     console.log('API POST request:', { endpoint, data });
-    return this.request(endpoint, {
+    return this.requestWithFallback(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     }) as Promise<T>;
   }
 
   async put<T>(endpoint: string, data: any) {
-    return this.request(endpoint, {
+    return this.requestWithFallback(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
     }) as Promise<T>;
   }
 
   async delete(endpoint: string) {
-    const response = await this.request(endpoint, {
+    const response = await this.requestWithFallback(endpoint, {
       method: 'DELETE',
     });
     // Pour DELETE, on ne s'attend pas forcément à du contenu

@@ -3,6 +3,7 @@ import { AppDataSource } from '../data-source';
 import { Article } from '../entities/Article';
 import { authMiddleware } from '../middleware/auth';
 import { QueryFailedError } from 'typeorm';
+import { realtimeService } from '../services/realtime';
 
 const router = Router();
 
@@ -92,6 +93,16 @@ router.post('/', authMiddleware, async (req, res) => {
     const savedArticle = await articleRepository.save(article);
     console.log('Article sauvegardé:', savedArticle);
     
+    // Notification en temps réel
+    realtimeService.notifyDatabaseChange({
+      type: 'create',
+      table: 'article',
+      data: savedArticle,
+      id: (savedArticle as any).id,
+      timestamp: new Date(),
+      userId: req.user?.id
+    });
+    
     res.status(201).json(savedArticle);
   } catch (error) {
     console.error('Create article error:', error);
@@ -115,9 +126,19 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 
     article = articleRepository.merge(article, req.body);
-    await articleRepository.save(article);
+    const updatedArticle = await articleRepository.save(article);
     
-    res.json(article);
+    // Notification en temps réel
+    realtimeService.notifyDatabaseChange({
+      type: 'update',
+      table: 'article',
+      data: updatedArticle,
+      id: article.id,
+      timestamp: new Date(),
+      userId: req.user?.id
+    });
+    
+    res.json(updatedArticle);
   } catch (error) {
     console.error('Update article error:', error);
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'article' });
@@ -128,7 +149,8 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(`Tentative de suppression de l'article avec l'ID: ${id}`);
+    const { force } = req.query; // Paramètre pour forcer la suppression
+    console.log(`Tentative de suppression de l'article avec l'ID: ${id}, force: ${force}`);
     
     if (!AppDataSource.isInitialized) {
       throw new Error('La connexion à la base de données n\'est pas initialisée');
@@ -158,19 +180,60 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 
     console.log(`Nombre de mouvements associés: ${mouvementsCount}`);
 
-    if (mouvementsCount > 0) {
-      console.log(`L'article ${id} a ${mouvementsCount} mouvements associés, impossible de le supprimer`);
-      return res.status(400).json({
+    if (mouvementsCount > 0 && force !== 'true') {
+      // Si il y a des mouvements et pas de force, retourner une erreur avec options
+      return res.status(409).json({
         message: 'Impossible de supprimer l\'article car il a des mouvements associés',
-        details: `${mouvementsCount} mouvements trouvés`
+        details: `${mouvementsCount} mouvements trouvés`,
+        options: {
+          forceDelete: true,
+          message: 'Vous pouvez forcer la suppression qui supprimera aussi tous les mouvements associés',
+          warning: '⚠️  Attention: Cela supprimera définitivement tous les mouvements associés !'
+        }
       });
     }
 
     try {
-      console.log('Tentative de suppression de l\'article...', article);
-      await articleRepository.remove(article);
-      console.log('Article supprimé avec succès');
-      res.status(204).send();
+      // Suppression avec transaction pour garantir l'intégrité
+      await AppDataSource.transaction(async manager => {
+        if (mouvementsCount > 0) {
+          console.log(`Suppression forcée : suppression de ${mouvementsCount} mouvements associés`);
+          
+          // Supprimer d'abord tous les mouvements associés
+          await manager
+            .createQueryBuilder()
+            .delete()
+            .from('mouvements')
+            .where('article_id = :articleId', { articleId: id })
+            .execute();
+
+          console.log('Mouvements associés supprimés');
+        }
+
+        // Supprimer l'article
+        await manager.remove(Article, article);
+        console.log('Article supprimé avec succès');
+      });
+      
+      // Notification en temps réel
+      realtimeService.notifyDatabaseChange({
+        type: 'delete',
+        table: 'article',
+        data: { 
+          ...article, 
+          mouvementsSupprimes: mouvementsCount,
+          suppressionForcee: force === 'true'
+        },
+        id: article.id,
+        timestamp: new Date(),
+        userId: req.user?.id
+      });
+      
+      res.json({
+        message: 'Article supprimé avec succès',
+        mouvementsSupprimes: mouvementsCount,
+        suppressionForcee: force === 'true'
+      });
     } catch (deleteError) {
       console.error('Erreur lors de la suppression :', deleteError);
       throw deleteError;

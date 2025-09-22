@@ -118,21 +118,6 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Code-barres */}
-          {barcodeFromURL && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Code-barres
-              </label>
-              <input
-                type="text"
-                value={barcodeFromURL}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                disabled
-              />
-            </div>
-          )}
-
           {/* Nom de l'article */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -199,6 +184,23 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                 <option key={loc} value={loc}>{loc}</option>
               ))}
             </select>
+          </div>
+
+          {/* Code-barres */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Code-barres
+            </label>
+            <input
+              type="text"
+              value={formData.code_barres || ''}
+              onChange={(e) => setFormData({ ...formData, code_barres: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Saisir le code-barres manuellement (optionnel)"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Laissez vide pour génération automatique ou saisissez manuellement
+            </p>
           </div>
 
           {/* Seuil minimum et Stock initial */}

@@ -1,14 +1,15 @@
-import React from 'react';
+import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BarcodeGenerator } from './BarcodeGenerator';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { Article } from '../types';
 import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer } from 'lucide-react';
 
 interface ArticleCardProps {
   article: Article;
   onEdit?: (article: Article) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: string, force?: boolean) => Promise<void>;
   onPrintLabel: (article: Article) => void;
 }
 
@@ -16,6 +17,60 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
   // Afficher les codes-barres pour tous
   const canShowBarcode = true;
+  
+  // État pour le modal de confirmation
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInfo, setDeleteInfo] = useState<{
+    hasMovements: boolean;
+    movementCount: number;
+  } | null>(null);
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+
+    try {
+      await onDelete(article.id, false);
+      toast.success('Article supprimé avec succès', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } catch (error: any) {
+      if (error.canForceDelete) {
+        // Afficher le modal de confirmation avec les détails
+        setDeleteInfo({
+          hasMovements: true,
+          movementCount: parseInt(error.data.details.match(/\d+/)?.[0] || '0')
+        });
+        setShowDeleteModal(true);
+        return; // Important: arrêter ici pour ne pas propager l'erreur
+      } else {
+        toast.error('Erreur lors de la suppression de l\'article', {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!onDelete) return;
+
+    try {
+      await onDelete(article.id, true);
+      toast.success('Article et mouvements associés supprimés avec succès', {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } catch (error) {
+      toast.error('Erreur lors de la suppression forcée', {
+        position: "top-right",
+        autoClose: 5000,
+      });
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteInfo(null);
+    }
+  };
 
   return (
     <div className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
@@ -45,7 +100,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
           )}
           {onDelete && (
             <button
-              onClick={() => onDelete(article.id)}
+              onClick={handleDelete}
               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Supprimer"
             >
@@ -142,7 +197,21 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
           </div>
         </div>
       </div>
-  <ToastContainer position="bottom-right" autoClose={2500} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-  </div>
+      
+      {/* Modal de confirmation de suppression */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeleteInfo(null);
+        }}
+        onConfirm={handleForceDelete}
+        articleName={article.nom}
+        hasMovements={deleteInfo?.hasMovements || false}
+        movementCount={deleteInfo?.movementCount || 0}
+      />
+      
+      <ToastContainer position="bottom-right" autoClose={2500} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+    </div>
   );
 }
