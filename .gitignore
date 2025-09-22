@@ -23,3 +23,19 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# SSL certificates (for local development only)
+*.pem
+*.key
+*.crt
+*.p12
+
+# Local development files
+.env.auto
+smart-start.json
+
+# API build output
+api/dist/
+
+# Database data
+postgres_data/

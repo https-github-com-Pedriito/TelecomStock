@@ -13,9 +13,10 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'admin',
   password: process.env.DB_PASSWORD || 'adminpassword',
   database: process.env.DB_NAME || 'telecomstock',
-  synchronize: false,
-  logging: true,
+  synchronize: process.env.NODE_ENV !== 'production', // Only sync in development
+  logging: process.env.NODE_ENV !== 'production',
   entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry],
-  migrations: ['src/migration/*.ts'],
+  migrations: ['dist/migration/*.js'],
   subscribers: [],
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });

@@ -19,7 +19,7 @@ export interface SocketUser {
 }
 
 class RealtimeService {
-  private io: SocketIOServer;
+  private io: SocketIOServer | undefined;
   private connectedUsers = new Map<string, SocketUser>();
 
   constructor() {
@@ -40,6 +40,8 @@ class RealtimeService {
   }
 
   private setupSocketHandlers() {
+    if (!this.io) return;
+    
     this.io.on('connection', (socket) => {
       console.log(`🔗 Nouvelle connexion WebSocket: ${socket.id}`);
 
@@ -95,12 +97,14 @@ class RealtimeService {
       socket.on('testDatabaseChange', (data) => {
         console.log('🧪 Test changement BDD reçu:', data);
         // Simuler une notification de changement
-        this.io.emit('databaseChange', {
-          table: data.table,
-          action: data.action,
-          data: data.data,
-          timestamp: new Date()
-        });
+        if (this.io) {
+          this.io.emit('databaseChange', {
+            table: data.table,
+            action: data.action,
+            data: data.data,
+            timestamp: new Date()
+          });
+        }
       });
     });
   }
@@ -136,7 +140,9 @@ class RealtimeService {
 
   // Notifier un utilisateur spécifique
   notifyUser(userId: number, event: any) {
-    this.io.to(`user_${userId}`).emit('user_notification', event);
+    if (this.io) {
+      this.io.to(`user_${userId}`).emit('user_notification', event);
+    }
   }
 
   // Obtenir les statistiques de connexion

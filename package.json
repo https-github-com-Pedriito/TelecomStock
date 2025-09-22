@@ -12,6 +12,7 @@
     "start": "node startup.cjs",
     "start:force": "node startup.cjs --force",
     "build": "vite build",
+    "build:prod": "vite build --config vite.config.prod.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "cert:check": "node cert-manager.cjs check",

@@ -1,0 +1,52 @@
+services:
+  # Backend API service
+  - type: web
+    name: telecomstock-api
+    runtime: node
+    buildCommand: cd api && npm ci && npm run build
+    startCommand: cd api && NODE_ENV=production npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: telecomstock-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: telecomstock-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: telecomstock-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: telecomstock-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: telecomstock-db
+          property: database
+
+  # Frontend static site
+  - type: static
+    name: telecomstock-frontend
+    buildCommand: npm ci && VITE_API_URL=$VITE_API_URL npm run build:prod
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: telecomstock-api
+          envVarKey: RENDER_EXTERNAL_URL
+
+# Database
+databases:
+  - name: telecomstock-db
+    databaseName: telecomstock
+    user: admin

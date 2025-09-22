@@ -5,8 +5,10 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev:prod": "ts-node-dev --respawn --transpile-only src/index.prod.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "start:prod": "node dist/index.prod.js",
     "typeorm": "ts-node ./node_modules/typeorm/cli",
     "migration:run": "npm run typeorm migration:run -- -d src/data-source.ts",
     "migration:revert": "npm run typeorm migration:revert -- -d src/data-source.ts"
