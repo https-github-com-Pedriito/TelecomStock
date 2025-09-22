@@ -1,37 +1,47 @@
-import React, { useEffect, useRef } from 'react';
-import JsBarcode from 'jsbarcode';
+import { useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 
-interface BarcodeGeneratorProps {
+interface QRCodeGeneratorProps {
   value: string;
-  width?: number;
-  height?: number;
-  displayValue?: boolean;
+  size?: number;
+  margin?: number;
+  errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H';
 }
 
 export function BarcodeGenerator({ 
   value, 
-  width = 2, 
-  height = 50, 
-  displayValue = true 
-}: BarcodeGeneratorProps) {
+  size = 128, 
+  margin = 4,
+  errorCorrectionLevel = 'M'
+}: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (canvasRef.current && value) {
       try {
-        JsBarcode(canvasRef.current, value, {
-          format: "CODE128",
-          width,
-          height,
-          displayValue,
-          fontSize: 12,
-          textMargin: 5,
+        QRCode.toCanvas(canvasRef.current, value, {
+          width: size,
+          margin: margin,
+          errorCorrectionLevel: errorCorrectionLevel,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
         });
       } catch (error) {
-        console.error('Erreur génération code-barres:', error);
+        console.error('Erreur génération QR code:', error);
       }
     }
-  }, [value, width, height, displayValue]);
+  }, [value, size, margin, errorCorrectionLevel]);
 
-  return <canvas ref={canvasRef} className="max-w-full" />;
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <canvas ref={canvasRef} className="max-w-full border border-gray-200 rounded" />
+      {value && (
+        <p className="text-xs text-gray-500 text-center break-all max-w-[200px]">
+          {value}
+        </p>
+      )}
+    </div>
+  );
 }

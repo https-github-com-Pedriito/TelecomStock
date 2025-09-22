@@ -4,14 +4,11 @@ import fs from 'fs';
 
 // Configuration des certificats
 function getHttpsConfig() {
-  const certPath = './192.168.1.46.pem';
-  const keyPath = './192.168.1.46-key.pem';
-  
   try {
     console.log('🔐 Chargement des certificats SSL...');
     return {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath),
+      key: fs.readFileSync('./192.168.1.46-key.pem'),
+      cert: fs.readFileSync('./192.168.1.46.pem'),
     };
   } catch (error: any) {
     console.warn('⚠️ Certificats principaux non trouvés. Exécutez: npm run cert:generate');
@@ -47,6 +44,7 @@ export default defineConfig({
   },
   define: {
     // Configuration API HTTPS pour tous les environnements
+    // L'API doit être accessible depuis le réseau Wi-Fi pour les mobiles
     'import.meta.env.VITE_API_URL': '"https://192.168.1.46:3443"',
     'import.meta.env.VITE_API_URL_HTTPS': '"https://192.168.1.46:3443"',
   }

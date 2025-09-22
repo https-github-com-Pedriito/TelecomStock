@@ -2,21 +2,36 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const { networkInterfaces } = require('os');
+const EnvironmentDetector = require('./environment-detector.cjs');
 
 class AutoCertManager {
   constructor() {
     this.rootPath = process.cwd();
     this.apiPath = path.join(this.rootPath, 'api');
     this.dockerPath = path.join(this.rootPath, 'docker');
+    this.detector = new EnvironmentDetector();
   }
 
   // Détecter l'IP locale principale (non localhost)
   getCurrentIP() {
     const interfaces = networkInterfaces();
     
-    // Chercher l'interface Wi-Fi ou Ethernet principale
+    // PRIORITÉ À L'INTERFACE WI-FI pour le mobile
     for (const name of Object.keys(interfaces)) {
-      if (name.toLowerCase().includes('wi-fi') || name.toLowerCase().includes('ethernet')) {
+      if (name.toLowerCase().includes('wi-fi')) {
+        for (const net of interfaces[name]) {
+          // IPv4, non interne, non localhost
+          if (net.family === 'IPv4' && !net.internal && net.address !== '127.0.0.1') {
+            console.log(`🔥 IP Wi-Fi prioritaire détectée: ${net.address}`);
+            return net.address;
+          }
+        }
+      }
+    }
+    
+    // Fallback: interface Ethernet ou autres
+    for (const name of Object.keys(interfaces)) {
+      if (name.toLowerCase().includes('ethernet')) {
         for (const net of interfaces[name]) {
           // IPv4, non interne, non localhost
           if (net.family === 'IPv4' && !net.internal && net.address !== '127.0.0.1') {
@@ -36,6 +51,29 @@ class AutoCertManager {
     }
     
     return '127.0.0.1'; // Ultime fallback
+  }
+
+  // Détecter TOUTES les IPs utilisables (pour certificats multiples)
+  getAllUsableIPs() {
+    const interfaces = networkInterfaces();
+    const ips = new Set();
+    
+    // Ajouter localhost pour les tests locaux
+    ips.add('127.0.0.1');
+    ips.add('localhost');
+    
+    // Parcourir toutes les interfaces réseau
+    for (const name of Object.keys(interfaces)) {
+      for (const net of interfaces[name]) {
+        // IPv4 non interne
+        if (net.family === 'IPv4' && !net.internal && net.address !== '127.0.0.1') {
+          ips.add(net.address);
+          console.log(`🌐 Interface ${name}: ${net.address}`);
+        }
+      }
+    }
+    
+    return Array.from(ips);
   }
 
   // Vérifier si les certificats existent et correspondent à l'IP actuelle
@@ -60,9 +98,9 @@ class AutoCertManager {
     return false;
   }
 
-  // Générer les certificats pour l'IP actuelle
-  generateCertificatesForIP(ip) {
-    console.log(`🔐 Génération des certificats pour l'IP: ${ip}`);
+  // Générer les certificats pour une ou plusieurs IPs
+  generateCertificatesForIPs(ips) {
+    console.log(`🔐 Génération des certificats pour les IPs: ${ips.join(', ')}`);
     
     try {
       // Vérifier que mkcert est installé
@@ -72,8 +110,8 @@ class AutoCertManager {
     }
 
     try {
-      // Générer les certificats
-      const command = `mkcert ${ip}`;
+      // Générer un certificat multi-domaines avec toutes les IPs
+      const command = `mkcert ${ips.join(' ')}`;
       console.log(`📜 Exécution: ${command}`);
       
       const output = execSync(command, { 
@@ -83,23 +121,38 @@ class AutoCertManager {
       
       console.log(output);
 
-      // Copier dans le dossier API
-      const sourceCert = path.join(this.rootPath, `${ip}.pem`);
-      const sourceKey = path.join(this.rootPath, `${ip}-key.pem`);
-      const destCert = path.join(this.apiPath, `${ip}.pem`);
-      const destKey = path.join(this.apiPath, `${ip}-key.pem`);
+      // Trouver les fichiers générés (mkcert génère avec le premier domaine comme nom)
+      const primaryIP = ips[0];
+      const sourceCert = path.join(this.rootPath, `${primaryIP}.pem`);
+      const sourceKey = path.join(this.rootPath, `${primaryIP}-key.pem`);
 
-      // Créer le dossier API si nécessaire
-      if (!fs.existsSync(this.apiPath)) {
-        fs.mkdirSync(this.apiPath, { recursive: true });
-      }
-
-      fs.copyFileSync(sourceCert, destCert);
-      fs.copyFileSync(sourceKey, destKey);
+      // Créer des copies pour chaque IP (pour la compatibilité avec l'ancien système)
+      ips.forEach(ip => {
+        if (ip === 'localhost' || ip === '127.0.0.1') return; // Ignorer localhost pour les copies
+        
+        const destCert = path.join(this.rootPath, `${ip}.pem`);
+        const destKey = path.join(this.rootPath, `${ip}-key.pem`);
+        
+        if (ip !== primaryIP) {
+          fs.copyFileSync(sourceCert, destCert);
+          fs.copyFileSync(sourceKey, destKey);
+          console.log(`🔄 Certificat copié pour ${ip}`);
+        }
+        
+        // Copier dans le dossier API
+        const apiCert = path.join(this.apiPath, `${ip}.pem`);
+        const apiKey = path.join(this.apiPath, `${ip}-key.pem`);
+        
+        if (!fs.existsSync(this.apiPath)) {
+          fs.mkdirSync(this.apiPath, { recursive: true });
+        }
+        
+        fs.copyFileSync(destCert, apiCert);
+        fs.copyFileSync(destKey, apiKey);
+        console.log(`✅ Certificat ${ip} copié dans API`);
+      });
       
-      console.log(`✅ Certificats copiés dans ${this.apiPath}`);
-      
-      return { certFile: sourceCert, keyFile: sourceKey, ip };
+      return { primaryIP, ips };
       
     } catch (error) {
       console.error('❌ Erreur lors de la génération des certificats:', error.message);
@@ -107,8 +160,20 @@ class AutoCertManager {
     }
   }
 
+  // Vérifier si des certificats valides existent pour au moins une des IPs
+  certificatesExistForAnyIP(ips) {
+    for (const ip of ips) {
+      if (ip === 'localhost' || ip === '127.0.0.1') continue; // Ignorer localhost
+      
+      if (this.certificatesExistForIP(ip)) {
+        console.log(`✅ Certificats trouvés pour ${ip}`);
+        return true;
+      }
+    }
+    return false;
+  }
   // Nettoyer les anciens certificats (optionnel)
-  cleanOldCertificates(currentIP) {
+  cleanOldCertificates(validIPs) {
     const files = fs.readdirSync(this.rootPath);
     const certPattern = /^(\d+\.\d+\.\d+\.\d+)\.pem$/;
     const keyPattern = /^(\d+\.\d+\.\d+\.\d+)-key\.pem$/;
@@ -119,13 +184,13 @@ class AutoCertManager {
       const certMatch = file.match(certPattern);
       const keyMatch = file.match(keyPattern);
       
-      if (certMatch && certMatch[1] !== currentIP) {
+      if (certMatch && !validIPs.includes(certMatch[1])) {
         fs.unlinkSync(path.join(this.rootPath, file));
         console.log(`🗑️ Supprimé ancien certificat: ${file}`);
         cleaned++;
       }
       
-      if (keyMatch && keyMatch[1] !== currentIP) {
+      if (keyMatch && !validIPs.includes(keyMatch[1])) {
         fs.unlinkSync(path.join(this.rootPath, file));
         console.log(`🗑️ Supprimé ancienne clé: ${file}`);
         cleaned++;
@@ -217,32 +282,51 @@ class AutoCertManager {
     console.log(`✅ docker-compose.yml mis à jour`);
   }
 
-  // Fonction principale d'auto-configuration
-  autoSetup() {
-    console.log('🚀 Auto-configuration des certificats SSL...');
+  // Fonction principale d'auto-configuration avec détection intelligente
+  async autoSetup() {
+    console.log('🚀 Auto-configuration intelligente des certificats SSL...');
     
-    const currentIP = this.getCurrentIP();
-    console.log(`🌐 IP détectée: ${currentIP}`);
+    // 1. Détecter l'environnement optimal
+    const envConfig = await this.detector.detect();
+    const primaryIP = envConfig.VITE_PRIMARY_IP || envConfig.primaryIP;
+    const allIPs = envConfig.VITE_ALL_IPS || envConfig.allIPs;
     
-    // Vérifier si les certificats existent déjà
-    if (!this.certificatesExistForIP(currentIP)) {
-      console.log('📜 Certificats manquants, génération en cours...');
-      this.generateCertificatesForIP(currentIP);
+    console.log(`� Configuration automatique:`);
+    console.log(`   IP principale: ${primaryIP}`);
+    console.log(`   Toutes les IPs: ${allIPs.join(', ')}`);
+    console.log(`   Pattern d'usage: ${envConfig.VITE_USAGE_PATTERN || envConfig.usagePattern}`);
+    
+    // 2. Vérifier/générer les certificats
+    if (!this.certificatesExistForAnyIP(allIPs)) {
+      console.log('📜 Génération des certificats pour toutes les IPs détectées...');
+      this.generateCertificatesForIPs(allIPs.filter(ip => ip !== 'localhost' && ip !== '127.0.0.1'));
     } else {
-      console.log('✅ Certificats existants pour cette IP');
+      console.log('✅ Certificats existants trouvés');
+      
+      // Vérifier si on a besoin de régénérer pour de nouvelles IPs
+      const missingIPs = allIPs.filter(ip => 
+        ip !== 'localhost' && ip !== '127.0.0.1' && !this.certificatesExistForIP(ip)
+      );
+      
+      if (missingIPs.length > 0) {
+        console.log(`🔄 Génération pour nouvelles IPs: ${missingIPs.join(', ')}`);
+        this.generateCertificatesForIPs(allIPs.filter(ip => ip !== 'localhost' && ip !== '127.0.0.1'));
+      }
     }
     
-    // Mettre à jour les configurations
-    this.updateConfigurations(currentIP);
+    // 3. Mettre à jour les configurations avec l'IP principale
+    this.updateConfigurations(primaryIP);
     
-    // Nettoyer les anciens certificats
-    this.cleanOldCertificates(currentIP);
+    // 4. Nettoyer les anciens certificats
+    this.cleanOldCertificates(allIPs);
     
-    console.log(`🎉 Configuration automatique terminée pour l'IP: ${currentIP}`);
-    console.log(`📍 Frontend: https://${currentIP}:5173/`);
-    console.log(`📍 API: https://${currentIP}:3443/`);
+    console.log(`🎉 Configuration automatique terminée`);
+    console.log(`📍 IP principale: ${primaryIP}`);
+    console.log(`📍 Toutes les IPs supportées: ${allIPs.filter(ip => ip !== 'localhost' && ip !== '127.0.0.1').join(', ')}`);
+    console.log(`📍 Frontend: https://${primaryIP}:5173/ (ou :5174)`);
+    console.log(`📍 API: https://${primaryIP}:3443/`);
     
-    return currentIP;
+    return { primaryIP, allIPs, envConfig };
   }
 }
 
@@ -255,7 +339,14 @@ if (require.main === module) {
   switch (command) {
     case 'auto':
     case 'setup':
-      manager.autoSetup();
+      manager.autoSetup()
+        .then(result => {
+          console.log('\n🎉 Configuration terminée avec succès');
+        })
+        .catch(error => {
+          console.error('❌ Erreur:', error.message);
+          process.exit(1);
+        });
       break;
       
     case 'ip':
@@ -264,15 +355,28 @@ if (require.main === module) {
       
     case 'check':
       const ip = manager.getCurrentIP();
-      console.log(`IP actuelle: ${ip}`);
-      console.log(`Certificats existent: ${manager.certificatesExistForIP(ip)}`);
+      const ips = manager.getAllUsableIPs();
+      console.log(`IP principale: ${ip}`);
+      console.log(`Toutes les IPs: ${ips.join(', ')}`);
+      console.log(`Certificats pour IP principale: ${manager.certificatesExistForIP(ip)}`);
+      console.log(`Certificats pour au moins une IP: ${manager.certificatesExistForAnyIP(ips)}`);
+      break;
+      
+    case 'ips':
+      const allIPs = manager.getAllUsableIPs();
+      console.log('🌐 Toutes les IPs utilisables:');
+      allIPs.forEach(ip => {
+        const hasCart = manager.certificatesExistForIP(ip);
+        console.log(`  ${ip} ${hasCart ? '✅' : '❌'}`);
+      });
       break;
       
     default:
-      console.log('Usage: node auto-cert-manager.cjs [auto|ip|check]');
-      console.log('  auto  - Configuration automatique complète');
-      console.log('  ip    - Afficher l\'IP actuelle');
+      console.log('Usage: node auto-cert-manager.cjs [auto|ip|check|ips]');
+      console.log('  auto  - Configuration automatique complète (toutes les IPs)');
+      console.log('  ip    - Afficher l\'IP principale');
       console.log('  check - Vérifier l\'état des certificats');
+      console.log('  ips   - Lister toutes les IPs et leurs certificats');
   }
 }
 

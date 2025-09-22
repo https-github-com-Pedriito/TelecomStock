@@ -77,6 +77,38 @@ export interface InventoryEntry {
   utilisateur: string;
 }
 
+// Nouveaux types pour les inventaires persistants
+export interface Inventaire {
+  id: string;
+  nom: string;
+  description: string;
+  statut: 'EN_COURS' | 'FINALISE' | 'ARCHIVE';
+  mois: number;
+  annee: number;
+  created_by_user_id: string;
+  finalized_by_user_id?: string;
+  finalized_at?: Date;
+  created_at: Date;
+  updated_at: Date;
+  created_by?: User;
+  finalized_by?: User;
+}
+
+export interface InventaireEntry {
+  id: string;
+  inventaire_id: string;
+  article_id: string;
+  quantite_comptee: number;
+  quantite_theorique: number;
+  utilisateur_id: string;
+  commentaire?: string;
+  created_at: Date;
+  updated_at: Date;
+  inventaire?: Inventaire;
+  article?: Article;
+  utilisateur?: User;
+}
+
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

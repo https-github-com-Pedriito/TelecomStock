@@ -1,52 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarcodeScanner } from '../components/BarcodeScanner';
-import { InventoryEntry } from '../types';
-import { ScanLine, FileText, Filter, Edit2 } from 'lucide-react';
+import { useInventaire } from '../hooks/useInventaire';
+import { ScanLine, FileText, Filter, Edit2, Plus, History, Archive } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface InventoryProps {
   articles: any[];
   currentUser: any;
-  users: any[]; // Ajout des utilisateurs pour avoir accès à leurs noms
-  addInventoryEntry: (entry: Omit<InventoryEntry, 'id' | 'dateHeure'>) => InventoryEntry;
-  finalizeInventoryReport: (managerId: string, mois: number, annee: number) => any;
+  users: any[];
   getArticleByCodeBarres: (code: string) => any;
 }
 
-export function Inventory({ articles, currentUser, users, addInventoryEntry, finalizeInventoryReport, getArticleByCodeBarres }: InventoryProps) {
+export function Inventory({ articles, currentUser, users, getArticleByCodeBarres }: InventoryProps) {
+  const {
+    inventaires,
+    currentInventaire,
+    currentEntries,
+    loading,
+    error,
+    createInventaire,
+    addEntry,
+    deleteEntry,
+    finalizeInventaire,
+    clearError
+  } = useInventaire();
+
   const [showScanner, setShowScanner] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState<string>('');
   const [quantite, setQuantite] = useState<number>(0);
-  const [entries, setEntries] = useState<any[]>([]);
+  const [commentaire, setCommentaire] = useState<string>('');
   const [editingEntry, setEditingEntry] = useState<any>(null);
+  
+  // États pour la création d'inventaire
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newInventaireName, setNewInventaireName] = useState('');
+  const [newInventaireDescription, setNewInventaireDescription] = useState('');
+  
+  // État pour l'historique
+  const [showHistory, setShowHistory] = useState(false);
 
-  const submitCount = () => {
-    if (!selectedArticleId) return alert('Sélectionnez un article');
+  // Auto-générer le nom d'inventaire par défaut
+  useEffect(() => {
+    const now = new Date();
+    const month = now.toLocaleString('fr-FR', { month: 'long' });
+    const year = now.getFullYear();
+    setNewInventaireName(`Inventaire ${month} ${year}`);
+    setNewInventaireDescription(`Inventaire mensuel de ${month} ${year}`);
+  }, []);
+
+  const handleCreateInventaire = async () => {
+    if (!newInventaireName.trim()) return;
     
-    if (editingEntry) {
-      // Mise à jour d'une entrée existante
-      const updatedEntry = addInventoryEntry({ 
-        articleId: selectedArticleId, 
-        quantiteCompte: quantite, 
-        utilisateurId: currentUser.id, 
-        utilisateurRole: currentUser.role 
+    try {
+      const now = new Date();
+      await createInventaire({
+        nom: newInventaireName,
+        description: newInventaireDescription,
+        mois: now.getMonth() + 1,
+        annee: now.getFullYear()
       });
-      setEntries(prev => prev.map(e => e.id === editingEntry.id ? updatedEntry : e));
-      setEditingEntry(null);
-    } else {
-      // Nouvelle entrée
-      const entry = addInventoryEntry({ 
-        articleId: selectedArticleId, 
-        quantiteCompte: quantite, 
-        utilisateurId: currentUser.id, 
-        utilisateurRole: currentUser.role 
-      });
-      setEntries(prev => [...prev, entry]);
+      setShowCreateForm(false);
+      setNewInventaireName('');
+      setNewInventaireDescription('');
+    } catch (err) {
+      console.error('Erreur création inventaire:', err);
+    }
+  };
+
+  const submitCount = async () => {
+    if (!selectedArticleId) {
+      alert('Sélectionnez un article');
+      return;
     }
     
-    setSelectedArticleId('');
-    setQuantite(0);
-    alert('Comptage enregistré');
+    if (!currentInventaire) {
+      alert('Créez d\'abord un inventaire');
+      return;
+    }
+    
+    try {
+      await addEntry({
+        article_id: selectedArticleId,
+        quantite_comptee: quantite,
+        commentaire: commentaire || undefined
+      });
+      
+      // Réinitialiser le formulaire
+      setSelectedArticleId('');
+      setQuantite(0);
+      setCommentaire('');
+      setEditingEntry(null);
+      
+      alert('Comptage enregistré avec succès');
+    } catch (err) {
+      console.error('Erreur lors de l\'enregistrement:', err);
+      alert('Erreur lors de l\'enregistrement du comptage');
+    }
   };
 
   const handleScan = (barcode: string) => {
@@ -60,223 +109,367 @@ export function Inventory({ articles, currentUser, users, addInventoryEntry, fin
     setQuantite(1);
   };
 
-  const downloadExcel = (data: any, filename: string) => {
-    // S'assurer que nous avons les données
-    if (!data || !data.items || !Array.isArray(data.items)) {
-      throw new Error('Format de données invalide');
-    }
+  const handleEditEntry = (entry: any) => {
+    setSelectedArticleId(entry.article_id);
+    setQuantite(entry.quantite_comptee);
+    setCommentaire(entry.commentaire || '');
+    setEditingEntry(entry);
+  };
+
+  const handleDeleteEntry = async (entryId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette entrée ?')) return;
     
-    // Préparer les données pour Excel avec des en-têtes plus détaillés
+    try {
+      await deleteEntry(entryId);
+      alert('Entrée supprimée avec succès');
+    } catch (err) {
+      console.error('Erreur lors de la suppression:', err);
+      alert('Erreur lors de la suppression de l\'entrée');
+    }
+  };
+
+  const downloadExcel = (entries: any[]) => {
+    // Préparer les données pour Excel
     const headers = [
       'Article',
       'Code Barre',
-      'Stock Initial',
-      'Quantité Totale Comptée',
+      'Stock Théorique',
+      'Quantité Comptée',
       'Différence',
-      'Détail des Comptages',
-      'Date du Rapport'
+      'Utilisateur',
+      'Commentaire',
+      'Date de Comptage'
     ];
     
-    // Convertir les données en lignes
-    const rows = data.items.map((item: any) => {
-      const article = articles.find(a => a.id === item.articleId);
-      const stockInitial = article?.quantite || 0;
-      const difference = item.totalCompte - stockInitial;
+    const rows = entries.map((entry: any) => {
+      const article = articles.find(a => a.id === entry.article_id);
+      const user = users.find(u => u.id === entry.utilisateur_id);
+      const difference = entry.quantite_comptee - entry.quantite_theorique;
       
-      // Formater les comptages par utilisateur avec leurs noms
-      const comptagePar = item.parUtilisateur
-        .map((p: any) => {
-          const user = users.find(u => u.id === p.utilisateurId);
-          const userName = user ? `${user.prenom} ${user.nom}` : p.utilisateurId;
-          return `${userName}: ${p.quantite} pièces`;
-        })
-        .join('\n');
-
-      const dateRapport = `${data.mois.toString().padStart(2, '0')}/${data.annee}`;
       return [
         article?.nom || 'Inconnu',
-        article?.codeBarres || 'N/A',
-        stockInitial,
-        item.totalCompte,
+        article?.code_barres || 'N/A',
+        entry.quantite_theorique,
+        entry.quantite_comptee,
         difference,
-        comptagePar, // Maintenant contient "Prénom Nom: X pièces" pour chaque comptage
-        dateRapport
+        user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id,
+        entry.commentaire || '',
+        new Date(entry.created_at).toLocaleDateString('fr-FR')
       ];
     });
 
-    // Créer un workbook et une worksheet
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Inventaire");
 
-    // Ajouter des styles et mettre en forme le tableau
-    ws['!cols'] = headers.map(() => ({ wch: 15 })); // Largeur par défaut
-    
-    // Ajuster certaines colonnes spécifiques
-    ws['!cols'][0] = { wch: 30 }; // Nom d'article
-    ws['!cols'][5] = { wch: 40 }; // Comptage par utilisateur
-
-    // Appliquer des styles aux cellules (en-têtes en gras)
-    for (let i = 0; i < headers.length; i++) {
-      const cellRef = XLSX.utils.encode_cell({ r: 0, c: i });
-      if (!ws[cellRef]) ws[cellRef] = {};
-      ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: "CCCCCC" } } };
-    }
-
     // Ajuster les largeurs de colonnes
-    const maxWidth = rows.reduce((acc: any, row: any) => {
-      row.forEach((cell: any, i: number) => {
-        const length = cell ? cell.toString().length : 0;
-        acc[i] = Math.max(acc[i] || 0, length);
-      });
-      return acc;
-    }, headers.map(h => h.length));
+    ws['!cols'] = [
+      { wch: 30 }, // Article
+      { wch: 15 }, // Code Barre
+      { wch: 15 }, // Stock Théorique
+      { wch: 15 }, // Quantité Comptée
+      { wch: 12 }, // Différence
+      { wch: 20 }, // Utilisateur
+      { wch: 30 }, // Commentaire
+      { wch: 15 }  // Date
+    ];
 
-    ws['!cols'] = maxWidth.map((w: number) => ({ wch: w + 2 }));
-
-    // Sauvegarder le fichier
-    XLSX.writeFile(wb, filename, {
-      bookType: 'xlsx',
-      bookSST: false,
-      type: 'array',
-      compression: true
-    });
+    const filename = `inventaire_${currentInventaire?.nom}_${Date.now()}.xlsx`;
+    XLSX.writeFile(wb, filename);
   };
 
-  const finalize = () => {
-    if (currentUser.role !== 'manager' && currentUser.role !== 'admin') {
-      return alert("Seul le manager peut finaliser l'inventaire");
-    }
-    const now = new Date();
-    const rep = finalizeInventoryReport(currentUser.id, now.getMonth() + 1, now.getFullYear());
+  const handleFinalize = async () => {
+    if (!currentInventaire) return;
     
-    console.log('Rapport généré:', rep); // Pour debug
-    
-    if (!rep) {
-      alert("Erreur lors de la génération du rapport");
+    if (!confirm(`Êtes-vous sûr de vouloir finaliser l'inventaire "${currentInventaire.nom}" ? Cette action est irréversible.`)) {
       return;
     }
-
-    // Générer le nom du fichier avec la date
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const year = now.getFullYear();
-    const filename = `inventaire_${month}_${year}.csv`;
     
     try {
-      // Télécharger le rapport en Excel
-      downloadExcel(rep, filename.replace('.csv', '.xlsx'));
-      alert("Rapport d'inventaire généré et téléchargé");
+      await finalizeInventaire();
+      // Télécharger le rapport final
+      if (currentEntries.length > 0) {
+        downloadExcel(currentEntries);
+      }
+      alert('Inventaire finalisé avec succès !');
     } catch (err) {
-      console.error('Erreur lors de la génération du fichier Excel:', err);
-      alert("Erreur lors de la génération du fichier Excel");
+      console.error('Erreur lors de la finalisation:', err);
+      alert('Erreur lors de la finalisation de l\'inventaire');
     }
   };
+
+  if (loading && !currentInventaire) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Chargement des inventaires...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          <div className="flex justify-between items-center">
+            <span>{error}</span>
+            <button onClick={clearError} className="text-red-500 hover:text-red-700">×</button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Inventaire</h1>
-          <p className="text-gray-600">Soumettez l'inventaire des stocks — les techniciens enregistrent, l'inventoriste finalise.</p>
+          <p className="text-gray-600">
+            {currentInventaire 
+              ? `Inventaire en cours: ${currentInventaire.nom}`
+              : "Aucun inventaire en cours — créez-en un nouveau"
+            }
+          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => setShowScanner(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-          >
-            <ScanLine size={16} />
-            Ouvrir le scanner
-          </button>
-          {(currentUser.role === 'manager' || currentUser.role === 'admin') && (
-            <button 
-              onClick={finalize} 
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          {!currentInventaire && (
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
             >
-              <FileText size={16} />
-              Générer le rapport
+              <Plus size={16} />
+              Nouvel inventaire
             </button>
+          )}
+          
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          >
+            <History size={16} />
+            Historique
+          </button>
+
+          {currentInventaire && (
+            <>
+              <button
+                onClick={() => setShowScanner(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+              >
+                <ScanLine size={16} />
+                Scanner
+              </button>
+              
+              {(currentUser.role === 'manager' || currentUser.role === 'admin') && (
+                <button 
+                  onClick={handleFinalize}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <FileText size={16} />
+                  Finaliser
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <select
-                value={selectedArticleId}
-                onChange={(e) => setSelectedArticleId(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+      {/* Historique des inventaires */}
+      {showHistory && (
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-lg font-semibold mb-4">Historique des inventaires</h2>
+          {inventaires.length === 0 ? (
+            <p className="text-gray-500">Aucun inventaire trouvé</p>
+          ) : (
+            <div className="space-y-2">
+              {inventaires.map(inv => (
+                <div key={inv.id} className="flex justify-between items-center p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium">{inv.nom}</div>
+                    <div className="text-sm text-gray-500">
+                      {inv.description} • Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}
+                    </div>
+                    <div className="text-sm">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        inv.statut === 'EN_COURS' ? 'bg-green-100 text-green-800' :
+                        inv.statut === 'FINALISE' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {inv.statut}
+                      </span>
+                    </div>
+                  </div>
+                  {inv.statut === 'FINALISE' && (
+                    <Archive className="text-gray-400" size={20} />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Formulaire de création d'inventaire */}
+      {showCreateForm && (
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-lg font-semibold mb-4">Créer un nouvel inventaire</h2>
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nom de l'inventaire
+              </label>
+              <input
+                type="text"
+                value={newInventaireName}
+                onChange={(e) => setNewInventaireName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder="Ex: Inventaire Janvier 2024"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description
+              </label>
+              <textarea
+                value={newInventaireDescription}
+                onChange={(e) => setNewInventaireDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder="Description de l'inventaire..."
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCreateInventaire}
+                disabled={!newInventaireName.trim()}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg"
               >
-                <option value="">Sélectionner un article</option>
-                {articles.map(a => (
-                  <option key={a.id} value={a.id}>{a.nom} — {a.codeBarres}</option>
-                ))}
-              </select>
+                Créer
+              </button>
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg"
+              >
+                Annuler
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          <div>
-            <input
-              type="number"
-              value={quantite}
-              onChange={(e) => setQuantite(parseInt(e.target.value || '0'))}
-              className="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Quantité"
-            />
-          </div>
+      {/* Formulaire de comptage */}
+      {currentInventaire && (
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-lg font-semibold mb-4">Enregistrer un comptage</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div>
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={selectedArticleId}
+                  onChange={(e) => setSelectedArticleId(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                >
+                  <option value="">Sélectionner un article</option>
+                  {articles.map(a => (
+                    <option key={a.id} value={a.id}>{a.nom} — {a.code_barres}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          <div className="flex items-center">
-            <button 
-              onClick={submitCount} 
-              className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
-            >
-              {editingEntry ? 'Modifier' : 'Enregistrer'}
-            </button>
+            <div>
+              <input
+                type="number"
+                value={quantite}
+                onChange={(e) => setQuantite(parseInt(e.target.value || '0'))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Quantité"
+              />
+            </div>
+
+            <div>
+              <input
+                type="text"
+                value={commentaire}
+                onChange={(e) => setCommentaire(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Commentaire (optionnel)"
+              />
+            </div>
+
+            <div>
+              <button 
+                onClick={submitCount} 
+                disabled={!selectedArticleId}
+                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg"
+              >
+                {editingEntry ? 'Modifier' : 'Enregistrer'}
+              </button>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold">Articles scannés</h2>
-          <div className="mt-3">
-            {entries.length === 0 ? (
-              <p className="text-gray-500">Aucun comptage enregistré localement</p>
-            ) : (
-              <ul className="divide-y">
-                {entries.map(en => {
-                  const art = articles.find(a => a.id === en.articleId);
-                  const name = art ? art.nom : en.articleId;
-                  return (
-                    <li key={en.id} className="py-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{name}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-gray-600">Quantité: {en.quantiteCompte}</span>
-                          <button
-                            onClick={() => {
-                              setEditingEntry(en);
-                              setSelectedArticleId(en.articleId);
-                              setQuantite(en.quantiteCompte);
-                            }}
-                            className="p-1 hover:bg-gray-100 rounded-full"
-                          >
-                            <Edit2 size={16} className="text-gray-500" />
-                          </button>
-                        </div>
+      {/* Liste des entrées */}
+      {currentInventaire && (
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h2 className="text-lg font-semibold mb-4">
+            Articles comptés ({currentEntries.length})
+          </h2>
+          {currentEntries.length === 0 ? (
+            <p className="text-gray-500">Aucun article compté pour le moment</p>
+          ) : (
+            <div className="space-y-2">
+              {currentEntries.map(entry => {
+                const article = articles.find(a => a.id === entry.article_id);
+                const user = users.find(u => u.id === entry.utilisateur_id);
+                const difference = entry.quantite_comptee - entry.quantite_theorique;
+                
+                return (
+                  <div key={entry.id} className="flex justify-between items-center p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{article?.nom || 'Article inconnu'}</div>
+                      <div className="text-sm text-gray-500">
+                        Théorique: {entry.quantite_theorique} • Compté: {entry.quantite_comptee}
+                        {difference !== 0 && (
+                          <span className={`ml-2 ${difference > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            ({difference > 0 ? '+' : ''}{difference})
+                          </span>
+                        )}
                       </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+                      <div className="text-xs text-gray-400">
+                        Par: {user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id} • 
+                        Le: {new Date(entry.created_at).toLocaleDateString('fr-FR')}
+                        {entry.commentaire && ` • ${entry.commentaire}`}
+                      </div>
+                    </div>
+                    {entry.utilisateur_id === currentUser.id && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditEntry(entry)}
+                          className="p-2 hover:bg-gray-100 rounded-full"
+                          title="Modifier"
+                        >
+                          <Edit2 size={16} className="text-blue-500" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEntry(entry.id)}
+                          className="p-2 hover:bg-gray-100 rounded-full"
+                          title="Supprimer"
+                        >
+                          <Archive size={16} className="text-red-500" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
+      {/* Scanner modal */}
       {showScanner && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg max-w-lg w-full m-4">
             <h2 className="text-lg font-semibold mb-4">Scanner un article</h2>
             <BarcodeScanner onScan={handleScan} onClose={() => setShowScanner(false)} />

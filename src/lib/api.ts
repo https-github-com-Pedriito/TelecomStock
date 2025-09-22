@@ -227,6 +227,49 @@ class ApiService {
     });
   }
 
+  // Inventaires
+  async getInventaires() {
+    return this.request('/inventaires');
+  }
+
+  async getCurrentInventaire() {
+    return this.request('/inventaires/current');
+  }
+
+  async createInventaire(inventaire: any) {
+    return this.request('/inventaires', {
+      method: 'POST',
+      body: JSON.stringify(inventaire),
+    });
+  }
+
+  async getInventaire(id: string) {
+    return this.request(`/inventaires/${id}`);
+  }
+
+  async getInventaireEntries(id: string) {
+    return this.request(`/inventaires/${id}/entries`);
+  }
+
+  async addInventaireEntry(inventaireId: string, entry: any) {
+    return this.request(`/inventaires/${inventaireId}/entries`, {
+      method: 'POST',
+      body: JSON.stringify(entry),
+    });
+  }
+
+  async finalizeInventaire(id: string) {
+    return this.request(`/inventaires/${id}/finalize`, {
+      method: 'PUT',
+    });
+  }
+
+  async deleteInventaireEntry(inventaireId: string, entryId: string) {
+    return this.request(`/inventaires/${inventaireId}/entries/${entryId}`, {
+      method: 'DELETE',
+    });
+  }
+
 }
 
 export const api = new ApiService();

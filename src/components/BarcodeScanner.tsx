@@ -24,10 +24,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           { facingMode: "environment" }, 
           {
             fps: 30,
-            qrbox: { width: 800, height: 250 },
+            qrbox: { width: 400, height: 400 }, // Zone carrée pour QR codes
             disableFlip: true,
-            aspectRatio: 1.777777778
-
+            aspectRatio: 1.0 // Format carré pour QR codes
           },
           (decodedText) => {
             if (detectedRef.current) return; // already handled one detection

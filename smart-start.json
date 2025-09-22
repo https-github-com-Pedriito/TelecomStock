@@ -1,0 +1,14 @@
+{
+  "name": "telecomstock-smart-start",
+  "version": "1.0.0",
+  "description": "Script de démarrage intelligent pour TelecomStock",
+  "scripts": {
+    "smart-start": "node startup.cjs",
+    "smart-start:force": "node startup.cjs --force",
+    "env-detect": "node environment-detector.cjs",
+    "env-clean": "node environment-detector.cjs clean",
+    "cert-auto": "node auto-cert-manager.cjs auto",
+    "dev:smart": "node startup.cjs",
+    "start": "node startup.cjs"
+  }
+}

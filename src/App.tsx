@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ViewMode, Article, Mouvement, User, Fournisseur, InventoryEntry, CreateMouvementData } from './types';
+import { ViewMode, Article, Mouvement, User, Fournisseur, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
 import { useAuth } from './hooks/useAuth';
 import { useNotifications } from './components/Notification';
@@ -16,6 +16,7 @@ import { Utilisateurs } from './pages/Utilisateurs';
 import { Rapports } from './pages/Rapports';
 import { Inventory } from './pages/Inventory';
 import DebugConsole from './components/DebugConsole';
+import { MobileDebugPanel } from './components/MobileDebugPanel';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
@@ -175,34 +176,34 @@ function App() {
     }
   };
 
-  // Gestion de l'inventaire
-  const addInventoryEntry = (entry: Omit<InventoryEntry, 'id' | 'dateHeure'>) => {
-    const article = articles.find(a => a.id === entry.articleId);
-    if (!article) {
-      throw new Error('Article non trouvé');
-    }
+  // Gestion de l'inventaire (legacy - maintenant géré par useInventaire hook)
+  // const addInventoryEntry = (entry: Omit<InventoryEntry, 'id' | 'dateHeure'>) => {
+  //   const article = articles.find(a => a.id === entry.articleId);
+  //   if (!article) {
+  //     throw new Error('Article non trouvé');
+  //   }
 
-    const newEntry: InventoryEntry = {
-      ...entry,
-      id: crypto.randomUUID(),
-      dateHeure: new Date()
-    };
+  //   const newEntry: InventoryEntry = {
+  //     ...entry,
+  //     id: crypto.randomUUID(),
+  //     dateHeure: new Date()
+  //   };
 
-    void createMouvement({
-      articleId: entry.articleId,
-      quantite: entry.quantiteReelle - article.quantiteStock,
-      type: entry.quantiteReelle > article.quantiteStock ? 'ENTREE' : 'SORTIE',
-      utilisateur: entry.utilisateur,
-      commentaire: 'Ajustement d\'inventaire'
-    });
+  //   void createMouvement({
+  //     articleId: entry.articleId,
+  //     quantite: entry.quantiteReelle - article.quantiteStock,
+  //     type: entry.quantiteReelle > article.quantiteStock ? 'ENTREE' : 'SORTIE',
+  //     utilisateur: entry.utilisateur,
+  //     commentaire: 'Ajustement d\'inventaire'
+  //   });
 
-    return newEntry;
-  };
+  //   return newEntry;
+  // };
 
-  const finalizeInventoryReport = async () => {
-    // TODO: Implémenter la finalisation du rapport d'inventaire
-    console.log('Finalisation du rapport d\'inventaire');
-  };
+  // const finalizeInventoryReport = async () => {
+  //   // TODO: Implémenter la finalisation du rapport d'inventaire
+  //   console.log('Finalisation du rapport d\'inventaire');
+  // };
 
   // Fonction de vérification des permissions
   const hasPermission = (permission: string) => {
@@ -444,8 +445,6 @@ function App() {
             articles={articles}
             users={usersForComponents}
             currentUser={currentUserForComponents!}
-            addInventoryEntry={addInventoryEntry}
-            finalizeInventoryReport={finalizeInventoryReport}
             getArticleByCodeBarres={getArticleByCodeBarres}
           />
         );
@@ -458,9 +457,142 @@ function App() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Vérification de la session...</p>
+        <div className="max-w-2xl w-full mx-auto p-6">
+          <div className="text-center mb-8">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Vérification de la session...</p>
+          </div>
+          
+          {/* Console de débogage pour la vérification de session */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              🔍 Console de Débogage - Vérification Session
+            </h3>
+            
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Token présent:</span>
+                <span className={localStorage.getItem('auth_token') ? 'text-green-600' : 'text-red-600'}>
+                  {localStorage.getItem('auth_token') ? '✓ Oui' : '✗ Non'}
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">User Agent:</span>
+                <span className="text-gray-800 text-xs break-all max-w-xs">
+                  {navigator.userAgent.substring(0, 80)}...
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">URL actuelle:</span>
+                <span className="text-gray-800 text-xs">
+                  {window.location.href}
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">Protocole:</span>
+                <span className={window.location.protocol === 'https:' ? 'text-green-600' : 'text-orange-600'}>
+                  {window.location.protocol}
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">Connection:</span>
+                <span className={navigator.onLine ? 'text-green-600' : 'text-red-600'}>
+                  {navigator.onLine ? '✓ En ligne' : '✗ Hors ligne'}
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">API Base URL:</span>
+                <span className="text-gray-800 text-xs">
+                  {import.meta.env.VITE_API_URL || 'Non définie'}
+                </span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-gray-600">API HTTPS URL:</span>
+                <span className="text-gray-800 text-xs">
+                  {import.meta.env.VITE_API_URL_HTTPS || 'Non définie'}
+                </span>
+              </div>
+              
+              {localStorage.getItem('auth_token') && (
+                <div className="pt-3 border-t">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-gray-600">Token (début):</span>
+                    <span className="text-gray-800 text-xs font-mono">
+                      {localStorage.getItem('auth_token')?.substring(0, 20)}...
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Token (fin):</span>
+                    <span className="text-gray-800 text-xs font-mono">
+                      ...{localStorage.getItem('auth_token')?.slice(-20)}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-6 pt-4 border-t space-y-3">
+              <p className="text-xs text-gray-500">Actions de débogage:</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('auth_token');
+                    window.location.reload();
+                  }}
+                  className="text-xs bg-red-100 text-red-700 p-2 rounded hover:bg-red-200 transition-colors"
+                >
+                  🗑️ Effacer token
+                </button>
+                <button
+                  onClick={() => {
+                    console.log('=== DEBUG AUTH ===');
+                    console.log('Token:', localStorage.getItem('auth_token'));
+                    console.log('URL:', window.location.href);
+                    console.log('User Agent:', navigator.userAgent);
+                    console.log('Online:', navigator.onLine);
+                  }}
+                  className="text-xs bg-blue-100 text-blue-700 p-2 rounded hover:bg-blue-200 transition-colors"
+                >
+                  📋 Log console
+                </button>
+              </div>
+              
+              <div className="text-center">
+                <button
+                  onClick={() => {
+                    const httpUrl = window.location.href.replace('https:', 'http:').replace(':5174', ':3080');
+                    window.location.href = httpUrl;
+                  }}
+                  className="text-xs bg-orange-100 text-orange-700 px-4 py-2 rounded hover:bg-orange-200 transition-colors"
+                >
+                  🔄 Basculer vers HTTP (port 3080)
+                </button>
+              </div>
+            </div>
+            
+            {/* Compteur de temps */}
+            <div className="mt-4 pt-4 border-t text-center">
+              <p className="text-xs text-gray-500">
+                ⏱️ Temps d'attente: <span id="wait-timer">0</span>s
+              </p>
+              <script dangerouslySetInnerHTML={{
+                __html: `
+                  let startTime = Date.now();
+                  setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                    const timer = document.getElementById('wait-timer');
+                    if (timer) timer.textContent = elapsed;
+                  }, 1000);
+                `
+              }} />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -490,6 +622,7 @@ function App() {
       </Layout>
       <NotificationContainer />
       <DebugConsole />
+      <MobileDebugPanel />
     </>
   );
 }

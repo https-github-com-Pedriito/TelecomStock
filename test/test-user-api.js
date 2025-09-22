@@ -1,4 +1,4 @@
-import { api } from './src/lib/api.js';
+import { api } from '../src/lib/api.js';
 
 async function testUserAPI() {
   try {

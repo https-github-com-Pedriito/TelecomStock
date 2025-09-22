@@ -128,6 +128,33 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
           <p className="text-xs text-gray-500 text-center mt-3">
             Cliquez sur un compte pour remplir automatiquement les champs
           </p>
+          
+          {/* Boutons de debug mobile */}
+          {/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-xs text-orange-600 text-center mb-2">🔧 Débogage Mobile</p>
+              <div className="space-y-2">
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('auth_token');
+                    window.location.reload();
+                  }}
+                  className="w-full text-xs bg-red-100 text-red-700 p-2 rounded hover:bg-red-200 transition-colors"
+                >
+                  🗑️ Effacer session et recharger
+                </button>
+                <button
+                  onClick={() => {
+                    const httpUrl = window.location.href.replace('https:', 'http:').replace(':5174', ':3080');
+                    window.location.href = httpUrl;
+                  }}
+                  className="w-full text-xs bg-blue-100 text-blue-700 p-2 rounded hover:bg-blue-200 transition-colors"
+                >
+                  🔄 Essayer en HTTP (port 3080)
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

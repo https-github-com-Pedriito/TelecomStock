@@ -59,23 +59,46 @@ export function useAuth() {
     console.log('[DEBUG] checkAuth - Début de la vérification');
     isCheckingAuth = true;
 
+    // Timeout spécial pour mobile
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const timeout = isMobile ? 10000 : 5000; // 10s sur mobile, 5s sur desktop
+
     authPromise = (async (): Promise<User | null> => {
       try {
         const token = localStorage.getItem('auth_token');
         console.log('checkAuth - Token trouvé:', token ? 'Oui' : 'Non');
+        console.log('checkAuth - Plateforme:', isMobile ? 'Mobile' : 'Desktop');
         
         if (!token) {
           return null;
         }
 
-        console.log('checkAuth - Vérification du profil...');
-        const profile = await api.getProfile();
+        console.log(`checkAuth - Vérification du profil (timeout: ${timeout}ms)...`);
+        
+        // Promise avec timeout
+        const profilePromise = api.getProfile();
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error(`Timeout après ${timeout/1000}s - Vérifiez votre connexion`)), timeout);
+        });
+
+        const profile = await Promise.race([profilePromise, timeoutPromise]);
         console.log('checkAuth - Profil récupéré:', profile);
         return profile;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error checking auth:', error);
         console.log('checkAuth - Suppression du token invalide');
         localStorage.removeItem('auth_token');
+        
+        // Messages d'erreur spécifiques pour mobile
+        if (isMobile) {
+          if (error.message?.includes('Timeout')) {
+            throw new Error('Connexion lente détectée. Essayez de vous reconnecter.');
+          } else if (error.message?.includes('Certificate') || error.message?.includes('SSL')) {
+            throw new Error('Problème de sécurité. Essayez en HTTP sur mobile.');
+          } else if (error.message?.includes('Network')) {
+            throw new Error('Problème réseau. Vérifiez votre connexion.');
+          }
+        }
         throw error;
       }
     })();

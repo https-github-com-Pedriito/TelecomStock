@@ -3,6 +3,8 @@ import { User } from './entities/User';
 import { Article } from './entities/Article';
 import { Mouvement } from './entities/Mouvement';
 import { Fournisseur } from './entities/Fournisseur';
+import { Inventaire } from './entities/Inventaire';
+import { InventaireEntry } from './entities/InventaireEntry';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -13,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'telecomstock',
   synchronize: false,
   logging: true,
-  entities: [User, Article, Mouvement, Fournisseur],
+  entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry],
   migrations: ['src/migration/*.ts'],
   subscribers: [],
 });
