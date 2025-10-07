@@ -1,4 +1,5 @@
 const CertificateManager = require('./cert-manager.cjs');
+const path = require('path');
 
 class CertificateWatchService {
   constructor(options = {}) {
@@ -75,13 +76,25 @@ class CertificateWatchService {
     console.log(`📧 Notification: Certificats renouvelés (raison: ${result.reason})`);
     
     // Exemple: redémarrer automatiquement les services si nécessaire
-    // this.restartServices();
+    this.reloadNginx();
   }
 
   // Méthode pour redémarrer les services (optionnel)
   restartServices() {
     console.log('🔄 Redémarrage des services recommandé après renouvellement des certificats');
     // Implémentation selon vos besoins
+  }
+
+  reloadNginx() {
+    try {
+      const { execSync } = require('child_process');
+      console.log('🔁 Reload Nginx pour prendre en compte les nouveaux certificats...');
+      // On tente un reload propre si possible (container doit s'appeler telecomstock_nginx)
+      execSync('docker compose exec nginx nginx -s reload', { stdio: 'inherit', cwd: path.join(process.cwd(), 'docker') });
+      console.log('✅ Nginx rechargé');
+    } catch (e) {
+      console.log('ℹ️ Reload nginx non effectué (peut-être pas lancé). Vous pouvez ignorer en dev.');
+    }
   }
 }
 

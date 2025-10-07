@@ -22,7 +22,11 @@
     "env:detect": "node environment-detector.cjs",
     "env:test": "node environment-detector.cjs test",
     "env:clean": "node environment-detector.cjs clean",
-    "backend:start": "cd docker && docker compose up --build -d",
+    "backend:start": "node auto-cert-manager.cjs auto && cd docker && docker compose up --build -d",
+    "backend:start:watchcerts": "node auto-cert-manager.cjs auto && cd docker && docker compose up --build -d ; cd .. ; node cert-watch-service.cjs 12",
+  "backend:urls": "node auto-cert-manager.cjs urls",
+  "logs:nginx": "cd docker && docker compose logs -f nginx",
+  "logs:frontend": "cd docker && docker compose logs -f frontend",
     "backend:stop": "cd docker && docker compose down",
     "backend:logs": "cd docker && docker compose logs -f"
   },

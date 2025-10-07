@@ -121,24 +121,54 @@ class AutoCertManager {
       
       console.log(output);
 
-      // Trouver les fichiers générés (mkcert génère avec le premier domaine comme nom)
+      // Déterminer les fichiers générés: mkcert peut suffixer "+N"
       const primaryIP = ips[0];
-      const sourceCert = path.join(this.rootPath, `${primaryIP}.pem`);
-      const sourceKey = path.join(this.rootPath, `${primaryIP}-key.pem`);
+      const resolveBaseForIP = (ip) => {
+        const files = fs.readdirSync(this.rootPath);
+        const candidates = files
+          .map(f => ({ f, m: f.match(new RegExp(`^${ip.replace(/\./g, '\\.')}(?:\\+\\d+)?(-key)?\\.pem$`)) }))
+          .filter(x => x.m);
+        // Regrouper par base (sans -key)
+        const groups = new Map();
+        for (const { f } of candidates) {
+          const base = f.replace(/(-key)?\.pem$/, '').replace(/\.pem$/, '');
+          const pairKey = base.replace(/-key$/, '');
+          const arr = groups.get(pairKey) || [];
+          arr.push(f);
+          groups.set(pairKey, arr);
+        }
+        // Choisir la paire la plus récente qui contient .pem et -key.pem
+        let best = null;
+        for (const [base, arr] of groups.entries()) {
+          const hasCert = arr.some(n => n.endsWith('.pem') && !n.includes('-key'));
+          const hasKey = arr.some(n => n.endsWith('-key.pem'));
+          if (hasCert && hasKey) {
+            const certPath = path.join(this.rootPath, `${base}.pem`);
+            const keyPath = path.join(this.rootPath, `${base}-key.pem`);
+            const mtime = fs.statSync(certPath).mtimeMs;
+            if (!best || mtime > best.mtime) best = { base, certPath, keyPath, mtime };
+          }
+        }
+        return best; // { base, certPath, keyPath }
+      };
 
-      // Créer des copies pour chaque IP (pour la compatibilité avec l'ancien système)
+      const found = resolveBaseForIP(primaryIP);
+      const sourceCert = found ? found.certPath : path.join(this.rootPath, `${primaryIP}.pem`);
+      const sourceKey = found ? found.keyPath : path.join(this.rootPath, `${primaryIP}-key.pem`);
+      if (!fs.existsSync(sourceCert) || !fs.existsSync(sourceKey)) {
+        throw new Error(`Certificat généré introuvable pour ${primaryIP} (cherché: ${sourceCert}, ${sourceKey})`);
+      }
+
+      // Créer des copies pour chaque IP (fichiers stables sans suffixe +N)
       ips.forEach(ip => {
-        if (ip === 'localhost' || ip === '127.0.0.1') return; // Ignorer localhost pour les copies
-        
+        if (ip === 'localhost' || ip === '127.0.0.1') return; // Ignorer localhost
+
         const destCert = path.join(this.rootPath, `${ip}.pem`);
         const destKey = path.join(this.rootPath, `${ip}-key.pem`);
-        
-        if (ip !== primaryIP) {
-          fs.copyFileSync(sourceCert, destCert);
-          fs.copyFileSync(sourceKey, destKey);
-          console.log(`🔄 Certificat copié pour ${ip}`);
-        }
-        
+        fs.copyFileSync(sourceCert, destCert);
+        fs.copyFileSync(sourceKey, destKey);
+        console.log(`🔄 Certificat copié pour ${ip}`);
+
         // Copier dans le dossier API
         const apiCert = path.join(this.apiPath, `${ip}.pem`);
         const apiKey = path.join(this.apiPath, `${ip}-key.pem`);
@@ -146,7 +176,6 @@ class AutoCertManager {
         if (!fs.existsSync(this.apiPath)) {
           fs.mkdirSync(this.apiPath, { recursive: true });
         }
-        
         fs.copyFileSync(destCert, apiCert);
         fs.copyFileSync(destKey, apiKey);
         console.log(`✅ Certificat ${ip} copié dans API`);
@@ -277,9 +306,69 @@ class AutoCertManager {
     
     compose = compose.replace(volumeKeyRegex, `- ../${ip}-key.pem:/usr/src/app/${ip}-key.pem:ro`);
     compose = compose.replace(volumeCertRegex, `- ../${ip}.pem:/usr/src/app/${ip}.pem:ro`);
+
+  // Nginx utilise désormais des chemins stables montés depuis docker/nginx/certs
+  // Pas de remplacement nécessaire dans compose pour nginx.
     
     fs.writeFileSync(composePath, compose);
     console.log(`✅ docker-compose.yml mis à jour`);
+
+    // Mettre à jour la conf Nginx (server_name)
+    this.updateNginxConfig(ip);
+    this.syncNginxCerts(ip);
+  }
+
+  updateNginxConfig(ip) {
+    const nginxConfPath = path.join(this.dockerPath, 'nginx', 'conf.d', 'default.conf');
+    if (!fs.existsSync(nginxConfPath)) {
+      console.warn('⚠️ Fichier Nginx default.conf introuvable, skip update');
+      return;
+    }
+
+    let conf = fs.readFileSync(nginxConfPath, 'utf8');
+    // Remplacer toute IP de type 192.168.x.x ou 172.x.x.x dans server_name par la nouvelle IP
+    conf = conf.replace(/(server_name[^;]*)(\b(?:\d{1,3}\.){3}\d{1,3})/g, (m, prefix) => `${prefix} ${ip}`);
+    // S'assurer que localhost et 127.0.0.1 restent présents
+    conf = conf.replace(/server_name\s+([^;]+);/g, (m, names) => {
+      const set = new Set(names.split(/\s+/).filter(Boolean));
+      set.add('localhost');
+      set.add('127.0.0.1');
+      set.add(ip);
+      return `server_name ${Array.from(set).join(' ')};`;
+    });
+
+    fs.writeFileSync(nginxConfPath, conf);
+    console.log('✅ Nginx default.conf mis à jour (server_name)');
+  }
+
+  syncNginxCerts(ip) {
+    // Utiliser les fichiers stables (copiés après génération)
+    let srcCert = path.join(this.rootPath, `${ip}.pem`);
+    let srcKey = path.join(this.rootPath, `${ip}-key.pem`);
+    if (!fs.existsSync(srcCert) || !fs.existsSync(srcKey)) {
+      // fallback vers la version avec suffixe +N si nécessaire
+      const files = fs.readdirSync(this.rootPath);
+      const cert = files.find(f => f.match(new RegExp(`^${ip.replace(/\./g, '\\.')}(?:\\+\\d+)?\\.pem$`)) && !f.includes('-key'));
+      const key = files.find(f => f.match(new RegExp(`^${ip.replace(/\./g, '\\.')}(?:\\+\\d+)?-key\\.pem$`)));
+      if (cert && key) {
+        srcCert = path.join(this.rootPath, cert);
+        srcKey = path.join(this.rootPath, key);
+      }
+    }
+    const nginxCertDir = path.join(this.dockerPath, 'nginx', 'certs');
+    const destCert = path.join(nginxCertDir, 'fullchain.pem');
+    const destKey = path.join(nginxCertDir, 'privkey.pem');
+
+    if (!fs.existsSync(srcCert) || !fs.existsSync(srcKey)) {
+      console.warn('⚠️ Certificats source introuvables pour la sync Nginx');
+      return;
+    }
+    if (!fs.existsSync(nginxCertDir)) {
+      fs.mkdirSync(nginxCertDir, { recursive: true });
+    }
+    fs.copyFileSync(srcCert, destCert);
+    fs.copyFileSync(srcKey, destKey);
+    console.log('🔗 Certificats copiés vers docker/nginx/certs (paths stables)');
   }
 
   // Fonction principale d'auto-configuration avec détection intelligente
@@ -321,10 +410,10 @@ class AutoCertManager {
     this.cleanOldCertificates(allIPs);
     
     console.log(`🎉 Configuration automatique terminée`);
-    console.log(`📍 IP principale: ${primaryIP}`);
-    console.log(`📍 Toutes les IPs supportées: ${allIPs.filter(ip => ip !== 'localhost' && ip !== '127.0.0.1').join(', ')}`);
-    console.log(`📍 Frontend: https://${primaryIP}:5173/ (ou :5174)`);
-    console.log(`📍 API: https://${primaryIP}:3443/`);
+  console.log(`📍 IP principale: ${primaryIP}`);
+  console.log(`📍 Toutes les IPs supportées: ${allIPs.filter(ip => ip !== 'localhost' && ip !== '127.0.0.1').join(', ')}`);
+  console.log(`📍 Frontend via Nginx: https://${primaryIP}/  (ou https://localhost/)`);
+  console.log(`📍 API via Nginx: https://${primaryIP}/api  (ou https://localhost/api)`);
     
     return { primaryIP, allIPs, envConfig };
   }
@@ -361,6 +450,16 @@ if (require.main === module) {
       console.log(`Certificats pour IP principale: ${manager.certificatesExistForIP(ip)}`);
       console.log(`Certificats pour au moins une IP: ${manager.certificatesExistForAnyIP(ips)}`);
       break;
+    
+    case 'urls': {
+      const envConfig = await manager.detector.detect();
+      const primaryIP = envConfig.VITE_PRIMARY_IP || envConfig.primaryIP || manager.getCurrentIP();
+      console.log('================ TelecomStock URLs ================');
+      console.log(`Frontend via Nginx:  https://${primaryIP}/  (ou https://localhost/)`);
+      console.log(`API via Nginx:       https://${primaryIP}/api  (ou https://localhost/api)`);
+      console.log('===================================================');
+      break;
+    }
       
     case 'ips':
       const allIPs = manager.getAllUsableIPs();

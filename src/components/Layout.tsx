@@ -105,25 +105,25 @@ export function Layout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Header */}
       <header className="bg-blue-700 text-white shadow-lg">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-16 h-16 object-contain rounded-full shadow-md bg-white" />
-              <h1 className="text-xl font-bold">Decimale Stock</h1>
+        <div className="container mx-auto px-4 py-4 max-w-full">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-full shadow-md bg-white" />
+              <h1 className="text-lg sm:text-xl font-bold truncate max-w-[50vw] sm:max-w-none">Decimale Stock</h1>
               {alertsCount > 0 && hasPermission('view_dashboard') && (
-                <div className="flex items-center gap-2 bg-orange-500 px-3 py-1 rounded-full text-sm font-medium">
+                <div className="hidden min-[880px]:flex items-center gap-2 bg-orange-500 px-3 py-1 rounded-full text-sm font-medium">
                   <AlertTriangle size={16} />
                   {alertsCount} alerte{alertsCount > 1 ? 's' : ''}
                 </div>
               )}
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="text-right">
+            <div className="flex items-center gap-4 shrink-0 ml-auto">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium">{currentUser.nom}</p>
                   <div className="flex items-center gap-2">
                     <Shield size={12} />
@@ -147,8 +147,8 @@ export function Layout({
 
       {/* Navigation */}
       <nav className="bg-white shadow-md border-b">
-        <div className="container mx-auto px-4">
-          <div className="flex overflow-x-auto">
+        <div className="container mx-auto px-4 max-w-full">
+          <div className="flex overflow-x-auto min-w-0">
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -171,7 +171,7 @@ export function Layout({
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 overflow-x-hidden max-w-full">
         {children}
       </main>
     </div>

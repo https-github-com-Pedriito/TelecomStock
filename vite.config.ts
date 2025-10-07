@@ -43,9 +43,8 @@ export default defineConfig({
     https: getHttpsConfig(),
   },
   define: {
-    // Configuration API HTTPS pour tous les environnements
-    // L'API doit être accessible depuis le réseau Wi-Fi pour les mobiles
-    'import.meta.env.VITE_API_URL': '"https://192.168.1.46:3443"',
-    'import.meta.env.VITE_API_URL_HTTPS': '"https://192.168.1.46:3443"',
+    // Autoriser la surcharge via process.env pour le build Docker
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || 'https://localhost:3443'),
+    'import.meta.env.VITE_API_URL_HTTPS': JSON.stringify(process.env.VITE_API_URL_HTTPS || process.env.VITE_API_URL || 'https://localhost:3443'),
   }
 });
