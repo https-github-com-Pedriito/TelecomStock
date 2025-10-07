@@ -10,13 +10,13 @@ export default defineConfig({
     port: 5173,
     host: '0.0.0.0',
     https: {
-      key: fs.readFileSync('192.168.1.46-key.pem'),
-      cert: fs.readFileSync('192.168.1.46.pem'),
+      key: fs.readFileSync('192.168.1.49-key.pem'),
+      cert: fs.readFileSync('192.168.1.49.pem'),
     }
   },
   define: {
     // API en HTTPS - les logs montrent que ça marche !
-    'import.meta.env.VITE_API_URL': '"https://192.168.1.46:3443"',
-    'import.meta.env.VITE_API_URL_HTTPS': '"https://192.168.1.46:3443"',
+    'import.meta.env.VITE_API_URL': '"https://192.168.1.49:3443"',
+    'import.meta.env.VITE_API_URL_HTTPS': '"https://192.168.1.49:3443"',
   }
 })
