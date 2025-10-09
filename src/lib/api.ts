@@ -270,6 +270,35 @@ class ApiService {
     });
   }
 
+  // Méthodes pour les localisations
+  async getLocalisations() {
+    return this.request('/localisations');
+  }
+
+  async getLocalisation(id: string) {
+    return this.request(`/localisations/${id}`);
+  }
+
+  async createLocalisation(localisation: any) {
+    return this.request('/localisations', {
+      method: 'POST',
+      body: JSON.stringify(localisation),
+    });
+  }
+
+  async updateLocalisation(id: string, localisation: any) {
+    return this.request(`/localisations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(localisation),
+    });
+  }
+
+  async deleteLocalisation(id: string) {
+    return this.request(`/localisations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
 }
 
 export const api = new ApiService();

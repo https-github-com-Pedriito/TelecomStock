@@ -11,6 +11,16 @@ export interface Article {
   updated_at: Date;
 }
 
+export interface Localisation {
+  id: string;
+  nom: string;
+  description?: string;
+  type?: 'ENTREPOT' | 'VEHICULE' | 'SITE_CLIENT' | 'TECHNIQUE' | 'AUTRE';
+  est_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface Mouvement {
   id: string;
   article: Article;  // L'API retourne toujours l'objet article complet

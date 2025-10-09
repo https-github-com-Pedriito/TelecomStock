@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Article } from '../types';
+import { Article, Localisation } from '../types';
 import { X, Package } from 'lucide-react';
+import { api } from '../lib/api';
 
 interface ArticleModalProps {
   isOpen: boolean;
@@ -22,14 +23,30 @@ const categories = [
 
 const localisations = [
   'Entrepôt principal',
-  'Véhicule 1',
-  'Véhicule 2',
-  'Site client A',
-  'Site client B',
-  'Magasin local',
+  'Entrepôt secondaire',
+  'Magasin central',
+  'Véhicule Technicien 1',
+  'Véhicule Technicien 2',
+  'Véhicule Technicien 3',
+  'Camion d\'intervention',
+  'Site client - Paris',
+  'Site client - Lyon',
+  'Site client - Marseille',
+  'Site client - Toulouse',
+  'Antenne relais A',
+  'Antenne relais B',
+  'Centre technique',
+  'Bureau commercial',
+  'Stock de sécurité',
+  'En transit',
+  'Chez le fournisseur',
+  'Retour SAV',
+  'Zone de réparation',
 ];
 
 export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = [] }: ArticleModalProps) {
+  const [localisationsFromDB, setLocalisationsFromDB] = useState<Localisation[]>([]);
+  const [loadingLocalisations, setLoadingLocalisations] = useState(false);
   const [formData, setFormData] = useState({
     nom: '',
     categorie: '',
@@ -67,6 +84,26 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
   // Récupérer le code-barres de l'URL
   const urlParams = new URLSearchParams(window.location.search);
   const barcodeFromURL = urlParams.get('barcode');
+
+  // Charger les localisations depuis l'API
+  useEffect(() => {
+    const loadLocalisations = async () => {
+      try {
+        setLoadingLocalisations(true);
+        const response = await api.getLocalisations();
+        setLocalisationsFromDB(response);
+      } catch (error) {
+        console.error('Erreur lors du chargement des localisations:', error);
+        // En cas d'erreur, utiliser les localisations statiques
+      } finally {
+        setLoadingLocalisations(false);
+      }
+    };
+
+    if (isOpen) {
+      loadLocalisations();
+    }
+  }, [isOpen]);
 
   // Ajouter le code-barres dans le formulaire
   useEffect(() => {
@@ -178,12 +215,26 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
               onChange={(e) => setFormData({ ...formData, localisation: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+              disabled={loadingLocalisations}
             >
-              <option value="">Sélectionner une localisation</option>
-              {localisations.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
+              <option value="">
+                {loadingLocalisations ? 'Chargement...' : 'Sélectionner une localisation'}
+              </option>
+              {/* Priorité aux localisations de l'API */}
+              {localisationsFromDB.length > 0 
+                ? localisationsFromDB.map(loc => (
+                    <option key={loc.id} value={loc.nom}>{loc.nom}</option>
+                  ))
+                : localisations.map(loc => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))
+              }
             </select>
+            {loadingLocalisations && (
+              <p className="text-xs text-gray-500 mt-1">
+                Chargement des localisations...
+              </p>
+            )}
           </div>
 
           {/* Code-barres */}

@@ -13,6 +13,7 @@ import { mouvementsRouter } from './routes/mouvements';
 import { usersRouter } from './routes/users';
 import { fournisseursRouter } from './routes/fournisseurs';
 import { inventairesRouter } from './routes/inventaires';
+import { localisationsRouter } from './routes/localisations';
 import { realtimeService } from './services/realtime';
 
 const app = express();
@@ -64,6 +65,7 @@ app.use('/mouvements', mouvementsRouter);
 app.use('/users', usersRouter);
 app.use('/fournisseurs', fournisseursRouter);
 app.use('/inventaires', inventairesRouter);
+app.use('/localisations', localisationsRouter);
 //app.use('/reports', reportsRouter);
 
 // Database connection

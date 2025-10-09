@@ -6,7 +6,7 @@ import { useNotifications } from './components/Notification';
 import { api } from './lib/api';
 import { Layout } from './components/Layout';
 import { LoginForm } from './components/LoginForm';
-import { Dashboard } from './pages/Dashboard';
+import { Dashboard } from './pages/DashboardMT';
 import { Articles } from './pages/Articles';
 import { Mouvements } from './pages/Mouvements';
 import { Scanner } from './pages/Scanner';

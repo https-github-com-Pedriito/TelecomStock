@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../lib/api';
-import { Article } from '../types';
+import { Article, Localisation } from '../types';
 import { ArticleCard } from '../components/ArticleCard';
 import { ArticleModal } from '../components/ArticleModal';
 import { BarcodeGenerator } from '../components/BarcodeGenerator';
@@ -22,8 +22,10 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
   const [editingArticle, setEditingArticle] = useState<Article | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
+  const [filterLocalisation, setFilterLocalisation] = useState('');
   const [labelToPrint, setLabelToPrint] = useState<Article | null>(null);
   const [barcodesLoaded, setBarcodesLoaded] = useState(false);
+  const [localisationsFromDB, setLocalisationsFromDB] = useState<Localisation[]>([]);
 
   const canManageArticles = hasPermission('manage_articles');
   
@@ -60,14 +62,35 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     }
   }, [articles, barcodesLoaded]);
 
+  // Charger les localisations depuis l'API
+  React.useEffect(() => {
+    const loadLocalisations = async () => {
+      try {
+        const response = await api.getLocalisations();
+        setLocalisationsFromDB(response);
+      } catch (error) {
+        console.error('Erreur lors du chargement des localisations:', error);
+      }
+    };
+
+    loadLocalisations();
+  }, []);
+
   const categories = Array.from(new Set(articles.map(a => a.categorie))).sort();
+  const localisations = Array.from(new Set(articles.map(a => a.localisation))).sort();
+  
+  // Utiliser les localisations de l'API si disponibles, sinon celles des articles existants
+  const availableLocalisations = localisationsFromDB.length > 0 
+    ? localisationsFromDB.map(loc => loc.nom).sort()
+    : localisations;
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.code_barres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.fournisseur?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || article.categorie === filterCategory;
-    return matchesSearch && matchesCategory;
+    const matchesLocalisation = !filterLocalisation || article.localisation === filterLocalisation;
+    return matchesSearch && matchesCategory && matchesLocalisation;
   });
 
   const handleEditArticle = (article: Article) => {
@@ -75,9 +98,9 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     setIsModalOpen(true);
   };
 
-  const handleDeleteArticle = async (id: string, force: boolean = false) => {
+  const handleDeleteArticle = async (id: string) => {
     // Ne pas afficher de confirmation ici - elle est gérée dans ArticleCard
-    return await onDeleteArticle(id, force);
+    return await onDeleteArticle(id);
   };
 
   const handleSaveArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
@@ -210,7 +233,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -223,19 +246,36 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
               />
             </div>
           </div>
-          <div className="sm:w-48">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-              >
-                <option value="">Toutes catégories</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="sm:w-48">
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={filterCategory}
+                  onChange={(e) => setFilterCategory(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                >
+                  <option value="">Toutes catégories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="sm:w-48">
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <select
+                  value={filterLocalisation}
+                  onChange={(e) => setFilterLocalisation(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                >
+                  <option value="">Toutes localisations</option>
+                  {availableLocalisations.map(localisation => (
+                    <option key={localisation} value={localisation}>{localisation}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>

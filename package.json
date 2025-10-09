@@ -24,13 +24,15 @@
     "env:clean": "node environment-detector.cjs clean",
     "backend:start": "node auto-cert-manager.cjs auto && cd docker && docker compose up --build -d",
     "backend:start:watchcerts": "node auto-cert-manager.cjs auto && cd docker && docker compose up --build -d ; cd .. ; node cert-watch-service.cjs 12",
-  "backend:urls": "node auto-cert-manager.cjs urls",
-  "logs:nginx": "cd docker && docker compose logs -f nginx",
-  "logs:frontend": "cd docker && docker compose logs -f frontend",
+    "backend:urls": "node auto-cert-manager.cjs urls",
+    "logs:nginx": "cd docker && docker compose logs -f nginx",
+    "logs:frontend": "cd docker && docker compose logs -f frontend",
     "backend:stop": "cd docker && docker compose down",
     "backend:logs": "cd docker && docker compose logs -f"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@material-tailwind/react": "^2.1.10",
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^10.0.0",
     "@zxing/browser": "^0.1.5",
