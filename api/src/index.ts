@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { AppDataSource } from './data-source';
+import { initAIDataSource } from './ai-data-source';
 import { authRouter } from './routes/auth';
 import { articlesRouter } from './routes/articles';
 import { mouvementsRouter } from './routes/mouvements';
@@ -14,6 +15,7 @@ import { usersRouter } from './routes/users';
 import { fournisseursRouter } from './routes/fournisseurs';
 import { inventairesRouter } from './routes/inventaires';
 import { localisationsRouter } from './routes/localisations';
+import assistantRouter from './routes/assistant';
 import { realtimeService } from './services/realtime';
 
 const app = express();
@@ -66,11 +68,16 @@ app.use('/users', usersRouter);
 app.use('/fournisseurs', fournisseursRouter);
 app.use('/inventaires', inventairesRouter);
 app.use('/localisations', localisationsRouter);
+app.use('/assistant', assistantRouter);
 //app.use('/reports', reportsRouter);
 
-// Database connection
-AppDataSource.initialize().then(() => {
-  console.log('Connected to database');
+// Database connections
+AppDataSource.initialize().then(async () => {
+  console.log('✅ Main database connection established');
+  
+  // Initialize READ-ONLY AI connection
+  await initAIDataSource();
+  console.log('✅ AI READ-ONLY connection established');
   
   // Resolve HTTPS certificates dynamically to match the active IP/host
   const apiRoot = path.join(__dirname, '..');

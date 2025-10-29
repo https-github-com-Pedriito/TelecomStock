@@ -11,7 +11,8 @@ import {
   Shield,
   Truck,
   Users,
-  FileText
+  FileText,
+  Building2
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -73,6 +74,12 @@ export function Layout({
       id: 'fournisseurs' as ViewMode, 
       label: 'Fournisseurs', 
       icon: Truck, 
+      permission: 'manage_users' 
+    },
+    { 
+      id: 'entrepots' as ViewMode, 
+      label: 'Entrepôts', 
+      icon: Building2, 
       permission: 'manage_users' 
     },
     { 

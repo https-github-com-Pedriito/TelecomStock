@@ -116,7 +116,9 @@ class ApiService {
 
       // Essayer de parser le JSON
       try {
-        return JSON.parse(text);
+        const jsonData = JSON.parse(text);
+        console.log('[DEBUG] Response data:', jsonData);
+        return jsonData;
       } catch (error) {
         console.warn('Failed to parse response as JSON:', text);
         return text;

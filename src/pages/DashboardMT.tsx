@@ -82,43 +82,44 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <Typography variant="h3" color="blue-gray" className="mb-2">
-          Tableau de bord
-        </Typography>
-        <Typography variant="lead" color="gray">
-          Vue d'ensemble de votre stock télécoms
-        </Typography>
-      </div>
+    <div className="w-full max-w-full">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="mb-6">
+          <Typography variant="h3" color="blue-gray" className="mb-2 text-xl md:text-3xl">
+            Tableau de bord
+          </Typography>
+          <Typography variant="lead" color="gray" className="text-sm md:text-base">
+            Vue d'ensemble de votre stock télécoms
+          </Typography>
+        </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsCards.map((card, index) => (
-          <Card key={index} className="shadow-sm border border-blue-gray-50">
-            <CardBody className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Typography variant="small" className="font-normal text-blue-gray-600">
-                    {card.title}
-                  </Typography>
-                  <Typography variant="h4" color="blue-gray">
+        {/* Stats Cards - Responsive Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+          {statsCards.map((card, index) => (
+            <Card key={index} className="shadow-sm border border-blue-gray-50 w-full overflow-hidden">
+              <CardBody className="p-4 md:p-6">
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Typography variant="small" className="font-normal text-blue-gray-600 text-xs md:text-sm truncate">
+                      {card.title}
+                    </Typography>
+                    <div className={`p-2 rounded-lg bg-${card.color}-50 flex-shrink-0`}>
+                      <card.icon className={`w-5 h-5 md:w-6 md:h-6 text-${card.color}-500`} />
+                    </div>
+                  </div>
+                  <Typography variant="h4" color="blue-gray" className="text-xl md:text-2xl font-bold">
                     {card.value}
                   </Typography>
                 </div>
-                <div className={`p-3 rounded-lg bg-${card.color}-50`}>
-                  <card.icon className={`w-6 h-6 text-${card.color}-500`} />
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ))}
-      </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Alertes Stock */}
-        <Card className="shadow-sm border border-blue-gray-50">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
+          {/* Alertes Stock */}
+          <Card className="shadow-sm border border-blue-gray-50 overflow-hidden">
           <CardHeader floated={false} shadow={false} className="rounded-none">
             <div className="flex items-center gap-2 mb-2">
               <ExclamationTriangleIcon className="w-5 h-5 text-orange-500" />
@@ -297,6 +298,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
           )}
         </CardBody>
       </Card>
+      </div>
     </div>
   );
 }

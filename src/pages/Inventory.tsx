@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BarcodeScanner } from '../components/BarcodeScanner';
+import { InventaireDetailModal } from '../components/InventaireDetailModal';
 import { useInventaire } from '../hooks/useInventaire';
-import { ScanLine, FileText, Filter, Edit2, Plus, History, Archive } from 'lucide-react';
+import { ScanLine, FileText, Filter, Edit2, Plus, History, Archive, Eye } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface InventoryProps {
@@ -38,6 +39,9 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
   
   // État pour l'historique
   const [showHistory, setShowHistory] = useState(false);
+  
+  // État pour la modale de détails
+  const [selectedInventaire, setSelectedInventaire] = useState<any>(null);
 
   // Auto-générer le nom d'inventaire par défaut
   useEffect(() => {
@@ -132,7 +136,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     // Préparer les données pour Excel
     const headers = [
       'Article',
-      'Code Barre',
+      'Référence',
       'Stock Théorique',
       'Quantité Comptée',
       'Différence',
@@ -280,13 +284,13 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
           ) : (
             <div className="space-y-2">
               {inventaires.map(inv => (
-                <div key={inv.id} className="flex justify-between items-center p-3 border rounded-lg">
-                  <div>
+                <div key={inv.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50">
+                  <div className="flex-1">
                     <div className="font-medium">{inv.nom}</div>
                     <div className="text-sm text-gray-500">
                       {inv.description} • Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}
                     </div>
-                    <div className="text-sm">
+                    <div className="text-sm mt-1">
                       <span className={`px-2 py-1 rounded text-xs ${
                         inv.statut === 'EN_COURS' ? 'bg-green-100 text-green-800' :
                         inv.statut === 'FINALISE' ? 'bg-blue-100 text-blue-800' :
@@ -296,9 +300,18 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                       </span>
                     </div>
                   </div>
-                  {inv.statut === 'FINALISE' && (
-                    <Archive className="text-gray-400" size={20} />
-                  )}
+                  <div className="flex gap-2 items-center">
+                    <button
+                      onClick={() => setSelectedInventaire(inv)}
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
+                    >
+                      <Eye size={16} />
+                      Voir détails
+                    </button>
+                    {inv.statut === 'FINALISE' && (
+                      <Archive className="text-gray-400" size={20} />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -475,6 +488,14 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
             <BarcodeScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
           </div>
         </div>
+      )}
+
+      {/* Modale de détails de l'inventaire */}
+      {selectedInventaire && (
+        <InventaireDetailModal
+          inventaire={selectedInventaire}
+          onClose={() => setSelectedInventaire(null)}
+        />
       )}
     </div>
   );

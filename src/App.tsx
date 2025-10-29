@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ViewMode, Article, Mouvement, User, Fournisseur, CreateMouvementData } from './types';
+import { useState, useEffect, useCallback } from 'react';
+import { ViewMode, Article, Mouvement, User, Fournisseur, Localisation, LocalisationInput, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
 import { useAuth } from './hooks/useAuth';
 import { useNotifications } from './components/Notification';
@@ -12,15 +12,20 @@ import { Mouvements } from './pages/Mouvements';
 import { Scanner } from './pages/Scanner';
 import { Historique } from './pages/Historique';
 import { Fournisseurs } from './pages/Fournisseurs';
+import { Entrepots } from './pages/Entrepots';
 import { Utilisateurs } from './pages/Utilisateurs';
 import { Rapports } from './pages/Rapports';
 import { Inventory } from './pages/Inventory';
-import DebugConsole from './components/DebugConsole';
+import { AdminPortal } from './pages/AdminPortal';
+import { StockChatAssistant } from './components/StockChatAssistant';
 import { MobileDebugPanel } from './components/MobileDebugPanel';
+import { FeedbackProvider } from './components/UXFeedback';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [loginError, setLoginError] = useState('');
+  const [useNewUX] = useState(true); // Toggle pour la nouvelle UX
   
   // Système de notifications
   const { showStockNotification, NotificationContainer } = useNotifications();
@@ -28,7 +33,6 @@ function App() {
   const {
     user,
     loading: authLoading,
-    error: authError,
     isAuthenticated,
     signIn,
     signOut
@@ -37,8 +41,6 @@ function App() {
   const {
     articles,
     mouvements,
-    loading: stockLoading,
-    error: stockError,
     createArticle,
     updateArticle,
     deleteArticle,
@@ -73,23 +75,17 @@ function App() {
 
   // État et gestion des fournisseurs
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
-  const [loadingFournisseurs, setLoadingFournisseurs] = useState(true);
-  const [errorFournisseurs, setErrorFournisseurs] = useState<string | null>(null);
   
   // Charger les fournisseurs au démarrage
   useEffect(() => {
     const fetchFournisseurs = async () => {
       try {
-        setErrorFournisseurs(null);
         console.log('Chargement des fournisseurs...');
         const response = await api.get<Fournisseur[]>('/fournisseurs');
         console.log('Fournisseurs reçus:', response);
         setFournisseurs(response);
       } catch (error) {
         console.error('Erreur lors du chargement des fournisseurs:', error);
-        setErrorFournisseurs(error instanceof Error ? error.message : 'Erreur inconnue');
-      } finally {
-        setLoadingFournisseurs(false);
       }
     };
 
@@ -135,6 +131,80 @@ function App() {
     }
   };
 
+  // Gestion des localisations / entrepôts
+  const [localisations, setLocalisations] = useState<Localisation[]>([]);
+  const [loadingLocalisations, setLoadingLocalisations] = useState(true);
+  const [errorLocalisations, setErrorLocalisations] = useState<string | null>(null);
+
+  const refreshLocalisations = useCallback(async (): Promise<void> => {
+    try {
+      setErrorLocalisations(null);
+      setLoadingLocalisations(true);
+      console.log('Chargement des localisations...');
+      const response = await api.getLocalisations();
+      console.log('Localisations reçues:', response);
+      setLocalisations(response as Localisation[]);
+    } catch (error) {
+      console.error('Erreur lors du chargement des localisations:', error);
+      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
+      throw error;
+    } finally {
+      setLoadingLocalisations(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshLocalisations().catch(err => {
+      console.error('Erreur lors de l\'initialisation des localisations:', err);
+    });
+  }, [refreshLocalisations]);
+
+  const addLocalisation = async (localisation: LocalisationInput): Promise<Localisation> => {
+    try {
+      console.log('Création d\'une nouvelle localisation:', localisation);
+      const newLocalisation = await api.createLocalisation(localisation) as Localisation;
+      setLocalisations(prev => [...prev, newLocalisation]);
+      return newLocalisation;
+    } catch (error) {
+      console.error('Erreur lors de la création de la localisation:', error);
+      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
+      throw error;
+    }
+  };
+
+  const updateLocalisation = async (id: string, data: Partial<LocalisationInput>): Promise<Localisation> => {
+    try {
+      console.log('Mise à jour de la localisation:', id, data);
+      const updatedLocalisation = await api.updateLocalisation(id, data) as Localisation;
+      setLocalisations(prev => prev.map(loc => loc.id === id ? updatedLocalisation : loc));
+      return updatedLocalisation;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la localisation:', error);
+      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
+      throw error;
+    }
+  };
+
+  const deleteLocalisation = async (id: string): Promise<void> => {
+    try {
+      console.log('Désactivation de la localisation:', id);
+  await api.deleteLocalisation(id);
+      // Marquer comme inactive localement
+      setLocalisations(prev => prev.map(loc => loc.id === id ? { ...loc, est_active: false } : loc));
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la localisation:', error);
+      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
+      throw error;
+    }
+  };
+
+  const refreshAllData = useCallback(async () => {
+    await Promise.allSettled([
+      refreshAll(),
+      refreshLocalisations(),
+    ]);
+  }, [refreshAll, refreshLocalisations]);
+
   // État et gestion des utilisateurs
   const [usersForComponents, setUsersForComponents] = useState<User[]>([]);
 
@@ -176,34 +246,6 @@ function App() {
     }
   };
 
-  // Gestion de l'inventaire (legacy - maintenant géré par useInventaire hook)
-  // const addInventoryEntry = (entry: Omit<InventoryEntry, 'id' | 'dateHeure'>) => {
-  //   const article = articles.find(a => a.id === entry.articleId);
-  //   if (!article) {
-  //     throw new Error('Article non trouvé');
-  //   }
-
-  //   const newEntry: InventoryEntry = {
-  //     ...entry,
-  //     id: crypto.randomUUID(),
-  //     dateHeure: new Date()
-  //   };
-
-  //   void createMouvement({
-  //     articleId: entry.articleId,
-  //     quantite: entry.quantiteReelle - article.quantiteStock,
-  //     type: entry.quantiteReelle > article.quantiteStock ? 'ENTREE' : 'SORTIE',
-  //     utilisateur: entry.utilisateur,
-  //     commentaire: 'Ajustement d\'inventaire'
-  //   });
-
-  //   return newEntry;
-  // };
-
-  // const finalizeInventoryReport = async () => {
-  //   // TODO: Implémenter la finalisation du rapport d'inventaire
-  //   console.log('Finalisation du rapport d\'inventaire');
-  // };
 
   // Fonction de vérification des permissions
   const hasPermission = (permission: string) => {
@@ -289,6 +331,7 @@ function App() {
       case 'historique':
         return hasPermission('view_historique');
       case 'fournisseurs':
+      case 'entrepots':
       case 'utilisateurs':
       case 'rapports':
         return hasPermission('manage_users');
@@ -315,8 +358,8 @@ function App() {
     const tempArticle: Article = {
       id: 'temp_' + new Date().getTime(),
       ...articleData,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      created_at: new Date(),
+      updated_at: new Date()
     };
     // Start creation in background
     void addArticle(articleData);
@@ -368,12 +411,23 @@ function App() {
     switch (currentView) {
       case 'dashboard':
         return hasPermission('view_dashboard') && (
-          <Dashboard
-            articles={articles}
-            mouvements={mouvements}
-            articlesWithAlerts={articlesWithAlerts}
-            onRefreshData={refreshAll}
-          />
+          useNewUX && user?.role === 'admin' ? (
+            <AdminPortal
+              articles={articles}
+              mouvements={mouvements}
+              users={usersForComponents}
+              currentUser={currentUserForComponents!}
+              onUpdateUser={updateUser}
+              onDeleteUser={deleteUser}
+            />
+          ) : (
+            <Dashboard
+              articles={articles}
+              mouvements={mouvements}
+              articlesWithAlerts={articlesWithAlerts}
+              onRefreshData={refreshAllData}
+            />
+          )
         );
       case 'articles':
         return hasPermission('view_articles') && (
@@ -389,7 +443,6 @@ function App() {
       case 'mouvements':
         return hasPermission('view_mouvements') && (
           <Mouvements
-            articles={articles}
             mouvements={mouvements}
           />
         );
@@ -420,6 +473,18 @@ function App() {
             onRefreshFournisseurs={refreshFournisseurs}
           />
         );
+        case 'entrepots':
+          return hasPermission('manage_users') && (
+            <Entrepots
+              localisations={localisations}
+              loading={loadingLocalisations}
+              error={errorLocalisations}
+              onAddLocalisation={addLocalisation}
+              onUpdateLocalisation={updateLocalisation}
+              onDeleteLocalisation={deleteLocalisation}
+              onRefreshLocalisations={refreshLocalisations}
+            />
+          );
       case 'utilisateurs':
         return hasPermission('manage_users') && (
           <Utilisateurs
@@ -600,16 +665,77 @@ function App() {
 
   if (!isAuthenticated || !currentUserForComponents) {
     return (
-      <>
+      <FeedbackProvider>
         <LoginForm onLogin={handleLogin} error={loginError} />
         <NotificationContainer />
-        <DebugConsole />
-      </>
+      </FeedbackProvider>
     );
   }
 
+  // Détection mobile
+  const isMobile = window.innerWidth < 768;
+
+  // Interface mobile avec nouvelle UX
+  if (isMobile && useNewUX) {
+    return (
+      <FeedbackProvider>
+        <div className="h-screen flex flex-col bg-gray-50 overflow-hidden max-w-full">
+          {/* Header mobile avec déconnexion */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">
+                  {currentUserForComponents.prenom.charAt(0)}{currentUserForComponents.nom.charAt(0)}
+                </span>
+              </div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-semibold text-gray-900 truncate">
+                  {currentUserForComponents.prenom} {currentUserForComponents.nom}
+                </span>
+                <span className="text-xs text-gray-500 capitalize truncate">
+                  {currentUserForComponents.role}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={signOut}
+              className="flex items-center space-x-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex-shrink-0 ml-2"
+              title="Se déconnecter"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="text-sm font-medium hidden sm:inline">Quitter</span>
+            </button>
+          </div>
+          
+          {/* Contenu principal - avec overflow contrôlé et padding généreux */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
+            <div className="px-6 py-6 max-w-full">
+              {renderCurrentView()}
+            </div>
+          </div>
+          
+          {/* Navigation mobile en bas */}
+          <MobileBottomNav
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            hasPermission={hasPermission}
+            alertsCount={getArticlesWithAlerts().length}
+          />
+        </div>
+        
+        <NotificationContainer />
+        {/* Chat uniquement pour les admins */}
+        {user?.role === 'admin' && <ChatAssistantWidget />}
+        <MobileDebugPanel />
+      </FeedbackProvider>
+    );
+  }
+
+  // Interface desktop standard
   return (
-    <>
+    <FeedbackProvider>
       <Layout
         currentView={currentView}
         onViewChange={setCurrentView}
@@ -621,8 +747,41 @@ function App() {
         {renderCurrentView()}
       </Layout>
       <NotificationContainer />
-      <DebugConsole />
+      
+      {/* AI Chat Assistant - Uniquement pour les admins */}
+      {user?.role === 'admin' && <ChatAssistantWidget />}
+      
       <MobileDebugPanel />
+    </FeedbackProvider>
+  );
+}
+
+// Composant widget chat avec bouton toggle
+function ChatAssistantWidget() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      {/* Bouton flottant pour ouvrir le chat */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-4 right-4 w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50 hover:scale-110"
+          title="Ouvrir l'assistant IA"
+        >
+          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse"></span>
+        </button>
+      )}
+      
+      {/* Panneau du chat */}
+      {isOpen && (
+        <div className="fixed bottom-4 right-4 w-96 h-[600px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] z-50 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+          <StockChatAssistant onClose={() => setIsOpen(false)} />
+        </div>
+      )}
     </>
   );
 }

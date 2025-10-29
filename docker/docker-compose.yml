@@ -8,12 +8,30 @@ services:
       POSTGRES_PASSWORD: adminpassword
       POSTGRES_DB: telecomstock
     ports:
-      - "5432:5432"
+      - "15432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - telecomstock_network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: telecomstock_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - telecomstock_network
+    # Uncomment below for GPU support (requires nvidia-docker)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
 
   api:
     build: 
@@ -28,12 +46,17 @@ services:
       - DB_PASSWORD=adminpassword
       - DB_NAME=telecomstock
       - JWT_SECRET=votre_secret_jwt_super_secure
+      # AI Provider Configuration
+      - AI_PROVIDER=ollama
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=phi3:3.8b
       - API_PORT=3443
     ports:
       - "0.0.0.0:3443:3443"  # HTTPS
       - "0.0.0.0:3080:3080"  # HTTP pour développement mobile
     depends_on:
       - db
+      - ollama
     networks:
       - telecomstock_network
     extra_hosts:
@@ -62,14 +85,18 @@ services:
     image: nginx:1.25-alpine
     container_name: telecomstock_nginx
     depends_on:
+      frontend:
+        condition: service_started
       api:
         condition: service_started
-      frontend:
-        condition: service_healthy
+    # Attendre que Vite soit prêt avant de démarrer Nginx
+    entrypoint: /wait-for-vite.sh
     ports:
       - "80:80"
       - "443:443"
     volumes:
+      # Script d'attente de Vite
+      - ./wait-for-vite.sh:/wait-for-vite.sh:ro
       # Nginx virtual host configuration
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       # Static webroot served by Nginx (built by the 'frontend' service)
@@ -93,13 +120,18 @@ services:
       - ..:/app
       # Output built assets into a named volume shared with Nginx
       - frontend_dist:/output
-    command: sh -c "npm install && npm run build && rm -rf /output/* && cp -r dist/* /output && if [ -f decimalestock.png ]; then cp decimalestock.png /output/; fi && tail -f /dev/null"
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /output/index.html || test -f /output/index.htm"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 10s
+      - /app/node_modules  # Prevent node_modules from being overwritten
+    # DEV MODE: Run Vite dev server without cert manager
+    command: sh -c "apk add --no-cache wget && npm install && npx vite --host 0.0.0.0 --port 5173"
+    ports:
+      - "5173:5173"  # Expose Vite dev server
+    # Healthcheck disabled for dev mode
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget --no-check-certificate --no-verbose --tries=1 --spider https://localhost:5173 || exit 1"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 30
+    #   start_period: 10s
     networks:
       - telecomstock_network
 
@@ -110,3 +142,4 @@ networks:
 volumes:
   postgres_data:
   frontend_dist:
+  ollama_data:

@@ -5,6 +5,7 @@ import { InventaireEntry } from '../entities/InventaireEntry';
 import { Article } from '../entities/Article';
 import { User } from '../entities/User';
 import { authMiddleware } from '../middleware/auth';
+import * as ExcelJS from 'exceljs';
 
 const router = Router();
 
@@ -269,6 +270,190 @@ router.delete('/:id/entries/:entryId', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Erreur lors de la suppression de l\'entrée:', error);
     res.status(500).json({ message: 'Erreur lors de la suppression de l\'entrée' });
+  }
+});
+
+// GET /inventaires/:id/export - Exporter un inventaire en Excel
+router.get('/:id/export', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Récupérer l'inventaire
+    const inventaireRepository = AppDataSource.getRepository(Inventaire);
+    const inventaire = await inventaireRepository.findOne({
+      where: { id },
+      relations: ['created_by', 'finalized_by']
+    });
+
+    if (!inventaire) {
+      return res.status(404).json({ message: 'Inventaire non trouvé' });
+    }
+
+    // Récupérer les entrées avec articles
+    const entryRepository = AppDataSource.getRepository(InventaireEntry);
+    const entries = await entryRepository.find({
+      where: { inventaire_id: id },
+      relations: ['article', 'utilisateur'],
+      order: { created_at: 'ASC' }
+    });
+
+    // Créer le workbook Excel
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'TelecomStock';
+    workbook.created = new Date();
+
+    // Feuille 1: Informations générales
+    const infoSheet = workbook.addWorksheet('Informations');
+    
+    infoSheet.addRow(['INVENTAIRE - ' + inventaire.nom.toUpperCase()]);
+    infoSheet.addRow([]);
+    infoSheet.addRow(['Nom:', inventaire.nom]);
+    infoSheet.addRow(['Description:', inventaire.description]);
+    infoSheet.addRow(['Statut:', inventaire.statut]);
+    infoSheet.addRow(['Mois:', inventaire.mois]);
+    infoSheet.addRow(['Année:', inventaire.annee]);
+    infoSheet.addRow(['Créé par:', inventaire.created_by?.nom || 'N/A']);
+    infoSheet.addRow(['Date création:', inventaire.created_at?.toLocaleString('fr-FR')]);
+    
+    if (inventaire.finalized_by) {
+      infoSheet.addRow(['Finalisé par:', inventaire.finalized_by.nom]);
+      infoSheet.addRow(['Date finalisation:', inventaire.finalized_at?.toLocaleString('fr-FR')]);
+    }
+
+    // Style du titre
+    infoSheet.getCell('A1').font = { bold: true, size: 16 };
+    infoSheet.getCell('A1').fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4CAF50' }
+    };
+
+    // Ajuster les largeurs
+    infoSheet.getColumn(1).width = 20;
+    infoSheet.getColumn(2).width = 40;
+
+    // Feuille 2: Détails des entrées
+    const detailSheet = workbook.addWorksheet('Détails Inventaire');
+    
+    // En-têtes
+    const headerRow = detailSheet.addRow([
+      'Article',
+      'Code Barres',
+      'Quantité Comptée',
+      'Quantité Théorique',
+      'Écart',
+      'Écart %',
+      'Statut',
+      'Compté par',
+      'Date',
+      'Commentaire'
+    ]);
+
+    // Style des en-têtes
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF2196F3' }
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    // Ajouter les données
+    let totalComptee = 0;
+    let totalTheorique = 0;
+
+    entries.forEach(entry => {
+      const ecart = entry.quantite_comptee - entry.quantite_theorique;
+      const ecartPct = entry.quantite_theorique > 0 
+        ? ((ecart / entry.quantite_theorique) * 100).toFixed(2) + '%'
+        : 'N/A';
+      
+      const statut = ecart === 0 ? '✓ OK' : (ecart > 0 ? '↑ Excédent' : '↓ Manquant');
+
+      const row = detailSheet.addRow([
+        entry.article?.nom || 'Article supprimé',
+        entry.article?.code_barres || 'N/A',
+        entry.quantite_comptee,
+        entry.quantite_theorique,
+        ecart,
+        ecartPct,
+        statut,
+        entry.utilisateur?.nom || 'N/A',
+        entry.created_at?.toLocaleString('fr-FR'),
+        entry.commentaire || ''
+      ]);
+
+      // Colorer selon l'écart
+      if (ecart < 0) {
+        row.getCell(5).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFEBEE' }
+        };
+        row.getCell(5).font = { color: { argb: 'FFD32F2F' } };
+      } else if (ecart > 0) {
+        row.getCell(5).fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFE8F5E9' }
+        };
+        row.getCell(5).font = { color: { argb: 'FF388E3C' } };
+      }
+
+      totalComptee += entry.quantite_comptee;
+      totalTheorique += entry.quantite_theorique;
+    });
+
+    // Ligne de total
+    detailSheet.addRow([]);
+    const totalRow = detailSheet.addRow([
+      'TOTAL',
+      '',
+      totalComptee,
+      totalTheorique,
+      totalComptee - totalTheorique,
+      '',
+      '',
+      '',
+      '',
+      ''
+    ]);
+    totalRow.font = { bold: true };
+    totalRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // Ajuster les largeurs des colonnes
+    detailSheet.getColumn(1).width = 30; // Article
+    detailSheet.getColumn(2).width = 15; // Code Barres
+    detailSheet.getColumn(3).width = 15; // Quantité Comptée
+    detailSheet.getColumn(4).width = 18; // Quantité Théorique
+    detailSheet.getColumn(5).width = 10; // Écart
+    detailSheet.getColumn(6).width = 10; // Écart %
+    detailSheet.getColumn(7).width = 15; // Statut
+    detailSheet.getColumn(8).width = 20; // Compté par
+    detailSheet.getColumn(9).width = 20; // Date
+    detailSheet.getColumn(10).width = 30; // Commentaire
+
+    // Figer la première ligne
+    detailSheet.views = [
+      { state: 'frozen', xSplit: 0, ySplit: 1 }
+    ];
+
+    // Générer le fichier
+    const fileName = `Inventaire_${inventaire.nom.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error('Erreur lors de l\'export Excel:', error);
+    res.status(500).json({ message: 'Erreur lors de l\'export Excel' });
   }
 });
 

@@ -12,6 +12,7 @@
     "migration:revert": "npm run typeorm migration:revert -- -d src/data-source.ts"
   },
   "dependencies": {
+    "@langchain/openai": "^0.6.16",
     "@types/bcrypt": "^5.0.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.13",
@@ -22,8 +23,12 @@
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
+    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "langchain": "^0.3.36",
+    "ollama": "^0.6.0",
+    "openai": "^6.3.0",
     "pg": "^8.10.0",
     "socket.io": "^4.8.1",
     "typeorm": "^0.3.15",

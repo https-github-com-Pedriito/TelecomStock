@@ -21,6 +21,13 @@ export interface Localisation {
   updated_at: Date;
 }
 
+export type LocalisationInput = {
+  nom: string;
+  description?: string;
+  type?: Localisation['type'];
+  est_active: boolean;
+};
+
 export interface Mouvement {
   id: string;
   article: Article;  // L'API retourne toujours l'objet article complet
@@ -152,4 +159,4 @@ export interface InventoryReport {
   createdAt: Date;
 }
 
-export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'utilisateurs' | 'rapports' | 'inventory';
+export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'entrepots' | 'utilisateurs' | 'rapports' | 'inventory';
