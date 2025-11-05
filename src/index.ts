@@ -110,14 +110,6 @@ app.use('/localisations', localisationsRouter);
 AppDataSource.initialize().then(async () => {
   console.log('✅ Main database connection established');
   
-  // Initialize READ-ONLY AI connection (optionnel, désactivé si ai_assistant n'existe pas)
-  try {
-    await initAIDataSource();
-    console.log('✅ AI READ-ONLY connection established');
-  } catch (error) {
-    console.log('⚠️  AI DataSource skipped (user ai_assistant not found or error)');
-  }
-  
   // Add request logging middleware
   app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -125,9 +117,8 @@ AppDataSource.initialize().then(async () => {
     next();
   });
 
-  // Start HTTP server only (no HTTPS)
   // Support for Fly.io PORT environment variable
-  const httpPort = process.env.PORT || 3080;
+  const httpPort = parseInt(process.env.PORT || '3080', 10);
   const httpServer = http.createServer(app);
   
   // Initialize Socket.IO with HTTP server
