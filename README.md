@@ -83,14 +83,24 @@ Cette branche est destinée à être utilisée avec :
 - **Branche `api-only`** : API backend Node.js/TypeORM
 - **Branche `frontend-only`** : Application React/Vite
 
+## 🎯 Services disponibles
+
+| Service | Port | Description |
+|---------|------|-------------|
+| PostgreSQL | 15432 | Base de données principale |
+| Ollama | 11434 | Serveur IA (optionnel) |
+| pgAdmin | 8080 | Interface web de gestion |
+
 ## 🔗 Liens utiles
 
 - Documentation PostgreSQL : https://www.postgresql.org/docs/14/
 - Docker Compose : https://docs.docker.com/compose/
 - pgAdmin : https://www.pgadmin.org/
+- Ollama : https://ollama.ai/
 
 ## 💡 Notes
 
-- Les données sont persistées dans un volume Docker `postgres_data`
+- Les données sont persistées dans les volumes Docker `postgres_data` et `ollama_data`
 - Le port 15432 est utilisé pour éviter les conflits avec une installation PostgreSQL locale (5432)
 - pgAdmin est pré-configuré avec les connexions aux bases de données
+- Ollama peut être désactivé si vous n'utilisez pas l'IA
