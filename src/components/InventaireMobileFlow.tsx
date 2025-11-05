@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ScanLine, 
   Search, 
@@ -13,6 +13,7 @@ import {
 import { BarcodeScanner } from './BarcodeScanner';
 import { useStockFeedback, useFeedback } from './UXFeedback';
 import { Article } from '../types';
+
 
 interface InventaireMobileFlowProps {
   articles: Article[];

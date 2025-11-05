@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Localisation, LocalisationInput } from '../types';
 import { EntrepotModal } from '../components/EntrepotModal';
 import {
@@ -14,6 +14,8 @@ import {
   CalendarDays,
   Loader2,
   Info,
+  Trash2,
+  X,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -49,6 +51,7 @@ export function Entrepots({
   const [editingLocalisation, setEditingLocalisation] = useState<Localisation | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -72,9 +75,13 @@ export function Entrepots({
       const matchesSearch = loc.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (loc.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
       const matchesType = !typeFilter || loc.type === typeFilter;
-      return matchesSearch && matchesType;
+      const matchesStatus = 
+        statusFilter === 'all' || 
+        (statusFilter === 'active' && loc.est_active) || 
+        (statusFilter === 'inactive' && !loc.est_active);
+      return matchesSearch && matchesType && matchesStatus;
     });
-  }, [localisations, searchTerm, typeFilter]);
+  }, [localisations, searchTerm, typeFilter, statusFilter]);
 
   const openCreateModal = () => {
     setEditingLocalisation(undefined);
@@ -109,12 +116,12 @@ export function Entrepots({
   };
 
   const handleDisableLocalisation = async (localisation: Localisation) => {
-    if (!confirm(`Désactiver le lieu « ${localisation.nom} » ?`)) {
+    if (!confirm(`Voulez vous vraiment désactiver le lieu ? « ${localisation.nom} » ?`)) {
       return;
     }
     try {
       setActionLoadingId(localisation.id);
-      await onDeleteLocalisation(localisation.id);
+      await onUpdateLocalisation(localisation.id, { est_active: false });
       if (onRefreshLocalisations) {
         await onRefreshLocalisations();
       }
@@ -136,6 +143,25 @@ export function Entrepots({
     } catch (error) {
       console.error('Erreur lors de la réactivation du lieu:', error);
       alert('Impossible de réactiver ce lieu de stockage pour le moment.');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleDeleteLocalisation = async (localisation: Localisation) => {
+    const confirmMessage = `⚠️ ATTENTION : Supprimer définitivement le lieu « ${localisation.nom} » ?\n\nCette action est irréversible et supprimera toutes les données associées.`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+    try {
+      setActionLoadingId(localisation.id);
+      await onDeleteLocalisation(localisation.id);
+      if (onRefreshLocalisations) {
+        await onRefreshLocalisations();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la suppression du lieu:', error);
+      alert('Impossible de supprimer ce lieu de stockage. Il est peut-être utilisé par des articles.');
     } finally {
       setActionLoadingId(null);
     }
@@ -201,7 +227,7 @@ export function Entrepots({
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-4 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-end gap-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -214,7 +240,19 @@ export function Entrepots({
               />
             </div>
           </div>
-          <div className="w-full lg:w-60">
+          <div className="w-full lg:w-48">
+            <label className="text-sm font-medium text-gray-600 mb-1 block">Statut</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="active">Actifs uniquement</option>
+              <option value="inactive">Inactifs uniquement</option>
+            </select>
+          </div>
+          <div className="w-full lg:w-48">
             <label className="text-sm font-medium text-gray-600 mb-1 block">Type</label>
             <select
               value={typeFilter}
@@ -229,6 +267,20 @@ export function Entrepots({
               ))}
             </select>
           </div>
+          {(searchTerm || typeFilter || statusFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setTypeFilter('');
+                setStatusFilter('all');
+              }}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors whitespace-nowrap"
+              title="Réinitialiser les filtres"
+            >
+              <X size={16} />
+              Réinitialiser
+            </button>
+          )}
         </div>
 
         {error && (
@@ -264,56 +316,62 @@ export function Entrepots({
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredLocalisations.map(localisation => {
             const isActionLoading = actionLoadingId === localisation.id;
-            const statusClasses = localisation.est_active
-              ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-              : 'bg-amber-50 text-amber-700 border border-amber-100';
+            const cardClasses = localisation.est_active
+              ? 'bg-white'
+              : 'bg-gray-100 opacity-75';
 
             return (
-              <div key={localisation.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <div key={localisation.id} className={`${cardClasses} rounded-lg shadow-md p-6 hover:shadow-lg transition-all`}>
                 <div className="flex justify-between items-start gap-3">
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2 text-xs">
-                      <span className={`px-2 py-1 rounded-full font-medium ${statusClasses}`}>
-                        {localisation.est_active ? 'Actif' : 'Inactif'}
-                      </span>
                       {localisation.type && (
                         <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                           {typeLabels[localisation.type] || localisation.type}
                         </span>
                       )}
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <Warehouse className="w-5 h-5 text-blue-600" />
+                    <h3 className={`text-lg font-semibold flex items-center gap-2 ${localisation.est_active ? 'text-gray-900' : 'text-gray-600'}`}>
+                      <Warehouse className={`w-5 h-5 ${localisation.est_active ? 'text-blue-600' : 'text-gray-400'}`} />
                       {localisation.nom}
                     </h3>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => openEditModal(localisation)}
-                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       title="Modifier"
+                      disabled={!localisation.est_active}
                     >
                       <Edit2 size={16} />
                     </button>
                     {localisation.est_active ? (
                       <button
                         onClick={() => handleDisableLocalisation(localisation)}
-                        className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                        title="Désactiver"
+                        className="p-2 text-emerald-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        title="Désactiver ce lieu"
                         disabled={isActionLoading}
                       >
-                        {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ToggleLeft size={18} />}
+                        {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ToggleRight size={20} />}
                       </button>
                     ) : (
                       <button
                         onClick={() => handleReactivateLocalisation(localisation)}
-                        className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                        title="Réactiver"
+                        className="p-2 text-amber-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        title="Réactiver ce lieu"
                         disabled={isActionLoading}
                       >
-                        {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ToggleRight size={18} />}
+                        {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ToggleLeft size={20} />}
                       </button>
                     )}
+                    <button
+                      onClick={() => handleDeleteLocalisation(localisation)}
+                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      title="Supprimer définitivement"
+                      disabled={isActionLoading || !localisation.est_active}
+                    >
+                      {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={16} />}
+                    </button>
                   </div>
                 </div>
 

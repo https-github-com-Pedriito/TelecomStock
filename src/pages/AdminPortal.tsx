@@ -1,17 +1,21 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Article, Mouvement, User } from '../types';
 import { AdminDashboard } from '../components/AdminDashboard';
 import { SettingsPage } from '../components/SettingsPage';
 import { AlertsManager } from '../components/AlertsManager';
-import { 
-  BarChart3, 
-  Settings as SettingsIcon, 
-  Bell, 
+import { UserModal } from '../components/UserModal';
+import {
+  BarChart3,
+  Settings as SettingsIcon,
+  Bell,
   Users,
   Package,
   Activity,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Plus,
+  Edit2,
+  Trash2
 } from 'lucide-react';
 
 interface AdminPortalProps {
@@ -21,18 +25,30 @@ interface AdminPortalProps {
   currentUser: User;
   onUpdateUser?: (id: string, data: Partial<User>) => Promise<void>;
   onDeleteUser?: (id: string) => Promise<void>;
+  onAddUser?: (userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) => Promise<User>;
+  initialView?: AdminView;
+  onNavigateToInventory?: () => void;
+  onNavigateToArticles?: () => void;
 }
 
 type AdminView = 'dashboard' | 'alerts' | 'settings' | 'users';
 
-export function AdminPortal({ 
-  articles, 
-  mouvements, 
-  users, 
-  currentUser
+export function AdminPortal({
+  articles,
+  mouvements,
+  users,
+  currentUser,
+  initialView = 'dashboard',
+  onUpdateUser,
+  onDeleteUser,
+  onAddUser,
+  onNavigateToInventory,
+  onNavigateToArticles
 }: AdminPortalProps) {
-  const [currentView, setCurrentView] = useState<AdminView>('dashboard');
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [currentView, setCurrentView] = useState<AdminView>(initialView);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Sidebar rétractée par défaut
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
 
   const handleNavigate = (view: string) => {
     setCurrentView(view as AdminView);
@@ -45,10 +61,9 @@ export function AdminPortal({
   };
 
   const renderSidebar = () => (
-    <div 
-      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out relative ${
-        isCollapsed ? 'w-20' : 'w-64'
-      }`}
+    <div
+      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out relative ${isCollapsed ? 'w-20' : 'w-64'
+        }`}
     >
       {/* Toggle Button */}
       <button
@@ -87,29 +102,27 @@ export function AdminPortal({
         <div className="space-y-1">
           <button
             onClick={() => setCurrentView('dashboard')}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${
-              currentView === 'dashboard'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'dashboard'
                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : 'text-gray-700 hover:bg-gray-50'
-            }`}
-            title={isCollapsed ? 'Dashboard' : ''}
+              }`}
+            title={isCollapsed ? 'Vue d\'ensemble' : ''}
           >
             <BarChart3 className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
-            {!isCollapsed && <span>Dashboard</span>}
+            {!isCollapsed && <span>Vue d'ensemble</span>}
             {isCollapsed && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                Dashboard
+                Vue d'ensemble
               </div>
             )}
           </button>
 
           <button
             onClick={() => setCurrentView('alerts')}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${
-              currentView === 'alerts'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'alerts'
                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : 'text-gray-700 hover:bg-gray-50'
-            }`}
+              }`}
             title={isCollapsed ? 'Centre d\'Alertes' : ''}
           >
             <div className="relative flex-shrink-0">
@@ -139,11 +152,10 @@ export function AdminPortal({
 
           <button
             onClick={() => setCurrentView('users')}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${
-              currentView === 'users'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'users'
                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : 'text-gray-700 hover:bg-gray-50'
-            }`}
+              }`}
             title={isCollapsed ? 'Utilisateurs' : ''}
           >
             <Users className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
@@ -157,11 +169,10 @@ export function AdminPortal({
 
           <button
             onClick={() => setCurrentView('settings')}
-            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${
-              currentView === 'settings'
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'settings'
                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : 'text-gray-700 hover:bg-gray-50'
-            }`}
+              }`}
             title={isCollapsed ? 'Paramètres Système' : ''}
           >
             <SettingsIcon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'} flex-shrink-0`} />
@@ -190,7 +201,7 @@ export function AdminPortal({
               </div>
             )}
           </div>
-          
+
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} text-sm group relative`}>
             <div className={`flex items-center text-gray-600 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
               <Activity className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -203,7 +214,7 @@ export function AdminPortal({
               </div>
             )}
           </div>
-          
+
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} text-sm group relative`}>
             <div className={`flex items-center text-red-600 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
               <Bell className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -241,18 +252,22 @@ export function AdminPortal({
             onNavigate={handleNavigate}
           />
         );
-      
+
       case 'alerts':
         return (
           <AlertsManager
             articles={articles}
             onNavigateToArticle={(articleId) => {
               console.log('Navigation vers article:', articleId);
+              if (onNavigateToArticles) {
+                onNavigateToArticles();
+              }
             }}
             onNavigateToSettings={() => setCurrentView('settings')}
+            onNavigateToInventory={onNavigateToInventory}
           />
         );
-      
+
       case 'settings':
         return (
           <SettingsPage
@@ -263,91 +278,143 @@ export function AdminPortal({
             }}
           />
         );
-      
+
       case 'users':
         return (
-          <div className="flex-1 p-6">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold text-gray-900 mb-6">
-                Gestion des Utilisateurs
-              </h1>
-              
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Utilisateurs du Système
-                  </h3>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Utilisateur
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Rôle
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Statut
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Dernière connexion
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {users.map(user => (
-                        <tr key={user.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">
-                                {user.prenom} {user.nom}
-                              </div>
-                              <div className="text-sm text-gray-500">{user.email}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                              user.role === 'manager' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {user.role === 'admin' ? 'Administrateur' :
-                               user.role === 'manager' ? 'Manager' : 
-                               user.role === 'technicien' ? 'Technicien' : 'Utilisateur'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                            }`}>
-                              {user.is_active ? 'Actif' : 'Inactif'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {user.updated_at ? new Date(user.updated_at).toLocaleDateString('fr-FR') : 'Jamais'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+          <div className="flex-1 p-3 sm:p-6">
+            <div className="max-w-6xl mx-auto">
+              {/* Header avec bouton d'ajout */}
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                  Utilisateurs
+                </h1>
+                <button
+                  onClick={() => {
+                    setSelectedUser(undefined);
+                    setIsUserModalOpen(true);
+                  }}
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm sm:text-base"
+                >
+                  <Plus size={18} />
+                  <span className="hidden sm:inline">Nouvel utilisateur</span>
+                  <span className="sm:hidden">Nouveau</span>
+                </button>
               </div>
+
+              {/* Liste des utilisateurs - Format Card pour mobile */}
+              <div className="space-y-3">
+                {users.map(user => (
+                  <div
+                    key={user.id}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      {/* Info utilisateur */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-base font-semibold text-gray-900 truncate">
+                            {user.prenom} {user.nom}
+                          </h3>
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
+                            user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {user.is_active ? 'Actif' : 'Inactif'}
+                          </span>
+                        </div>
+                        
+                        <p className="text-sm text-gray-600 mb-2 truncate">{user.email}</p>
+                        
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                            user.role === 'manager' ? 'bg-blue-100 text-blue-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {user.role === 'admin' ? 'Admin' :
+                              user.role === 'manager' ? 'Manager' : 'Technicien'}
+                          </span>
+                          
+                          <span className="text-xs text-gray-500">
+                            Modifié: {user.updated_at ? new Date(user.updated_at).toLocaleDateString('fr-FR') : 'Jamais'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-col gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsUserModalOpen(true);
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Modifier"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        
+                        {user.id !== currentUser.id && onDeleteUser && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${user.prenom} ${user.nom} ?`)) {
+                                onDeleteUser(user.id);
+                              }
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Supprimer"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {users.length === 0 && (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+                    <Users size={48} className="mx-auto text-gray-400 mb-3" />
+                    <p className="text-gray-500">Aucun utilisateur trouvé</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal utilisateur */}
+              <UserModal
+                isOpen={isUserModalOpen}
+                onClose={() => {
+                  setIsUserModalOpen(false);
+                  setSelectedUser(undefined);
+                }}
+                onSave={async (userData) => {
+                  try {
+                    if (selectedUser && onUpdateUser) {
+                      // Mode édition
+                      await onUpdateUser(selectedUser.id, userData);
+                    } else if (onAddUser) {
+                      // Mode création
+                      await onAddUser(userData);
+                    }
+                  } catch (error) {
+                    console.error('Erreur lors de la sauvegarde:', error);
+                    alert('Erreur lors de la sauvegarde de l\'utilisateur');
+                  }
+                }}
+                user={selectedUser}
+              />
             </div>
           </div>
         );
-      
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-full bg-gray-50 w-full overflow-x-hidden">
       {renderSidebar()}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
         {renderContent()}
       </div>
     </div>

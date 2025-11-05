@@ -5,35 +5,29 @@ class ApiService {
   private token: string | null;
 
   constructor() {
-    // Configuration HTTPS complète basée sur les variables d'environnement Vite
+    // Configuration HTTP uniquement
     const apiUrl = import.meta.env.VITE_API_URL;
-    const apiUrlHttps = import.meta.env.VITE_API_URL_HTTPS;
     
-    // Utiliser les variables d'environnement en priorité, sinon détection automatique
+    console.log('[DEBUG] Environment variables:', {
+      VITE_API_URL: apiUrl,
+      window_hostname: window.location.hostname,
+      window_protocol: window.location.protocol
+    });
+    
+    // Utiliser la variable d'environnement en priorité, sinon utiliser l'hostname actuel
     if (apiUrl) {
       this.baseUrl = apiUrl;
       console.log('[DEBUG] API URL from environment:', apiUrl);
-    } else if (apiUrlHttps) {
-      this.baseUrl = apiUrlHttps;
-      console.log('[DEBUG] API HTTPS URL from environment:', apiUrlHttps);
     } else {
-      // Fallback: détection automatique
+      // Fallback: utiliser l'hostname actuel avec le port API 3080
       const host = window.location.hostname;
-      const isSecureContext = window.location.protocol === 'https:';
-      
-      if (host === 'localhost' || host === '127.0.0.1') {
-        this.baseUrl = isSecureContext ? `https://${host}:3443` : `http://${host}:3080`;
-      } else {
-        // Utiliser HTTPS par défaut pour les accès distants
-        this.baseUrl = `https://${host}:3443`;
-      }
+      this.baseUrl = `http://${host}:3080`;
       console.log('[DEBUG] API URL auto-detected:', this.baseUrl);
     }
     
     console.log('[DEBUG] Final API Configuration:', {
       baseUrl: this.baseUrl,
-      protocol: this.baseUrl.startsWith('https') ? 'HTTPS' : 'HTTP',
-      isSecureContext: window.location.protocol === 'https:',
+      protocol: 'HTTP',
       host: window.location.hostname
     });
     this.token = localStorage.getItem('auth_token');
@@ -124,10 +118,25 @@ class ApiService {
         return text;
       }
     } catch (error) {
-      console.error('Request failed:', {
+      console.error('❌ Request failed:', {
         endpoint,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        baseUrl: this.baseUrl,
+        fullUrl: `${this.baseUrl}${endpoint}`,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorType: error instanceof TypeError ? 'Network Error (CORS/SSL?)' : 'Other Error',
+        stack: error instanceof Error ? error.stack : undefined
       });
+      
+      // Si c'est une erreur réseau (TypeError), donner plus de détails
+      if (error instanceof TypeError) {
+        const networkError = new Error(
+          `Impossible de joindre l'API à ${this.baseUrl}${endpoint}. ` +
+          `Vérifiez : 1) La connexion réseau, 2) Les certificats SSL, 3) La configuration CORS`
+        );
+        (networkError as any).originalError = error;
+        throw networkError;
+      }
+      
       throw error;
     }
   }
@@ -297,6 +306,35 @@ class ApiService {
 
   async deleteLocalisation(id: string) {
     return this.request(`/localisations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Méthodes pour les fournisseurs
+  async getFournisseurs() {
+    return this.request('/fournisseurs');
+  }
+
+  async getFournisseur(id: string) {
+    return this.request(`/fournisseurs/${id}`);
+  }
+
+  async createFournisseur(fournisseur: any) {
+    return this.request('/fournisseurs', {
+      method: 'POST',
+      body: JSON.stringify(fournisseur),
+    });
+  }
+
+  async updateFournisseur(id: string, fournisseur: any) {
+    return this.request(`/fournisseurs/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(fournisseur),
+    });
+  }
+
+  async deleteFournisseur(id: string) {
+    return this.request(`/fournisseurs/${id}`, {
       method: 'DELETE',
     });
   }

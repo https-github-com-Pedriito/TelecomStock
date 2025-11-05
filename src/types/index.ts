@@ -6,6 +6,7 @@ export interface Article {
   localisation: string;
   seuil_minimum: number;
   quantite_stock: number;
+  prix_unitaire?: number;
   code_barres: string;
   created_at: Date;
   updated_at: Date;
@@ -159,4 +160,4 @@ export interface InventoryReport {
   createdAt: Date;
 }
 
-export type ViewMode = 'dashboard' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'entrepots' | 'utilisateurs' | 'rapports' | 'inventory';
+export type ViewMode = 'dashboard' | 'adminPortal' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'entrepots' | 'utilisateurs' | 'rapports' | 'inventory';

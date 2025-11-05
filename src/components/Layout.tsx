@@ -42,7 +42,7 @@ export function Layout({
   const menuItems = [
     { 
       id: 'dashboard' as ViewMode, 
-      label: 'Tableau de bord', 
+      label: 'Administration', 
       icon: LayoutDashboard, 
       permission: 'view_dashboard' 
     },
@@ -80,12 +80,6 @@ export function Layout({
       id: 'entrepots' as ViewMode, 
       label: 'Entrepôts', 
       icon: Building2, 
-      permission: 'manage_users' 
-    },
-    { 
-      id: 'utilisateurs' as ViewMode, 
-      label: 'Utilisateurs', 
-      icon: Users, 
       permission: 'manage_users' 
     },
     { 

@@ -3,7 +3,7 @@ import {
   ScanLine, 
   Package, 
   ClipboardList, 
-  User,
+  Users,
   Home
 } from 'lucide-react';
 import { ViewMode } from '../types';
@@ -12,6 +12,7 @@ interface MobileBottomNavProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
   hasPermission: (permission: string) => boolean;
+  userRole?: string;
   alertsCount?: number;
   onQuickAction?: (action: string) => void;
   className?: string;
@@ -30,76 +31,130 @@ export function MobileBottomNav({
   currentView, 
   onViewChange, 
   hasPermission,
+  userRole = 'technicien',
   alertsCount = 0,
   onQuickAction,
   className = ''
-}: MobileBottomNavProps) {  const navItems: MobileNavItem[] = [
-    {
-      id: 'dashboard',
-      icon: Home,
-      label: 'Accueil'
-    },
-    {
-      id: 'articles',
-      icon: Package,
-      label: 'Stock'
-    },
-    {
-      id: 'quick-scan',
-      icon: ScanLine,
-      label: 'Scanner',
-      isQuickAction: true
-    },
-    {
-      id: 'inventory',
-      icon: ClipboardList,
-      label: 'Inventaire',
-      permission: 'manage_inventory'
-    },
-    {
-      id: 'utilisateurs',
-      icon: User,
-      label: 'Profil',
-      badge: alertsCount
+}: MobileBottomNavProps) {
+  
+  // Mémoriser les items pour éviter de recalculer à chaque render
+  const visibleNavItems = React.useMemo(() => {
+    const role = userRole.toLowerCase();
+    
+    // TECHNICIEN: Articles (lecture seule) et Scanner
+    if (role === 'technicien') {
+      return [
+        {
+          id: 'articles' as ViewMode,
+          icon: Package,
+          label: 'Stock'
+        },
+        {
+          id: 'scanner' as ViewMode,
+          icon: ScanLine,
+          label: 'Scanner',
+          isQuickAction: false
+        }
+      ];
     }
-  ];
+    
+    // MANAGER: Stock, Scanner, Inventaire
+    if (role === 'manager') {
+      return [
+        {
+          id: 'articles' as ViewMode,
+          icon: Package,
+          label: 'Stock'
+        },
+        {
+          id: 'scanner' as ViewMode,
+          icon: ScanLine,
+          label: 'Scanner',
+          isQuickAction: false
+        },
+        {
+          id: 'inventory' as ViewMode,
+          icon: ClipboardList,
+          label: 'Inventaire'
+        }
+      ];
+    }
+    
+    // ADMIN: Accueil, Stock, Scanner, Inventaire, Utilisateurs
+    if (role === 'admin') {
+      return [
+        {
+          id: 'dashboard' as ViewMode,
+          icon: Home,
+          label: 'Admin'
+        },
+        {
+          id: 'articles' as ViewMode,
+          icon: Package,
+          label: 'Stock'
+        },
+        {
+          id: 'scanner' as ViewMode,
+          icon: ScanLine,
+          label: 'Scanner',
+          isQuickAction: false
+        },
+        {
+          id: 'inventory' as ViewMode,
+          icon: ClipboardList,
+          label: 'Inventaire'
+        },
+        {
+          id: 'adminPortal' as ViewMode,
+          icon: Users,
+          label: 'Utilisateurs'
+        }
+      ];
+    }
+    
+    // Par défaut (fallback)
+    return [
+      {
+        id: 'scanner' as ViewMode,
+        icon: ScanLine,
+        label: 'Scanner'
+      }
+    ];
+  }, [userRole]);
 
-  // Filter nav items based on permissions
-  const visibleNavItems = navItems.filter(item => {
-    if (!item.permission) return true;
-    return hasPermission(item.permission);
-  });
-
-  const handleItemClick = (item: MobileNavItem) => {
+  // Mémoriser les callbacks pour éviter les re-renders
+  const handleItemClick = React.useCallback((item: MobileNavItem) => {
     if (item.isQuickAction) {
       onQuickAction?.('scan');
     } else {
       onViewChange(item.id as ViewMode);
     }
-  };
+  }, [onQuickAction, onViewChange]);
 
-  const isActive = (itemId: ViewMode | 'quick-scan') => {
-    if (itemId === 'quick-scan') return false; // Quick actions never "active"
+  const isActive = React.useCallback((itemId: ViewMode | 'quick-scan') => {
+    if (itemId === 'quick-scan') return false;
     return currentView === itemId;
-  };
+  }, [currentView]);
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-pb z-50 ${className}`}>
-      <div className="flex items-center justify-around py-2 px-1">
+    <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg ${className}`}>
+      <div className="flex items-stretch justify-around h-16 px-2 max-w-screen-sm mx-auto">
         {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.id);
-          const isQuick = item.isQuickAction;
+          const isScanner = item.id === 'scanner';
           
           return (
             <button
               key={item.id}
               onClick={() => handleItemClick(item)}
               className={`
-                flex flex-col items-center justify-center p-3 rounded-xl min-h-[60px] relative
-                transition-all duration-200 transform active:scale-95
-                ${isQuick 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg scale-110' 
+                flex-1 flex flex-col items-center justify-center gap-1 rounded-lg mx-1 my-2
+                transition-colors duration-150 active:scale-95 relative
+                ${isScanner
+                  ? active
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-blue-500 text-white shadow-sm'
                   : active 
                     ? 'bg-blue-50 text-blue-600' 
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
@@ -107,23 +162,16 @@ export function MobileBottomNav({
               `}
             >
               <Icon 
-                size={isQuick ? 26 : 22} 
-                className={`mb-1 ${isQuick ? 'stroke-2' : ''}`} 
+                size={isScanner ? 24 : 22}
+                strokeWidth={isScanner ? 2.5 : 2}
               />
-              <span className={`text-xs font-medium ${isQuick ? 'text-white' : ''}`}>
+              <span className="text-[10px] font-medium leading-none">
                 {item.label}
               </span>
               
-              {/* Badge pour notifications */}
-              {item.badge && item.badge > 0 && (
-                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {item.badge > 99 ? '99+' : item.badge}
-                </div>
-              )}
-              
               {/* Indicateur actif */}
-              {active && !isQuick && (
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-blue-600 rounded-full"></div>
+              {active && !isScanner && (
+                <div className="absolute bottom-1 w-1 h-1 bg-blue-600 rounded-full"></div>
               )}
             </button>
           );
@@ -131,8 +179,8 @@ export function MobileBottomNav({
       </div>
       
       {/* Safe area pour iPhone */}
-      <div className="h-safe-area-inset-bottom bg-white"></div>
-    </div>
+      <div className="h-[env(safe-area-inset-bottom)] bg-white"></div>
+    </nav>
   );
 }
 

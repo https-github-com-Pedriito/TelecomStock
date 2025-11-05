@@ -1,5 +1,6 @@
 import useAuth from '../hooks/useAuth';
 import { LoginForm } from './LoginForm';
+import React, { StrictMode } from 'react';
 
 interface AuthProps {
   children: React.ReactNode;

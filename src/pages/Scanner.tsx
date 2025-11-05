@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, StrictMode } from 'react';
 import { Article, CreateMouvementData } from '../types';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { MouvementModal } from '../components/MouvementModal';

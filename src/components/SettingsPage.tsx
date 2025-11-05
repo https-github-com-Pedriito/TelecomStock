@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Users, 
@@ -242,7 +242,6 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
 
   const tabs = [
     { id: 'general', name: 'Général', icon: Settings },
-    { id: 'users', name: 'Utilisateurs', icon: Users },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'security', name: 'Sécurité', icon: Shield },
     { id: 'data', name: 'Données', icon: Database }
@@ -519,136 +518,7 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
               </div>
             )}
 
-            {/* Onglet Utilisateurs */}
-            {activeTab === 'users' && (
-              <div className="space-y-6">
-                {/* Ajouter un utilisateur */}
-                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Ajouter un Utilisateur
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <input
-                      type="text"
-                      placeholder="Nom complet"
-                      value={newUser.nom}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, nom: e.target.value }))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={newUser.email}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                    
-                    <select
-                      value={newUser.role}
-                      onChange={(e) => setNewUser(prev => ({ ...prev, role: e.target.value as User['role'] }))}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="user">Utilisateur</option>
-                      <option value="manager">Manager</option>
-                      <option value="admin">Administrateur</option>
-                    </select>
-                    
-                    <button
-                      onClick={addUser}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center space-x-2 transition-colors"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>Ajouter</span>
-                    </button>
-                  </div>
-                </div>
 
-                {/* Liste des utilisateurs */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Utilisateurs du Système
-                    </h3>
-                  </div>
-                  
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Utilisateur
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Rôle
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Statut
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Dernière connexion
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {users.map(user => (
-                          <tr key={user.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{user.nom}</div>
-                                <div className="text-sm text-gray-500">{user.email}</div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                                user.role === 'manager' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {user.role === 'admin' ? 'Administrateur' :
-                                 user.role === 'manager' ? 'Manager' : 'Utilisateur'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                user.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {user.active ? 'Actif' : 'Inactif'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {user.lastLogin ? user.lastLogin.toLocaleDateString('fr-FR') : 'Jamais'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                              <button
-                                onClick={() => toggleUserStatus(user.id)}
-                                className={`${
-                                  user.active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'
-                                }`}
-                              >
-                                {user.active ? 'Désactiver' : 'Activer'}
-                              </button>
-                              {user.role !== 'admin' && (
-                                <button
-                                  onClick={() => deleteUser(user.id)}
-                                  className="text-red-600 hover:text-red-900 ml-2"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Onglet Notifications */}
             {activeTab === 'notifications' && (

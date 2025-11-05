@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fond transparent -->
+  
+  <!-- Contour circulaire bleu avec transparence -->
+  <circle cx="256" cy="256" r="240" fill="#003f7f" fill-opacity="0.95"/>
+  
+  <!-- Boîte (échelle réduite et centrée) -->
+  <g transform="translate(256, 256)">
+    <!-- Boîte en outline style -->
+    <path d="M-60,-40 L-60,40 L60,40 L60,-40 Z" fill="none" stroke="#ffffff" stroke-width="8"/>
+    <path d="M-40,-40 L0,-60 L40,-40" fill="none" stroke="#ffffff" stroke-width="8"/>
+    <line x1="-40" y1="-40" x2="-40" y2="40" stroke="#ffffff" stroke-width="8"/>
+    <line x1="40" y1="-40" x2="40" y2="40" stroke="#ffffff" stroke-width="8"/>
+    <line x1="0" y1="-60" x2="0" y2="10" stroke="#ffffff" stroke-width="8"/>
+    
+    <!-- Flèche verte vers le haut -->
+    <path d="M 10,20 L 40,-10 L 30,-10 L 30,-40 L 50,-40 L 50,-10 L 40,-10 Z" fill="#00a86b" transform="rotate(-45 40 0)"/>
+  </g>
+</svg>

@@ -1,19 +1,19 @@
-import { useState } from 'react';
+import React,{ useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BarcodeGenerator } from './BarcodeGenerator';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { Article } from '../types';
 import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer } from 'lucide-react';
-
 interface ArticleCardProps {
   article: Article;
   onEdit?: (article: Article) => void;
   onDelete?: (id: string, force?: boolean) => Promise<void>;
   onPrintLabel: (article: Article) => void;
+  canDelete?: boolean; // Nouvelle prop pour contrôler la visibilité du bouton supprimer
 }
 
-export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: ArticleCardProps) {
+export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete = false }: ArticleCardProps) {
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
   // Afficher les codes-barres pour tous
   const canShowBarcode = true;
@@ -98,7 +98,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
               <Edit2 size={16} />
             </button>
           )}
-          {onDelete && (
+          {onDelete && canDelete && (
             <button
               onClick={handleDelete}
               className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -189,6 +189,24 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel }: Article
           <MapPin size={16} />
           <span>{article.localisation}</span>
         </div>
+
+        {article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
+          <div className="flex items-center justify-between text-sm bg-blue-50 p-2 rounded">
+            <span className="text-gray-700">Prix unitaire:</span>
+            <span className="font-semibold text-blue-700">
+              {article.prix_unitaire.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </span>
+          </div>
+        )}
+
+        {article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
+          <div className="flex items-center justify-between text-sm bg-green-50 p-2 rounded">
+            <span className="text-gray-700">Valeur stock:</span>
+            <span className="font-semibold text-green-700">
+              {(article.quantite_stock * article.prix_unitaire).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </span>
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <span className="text-xs text-gray-500">Fournisseur: {article.fournisseur}</span>

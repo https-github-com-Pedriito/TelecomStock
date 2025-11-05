@@ -29,6 +29,14 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
   const canManageArticles = hasPermission('manage_articles');
   
+  // Debug: Log des articles reçus
+  React.useEffect(() => {
+    console.log('🏪 Page Articles - Nombre d\'articles reçus:', articles.length);
+    if (articles.length > 0) {
+      console.log('🏪 Premier article:', articles[0]);
+    }
+  }, [articles]);
+  
   // Commenté pour éviter le double rafraîchissement
   // Les articles sont déjà rafraîchis par le système d'onglets dans App.tsx
   // useEffect(() => {
@@ -302,9 +310,10 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
             <ArticleCard
               key={article.id}
               article={article}
-              onEdit={canManageArticles ? handleEditArticle : undefined}
+              onEdit={canManageArticles && user?.role !== 'technicien' ? handleEditArticle : undefined}
               onDelete={canManageArticles ? handleDeleteArticle : undefined}
               onPrintLabel={handlePrintLabel}
+              canDelete={user?.role === 'admin'}
             />
           ))}
         </div>

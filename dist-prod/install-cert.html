@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation du certificat SSL</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .steps {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .steps ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin: 10px 0;
+        }
+        .download-btn {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            margin: 20px 0;
+            transition: background 0.3s;
+        }
+        .download-btn:hover {
+            background: #1976D2;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Installation du certificat SSL pour mobile</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Important :</strong> Ce certificat est nécessaire pour accéder à l'application TelecomStock depuis votre mobile en HTTPS.
+        </div>
+
+        <a href="/mkcert-ca-certificate.pem" class="download-btn" download>
+            📥 Télécharger le certificat
+        </a>
+
+        <div class="steps">
+            <strong>📋 Instructions d'installation :</strong>
+            
+            <h3>Pour Android :</h3>
+            <ol>
+                <li>Téléchargez le certificat en cliquant sur le bouton ci-dessus</li>
+                <li>Ouvrez <strong>Paramètres</strong> → <strong>Sécurité</strong></li>
+                <li>Recherchez <strong>Certificats de confiance</strong> ou <strong>Installer depuis le stockage</strong></li>
+                <li>Sélectionnez le fichier <code>mkcert-ca-certificate.pem</code></li>
+                <li>Donnez-lui un nom (ex: "TelecomStock Dev")</li>
+                <li>Confirmez l'installation</li>
+            </ol>
+
+            <h3>Pour iOS :</h3>
+            <ol>
+                <li>Téléchargez le certificat en cliquant sur le bouton ci-dessus</li>
+                <li>Ouvrez <strong>Réglages</strong> → <strong>Général</strong></li>
+                <li>Tapez sur <strong>Profil</strong> ou <strong>Profils et gestion des appareils</strong></li>
+                <li>Sélectionnez le profil du certificat téléchargé</li>
+                <li>Tapez sur <strong>Installer</strong> (en haut à droite)</li>
+                <li>Entrez votre code de déverrouillage si demandé</li>
+                <li>Allez dans <strong>Réglages</strong> → <strong>Général</strong> → <strong>Informations</strong> → <strong>Réglages des certificats</strong></li>
+                <li>Activez le certificat mkcert dans la liste</li>
+            </ol>
+        </div>
+
+        <div class="warning">
+            <strong>🔒 Sécurité :</strong> Ce certificat est généré localement sur votre machine de développement. Ne l'utilisez que pour le développement local.
+        </div>
+
+        <p style="margin-top: 30px; color: #666; font-size: 14px;">
+            Une fois le certificat installé, vous pourrez accéder à l'application via :<br>
+            <strong>https://192.168.1.66:5173</strong> ou <strong>https://192.168.1.66</strong> (via Nginx)
+        </p>
+    </div>
+</body>
+</html>

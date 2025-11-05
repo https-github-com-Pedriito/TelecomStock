@@ -54,6 +54,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     localisation: '',
     seuil_minimum: 0,
     quantite_stock: 0,
+    prix_unitaire: 0,
     code_barres: '',  // Ajout du champ code_barres
   });
 
@@ -66,6 +67,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         localisation: article.localisation,
         seuil_minimum: article.seuil_minimum,
         quantite_stock: article.quantite_stock,
+        prix_unitaire: article.prix_unitaire || 0,
         code_barres: article.code_barres,
       });
     } else {
@@ -76,6 +78,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         localisation: '',
         seuil_minimum: 0,
         quantite_stock: 0,
+        prix_unitaire: 0,
         code_barres: barcodeFromURL || '',
       });
     }
@@ -126,6 +129,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
       localisation: formData.localisation,
       seuil_minimum: Number(formData.seuil_minimum) || 0,
       quantite_stock: Number(formData.quantite_stock) || 0,
+      prix_unitaire: Number(formData.prix_unitaire) || 0,
       code_barres: formData.code_barres,
     };
     
@@ -254,7 +258,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
             </p>
           </div>
 
-          {/* Seuil minimum et Stock initial */}
+          {/* Seuil minimum, Stock initial et Prix unitaire */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -288,6 +292,28 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+          </div>
+
+          {/* Prix unitaire */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Prix unitaire (€)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.prix_unitaire}
+              onChange={(e) => {
+                const value = e.target.value === '' ? 0 : Number(e.target.value);
+                setFormData({ ...formData, prix_unitaire: value });
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="0.00"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Permet de calculer la valeur totale du stock
+            </p>
           </div>
 
           {/* Boutons d'action */}

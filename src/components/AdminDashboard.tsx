@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -88,11 +88,12 @@ export function AdminDashboard({
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Articles total et valeur
+    // Articles total et valeur financière
     const totalArticles = articles.length;
-    const totalValue = articles.reduce((sum, article) => 
-      sum + article.quantite_stock, 0
-    );
+    const totalValue = articles.reduce((sum, article) => {
+      const prix = article.prix_unitaire || 0;
+      return sum + (article.quantite_stock * prix);
+    }, 0);
 
     // Stock faible (utilise seuil_minimum)
     const lowStockCount = articles.filter(article => 
@@ -244,9 +245,9 @@ export function AdminDashboard({
   };
 
   return (
-    <div className="flex-1 p-6 bg-gray-50 overflow-y-auto">
+    <div className="flex-1 p-4 md:p-6 bg-gray-50 overflow-y-auto overflow-x-hidden w-full">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Dashboard Administrateur
@@ -256,7 +257,7 @@ export function AdminDashboard({
           </p>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
           <button
             onClick={() => onNavigate?.('alerts')}
             className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -281,7 +282,7 @@ export function AdminDashboard({
             className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
           >
             <Download className="h-4 w-4" />
-            <span>Exporter</span>
+            <span className="hidden sm:inline">Exporter</span>
           </button>
           
           <button
@@ -321,7 +322,7 @@ export function AdminDashboard({
       </div>
 
       {/* KPIs Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8 w-full">
         {/* Total Articles */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
@@ -393,7 +394,7 @@ export function AdminDashboard({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 w-full">
         {/* Graphique des mouvements */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <div className="flex justify-between items-center mb-4">

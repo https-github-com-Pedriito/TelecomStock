@@ -33,19 +33,103 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
   const handleExportExcel = async () => {
     try {
       setExporting(true);
-      const token = localStorage.getItem('token');
       
-      const response = await fetch(`/api/inventaires/${inventaire.id}/export`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      // Créer le workbook Excel avec les données
+      const ExcelJS = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Inventaire');
+
+      // Informations de l'inventaire
+      worksheet.mergeCells('A1:F1');
+      worksheet.getCell('A1').value = `Inventaire: ${inventaire.nom}`;
+      worksheet.getCell('A1').font = { bold: true, size: 16 };
+      worksheet.getCell('A1').alignment = { horizontal: 'center' };
+
+      worksheet.mergeCells('A2:F2');
+      worksheet.getCell('A2').value = inventaire.description || '';
+      worksheet.getCell('A2').alignment = { horizontal: 'center' };
+
+      worksheet.mergeCells('A3:F3');
+      const dateStr = new Date(inventaire.created_at).toLocaleDateString('fr-FR');
+      worksheet.getCell('A3').value = `Date: ${dateStr} - Statut: ${inventaire.statut}`;
+      worksheet.getCell('A3').alignment = { horizontal: 'center' };
+
+      // Ligne vide
+      worksheet.addRow([]);
+
+      // En-têtes des colonnes
+      const headerRow = worksheet.addRow([
+        'Article',
+        'Code Barre',
+        'Quantité Théorique',
+        'Quantité Comptée',
+        'Écart',
+        'Comptabilisé par'
+      ]);
+      
+      headerRow.font = { bold: true };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF4472C4' }
+      };
+      headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+
+      // Données
+      entries.forEach(entry => {
+        const ecart = entry.quantite_comptee - entry.quantite_theorique;
+        const row = worksheet.addRow([
+          entry.article?.nom || 'Article inconnu',
+          entry.article?.code_barres || '',
+          entry.quantite_theorique,
+          entry.quantite_comptee,
+          ecart,
+          entry.utilisateur?.prenom + ' ' + entry.utilisateur?.nom || 'Inconnu'
+        ]);
+
+        // Colorer les écarts
+        if (ecart < 0) {
+          row.getCell(5).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFFFC7CE' }
+          };
+        } else if (ecart > 0) {
+          row.getCell(5).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FFC6EFCE' }
+          };
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'export');
-      }
+      // Ajuster la largeur des colonnes
+      worksheet.columns = [
+        { width: 30 },
+        { width: 15 },
+        { width: 18 },
+        { width: 18 },
+        { width: 12 },
+        { width: 25 }
+      ];
 
-      const blob = await response.blob();
+      // Ajouter les statistiques en bas
+      const stats = calculateStats();
+      worksheet.addRow([]);
+      worksheet.addRow(['Statistiques']);
+      worksheet.addRow(['Total articles', entries.length]);
+      worksheet.addRow(['Articles OK', stats.articlesOk]);
+      worksheet.addRow(['Articles manquants', stats.articlesManquants]);
+      worksheet.addRow(['Articles excédents', stats.articlesExcedents]);
+      worksheet.addRow(['Total comptabilisé', stats.totalComptee]);
+      worksheet.addRow(['Total théorique', stats.totalTheorique]);
+
+      // Générer le fichier
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -56,7 +140,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
       document.body.removeChild(a);
     } catch (err) {
       console.error('Erreur export:', err);
-      alert('Erreur lors de l\'export Excel');
+      alert('Erreur lors de l\'export Excel: ' + (err instanceof Error ? err.message : 'Erreur inconnue'));
     } finally {
       setExporting(false);
     }

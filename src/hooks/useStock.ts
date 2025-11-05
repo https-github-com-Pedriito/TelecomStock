@@ -1,19 +1,23 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Article, Mouvement, Fournisseur, CreateMouvementData } from '../types';
 import { api } from '../lib/api';
-import { useAuth } from './useAuth';
 import { useRealtimeSync } from './useRealtimeSync';
+import type { User } from '../types';
 
 // Type pour le callback de notification
 type StockNotificationCallback = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => void;
 
-export function useStock(onStockChange?: StockNotificationCallback) {
-  const { user } = useAuth();
+export function useStock(user: User | null, onStockChange?: StockNotificationCallback) {
   const [articles, setArticles] = useState<Article[]>([]);
   const [mouvements, setMouvements] = useState<Mouvement[]>([]);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Debug: Log du user dans useStock
+  useEffect(() => {
+    console.log('🔍 useStock - User state changed:', user ? `${user.prenom} ${user.nom} (${user.role})` : 'null/undefined');
+  }, [user]);
 
   // Synchronisation temps réel (utilisé pour ses effets de bord)
   useRealtimeSync({
@@ -46,23 +50,34 @@ export function useStock(onStockChange?: StockNotificationCallback) {
     }
   });
 
-  // Charger les données initiales
+  // Charger les données initiales UNIQUEMENT si l'utilisateur est authentifié
   useEffect(() => {
+    console.log('🎯 useStock - useEffect déclenché - User:', user ? `${user.prenom} ${user.nom}` : 'Non défini');
+    
+    // Ne pas charger les données si l'utilisateur n'est pas connecté
+    if (!user) {
+      console.log('⚠️ useStock - Pas d\'utilisateur, skip du chargement');
+      setLoading(false);
+      return;
+    }
+
+    console.log('✅ useStock - Utilisateur détecté, lancement du chargement des données...');
+    
     const fetchData = async () => {
       try {
-        console.log('Chargement des articles...');
+        console.log('📦 useStock - Chargement des articles...');
         const articlesResponse = await api.get<Article[]>('/articles');
-        console.log('Articles reçus:', articlesResponse);
+        console.log('📦 useStock - Articles reçus:', articlesResponse.length, 'articles');
         setArticles(articlesResponse);
 
-        console.log('Chargement des mouvements...');
+        console.log('📋 useStock - Chargement des mouvements...');
         const mouvementsResponse = await api.get<Mouvement[]>('/mouvements');
-        console.log('Mouvements reçus:', mouvementsResponse);
+        console.log('📋 useStock - Mouvements reçus:', mouvementsResponse.length, 'mouvements');
         setMouvements(mouvementsResponse);
 
-        console.log('Chargement des fournisseurs...');
+        console.log('🏭 useStock - Chargement des fournisseurs...');
         const fournisseursResponse = await api.get<Fournisseur[]>('/fournisseurs');
-        console.log('Fournisseurs reçus:', fournisseursResponse);
+        console.log('🏭 useStock - Fournisseurs reçus:', fournisseursResponse.length, 'fournisseurs');
         setFournisseurs(fournisseursResponse);
       } catch (err) {
         console.error('Erreur lors du chargement des données:', err);
@@ -73,7 +88,7 @@ export function useStock(onStockChange?: StockNotificationCallback) {
     };
 
     fetchData();
-  }, []);
+  }, [user]); // Ajouter user comme dépendance pour recharger quand l'utilisateur se connecte
 
   // Articles
   const createArticle = useCallback(async (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
@@ -318,14 +333,6 @@ export function useStock(onStockChange?: StockNotificationCallback) {
       setLoading(false);
     }
   }, [refreshArticles, refreshMouvements, refreshFournisseurs]);
-
-  // Synchronisation temps réel
-  useRealtimeSync({
-    onArticlesChange: refreshArticles,
-    onMouvementsChange: refreshMouvements, 
-    onFournisseursChange: refreshFournisseurs,
-    debug: true
-  });
 
   return {
     articles,
