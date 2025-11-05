@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'admin',
   password: process.env.DB_PASSWORD || 'adminpassword',
   database: process.env.DB_NAME || 'telecomstock',
-  synchronize: false,
+  synchronize: true, // ⚠️ ATTENTION: true pour créer les tables automatiquement (dev only)
   logging: true,
   entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation],
   migrations: ['src/migration/*.ts'],
