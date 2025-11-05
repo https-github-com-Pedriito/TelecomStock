@@ -1,12 +1,30 @@
 import { Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { Fournisseur } from '../entities/Fournisseur';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 const fournisseurRepository = AppDataSource.getRepository(Fournisseur);
 
-// GET /fournisseurs
-router.get('/', async (req, res) => {
+/**
+ * @swagger
+ * /fournisseurs:
+ *   get:
+ *     summary: Récupérer tous les fournisseurs
+ *     tags: [Fournisseurs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des fournisseurs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Fournisseur'
+ */
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const fournisseurs = await fournisseurRepository.find();
     res.json(fournisseurs);
@@ -16,8 +34,31 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /fournisseurs/:id
-router.get('/:id', async (req, res) => {
+/**
+ * @swagger
+ * /fournisseurs/{id}:
+ *   get:
+ *     summary: Récupérer un fournisseur par ID
+ *     tags: [Fournisseurs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Fournisseur trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Fournisseur'
+ *       404:
+ *         description: Fournisseur non trouvé
+ */
+router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const fournisseur = await fournisseurRepository.findOne({
       where: { id: req.params.id }
@@ -34,8 +75,47 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /fournisseurs
-router.post('/', async (req, res) => {
+/**
+ * @swagger
+ * /fournisseurs:
+ *   post:
+ *     summary: Créer un nouveau fournisseur
+ *     tags: [Fournisseurs]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nom
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 example: Fournisseur XYZ
+ *               contact:
+ *                 type: string
+ *                 example: Jean Dupont
+ *               email:
+ *                 type: string
+ *                 example: contact@fournisseur.com
+ *               telephone:
+ *                 type: string
+ *                 example: "0123456789"
+ *               adresse:
+ *                 type: string
+ *                 example: 123 Rue Example, Paris
+ *     responses:
+ *       201:
+ *         description: Fournisseur créé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Fournisseur'
+ */
+router.post('/', authMiddleware, async (req, res) => {
   try {
     console.log('Création d\'un nouveau fournisseur - Données reçues:', req.body);
     const { nom, contact, email, telephone, adresse } = req.body;
@@ -68,8 +148,37 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /fournisseurs/:id
-router.put('/:id', async (req, res) => {
+/**
+ * @swagger
+ * /fournisseurs/{id}:
+ *   put:
+ *     summary: Mettre à jour un fournisseur
+ *     tags: [Fournisseurs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Fournisseur'
+ *     responses:
+ *       200:
+ *         description: Fournisseur mis à jour
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Fournisseur'
+ *       404:
+ *         description: Fournisseur non trouvé
+ */
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     console.log('Mise à jour du fournisseur', req.params.id);
     console.log('Données de mise à jour:', req.body);
@@ -110,8 +219,27 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /fournisseurs/:id
-router.delete('/:id', async (req, res) => {
+/**
+ * @swagger
+ * /fournisseurs/{id}:
+ *   delete:
+ *     summary: Supprimer un fournisseur
+ *     tags: [Fournisseurs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Fournisseur supprimé
+ *       404:
+ *         description: Fournisseur non trouvé
+ */
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     console.log('Tentative de suppression du fournisseur:', req.params.id);
     

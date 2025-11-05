@@ -1,11 +1,9 @@
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
-import https from 'https';
 import http from 'http';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './swagger';
 import { AppDataSource } from './data-source';
 import { initAIDataSource } from './ai-data-source';
 import { authRouter } from './routes/auth';
@@ -15,7 +13,6 @@ import { usersRouter } from './routes/users';
 import { fournisseursRouter } from './routes/fournisseurs';
 import { inventairesRouter } from './routes/inventaires';
 import { localisationsRouter } from './routes/localisations';
-import assistantRouter from './routes/assistant';
 import { realtimeService } from './services/realtime';
 
 const app = express();
@@ -38,13 +35,52 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Route racine pour vérifier que l'API fonctionne
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'TelecomStock API Documentation',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Vérifier le statut de l'API
+ *     tags: [Status]
+ *     responses:
+ *       200:
+ *         description: API en fonctionnement
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 message:
+ *                   type: string
+ *                   example: TelecomStock API is running
+ *                 version:
+ *                   type: string
+ *                   example: 1.0.0
+ *                 documentation:
+ *                   type: string
+ *                   example: /api-docs
+ */
 app.get('/', (req, res) => {
   res.json({
     status: 'ok',
     message: 'TelecomStock API is running',
     version: '1.0.0',
-    endpoints: ['/auth', '/articles', '/mouvements', '/users', '/fournisseurs']
+    documentation: '/api-docs',
+    endpoints: ['/auth', '/articles', '/mouvements', '/users', '/fournisseurs', '/inventaires', '/localisations']
   });
 });
 
@@ -68,8 +104,6 @@ app.use('/users', usersRouter);
 app.use('/fournisseurs', fournisseursRouter);
 app.use('/inventaires', inventairesRouter);
 app.use('/localisations', localisationsRouter);
-app.use('/assistant', assistantRouter);
-//app.use('/reports', reportsRouter);
 
 // Database connections
 AppDataSource.initialize().then(async () => {

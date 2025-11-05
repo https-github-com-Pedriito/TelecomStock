@@ -6,7 +6,24 @@ import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
 
-// Get all users
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Récupérer tous les utilisateurs
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des utilisateurs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ */
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
@@ -22,7 +39,30 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Get user by ID
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Récupérer un utilisateur par ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Utilisateur trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Utilisateur non trouvé
+ */
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -41,7 +81,53 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Create user
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     summary: Créer un nouvel utilisateur
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - role
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: jdupont
+ *               email:
+ *                 type: string
+ *                 example: j.dupont@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: password123
+ *               role:
+ *                 type: string
+ *                 enum: [admin, tech, user]
+ *                 example: tech
+ *               firstName:
+ *                 type: string
+ *                 example: Jean
+ *               lastName:
+ *                 type: string
+ *                 example: Dupont
+ *     responses:
+ *       201:
+ *         description: Utilisateur créé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { password = 'password', ...userData } = req.body;

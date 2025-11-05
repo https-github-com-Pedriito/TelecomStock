@@ -9,7 +9,24 @@ import * as ExcelJS from 'exceljs';
 
 const router = Router();
 
-// GET /inventaires - Récupérer tous les inventaires
+/**
+ * @swagger
+ * /inventaires:
+ *   get:
+ *     summary: Récupérer tous les inventaires
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des inventaires
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Inventaire'
+ */
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const inventaireRepository = AppDataSource.getRepository(Inventaire);
@@ -24,7 +41,22 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /inventaires/current - Récupérer l'inventaire actuel en cours
+/**
+ * @swagger
+ * /inventaires/current:
+ *   get:
+ *     summary: Récupérer l'inventaire en cours
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Inventaire en cours
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Inventaire'
+ */
 router.get('/current', authMiddleware, async (req, res) => {
   try {
     const inventaireRepository = AppDataSource.getRepository(Inventaire);
@@ -40,7 +72,45 @@ router.get('/current', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /inventaires - Créer un nouvel inventaire
+/**
+ * @swagger
+ * /inventaires:
+ *   post:
+ *     summary: Créer un nouvel inventaire
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nom
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 example: Inventaire Novembre 2025
+ *               description:
+ *                 type: string
+ *                 example: Inventaire mensuel
+ *               mois:
+ *                 type: integer
+ *                 example: 11
+ *               annee:
+ *                 type: integer
+ *                 example: 2025
+ *     responses:
+ *       201:
+ *         description: Inventaire créé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Inventaire'
+ *       400:
+ *         description: Un inventaire est déjà en cours
+ */
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { nom, description, mois, annee } = req.body;
@@ -82,7 +152,30 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /inventaires/:id - Récupérer un inventaire spécifique
+/**
+ * @swagger
+ * /inventaires/{id}:
+ *   get:
+ *     summary: Récupérer un inventaire spécifique
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Inventaire trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Inventaire'
+ *       404:
+ *         description: Inventaire non trouvé
+ */
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -273,7 +366,31 @@ router.delete('/:id/entries/:entryId', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /inventaires/:id/export - Exporter un inventaire en Excel
+/**
+ * @swagger
+ * /inventaires/{id}/export:
+ *   get:
+ *     summary: Exporter un inventaire en Excel
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Fichier Excel généré
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       404:
+ *         description: Inventaire non trouvé
+ */
 router.get('/:id/export', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;

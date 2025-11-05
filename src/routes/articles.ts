@@ -7,7 +7,28 @@ import { realtimeService } from '../services/realtime';
 
 const router = Router();
 
-// Get all articles
+/**
+ * @swagger
+ * /articles:
+ *   get:
+ *     summary: Récupérer tous les articles
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des articles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Article'
+ *       401:
+ *         description: Non authentifié
+ *       500:
+ *         description: Erreur serveur
+ */
 router.get('/', authMiddleware, async (req, res) => {
   try {
     console.log('GET /articles - Récupération de tous les articles');
@@ -53,7 +74,31 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Get article by ID
+/**
+ * @swagger
+ * /articles/{id}:
+ *   get:
+ *     summary: Récupérer un article par ID
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de l'article
+ *     responses:
+ *       200:
+ *         description: Article trouvé
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Article'
+ *       404:
+ *         description: Article non trouvé
+ */
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -79,7 +124,59 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// Create article
+/**
+ * @swagger
+ * /articles:
+ *   post:
+ *     summary: Créer un nouvel article
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nom
+ *               - reference
+ *               - quantite
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 example: Cable RJ45 Cat6
+ *               reference:
+ *                 type: string
+ *                 example: CAB-RJ45-C6-001
+ *               quantite:
+ *                 type: integer
+ *                 example: 100
+ *               prix:
+ *                 type: number
+ *                 example: 5.99
+ *               description:
+ *                 type: string
+ *               categorie:
+ *                 type: string
+ *               seuil_alerte:
+ *                 type: integer
+ *               localisation_id:
+ *                 type: integer
+ *               fournisseur_id:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: Article créé avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Article'
+ *       400:
+ *         description: Données invalides
+ *       409:
+ *         description: La référence existe déjà
+ */
 router.post('/', authMiddleware, async (req, res) => {
   try {
     console.log('Création d\'un nouvel article:', req.body);
@@ -114,7 +211,37 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Update article
+/**
+ * @swagger
+ * /articles/{id}:
+ *   put:
+ *     summary: Mettre à jour un article
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de l'article
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Article'
+ *     responses:
+ *       200:
+ *         description: Article mis à jour
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Article'
+ *       404:
+ *         description: Article non trouvé
+ */
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -145,6 +272,27 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /articles/{id}:
+ *   delete:
+ *     summary: Supprimer un article
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID de l'article
+ *     responses:
+ *       200:
+ *         description: Article supprimé
+ *       404:
+ *         description: Article non trouvé
+ */
 // Delete article
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {

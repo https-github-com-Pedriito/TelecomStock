@@ -6,7 +6,24 @@ import { authMiddleware } from '../middleware/auth';
 const router = Router();
 const localisationRepository = AppDataSource.getRepository(Localisation);
 
-// GET /api/localisations - Récupérer toutes les localisations actives
+/**
+ * @swagger
+ * /localisations:
+ *   get:
+ *     summary: Récupérer toutes les localisations actives
+ *     tags: [Localisations]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des localisations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Localisation'
+ */
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const localisations = await localisationRepository.find({
@@ -20,7 +37,30 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /api/localisations/:id - Récupérer une localisation par ID
+/**
+ * @swagger
+ * /localisations/{id}:
+ *   get:
+ *     summary: Récupérer une localisation par ID
+ *     tags: [Localisations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Localisation trouvée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Localisation'
+ *       404:
+ *         description: Localisation non trouvée
+ */
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const localisation = await localisationRepository.findOne({
@@ -38,7 +78,42 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/localisations - Créer une nouvelle localisation
+/**
+ * @swagger
+ * /localisations:
+ *   post:
+ *     summary: Créer une nouvelle localisation
+ *     tags: [Localisations]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nom
+ *             properties:
+ *               nom:
+ *                 type: string
+ *                 example: Entrepôt A
+ *               description:
+ *                 type: string
+ *                 example: Entrepôt principal
+ *               type:
+ *                 type: string
+ *                 example: entrepot
+ *     responses:
+ *       201:
+ *         description: Localisation créée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Localisation'
+ *       400:
+ *         description: Données invalides
+ */
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { nom, description, type } = req.body;
@@ -71,7 +146,45 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /api/localisations/:id - Mettre à jour une localisation
+/**
+ * @swagger
+ * /localisations/{id}:
+ *   put:
+ *     summary: Mettre à jour une localisation
+ *     tags: [Localisations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nom:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               type:
+ *                 type: string
+ *               est_active:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Localisation mise à jour
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Localisation'
+ *       404:
+ *         description: Localisation non trouvée
+ */
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { nom, description, type, est_active } = req.body;
@@ -108,7 +221,26 @@ router.put('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /api/localisations/:id - Supprimer (désactiver) une localisation
+/**
+ * @swagger
+ * /localisations/{id}:
+ *   delete:
+ *     summary: Supprimer (désactiver) une localisation
+ *     tags: [Localisations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Localisation désactivée
+ *       404:
+ *         description: Localisation non trouvée
+ */
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const localisation = await localisationRepository.findOne({
