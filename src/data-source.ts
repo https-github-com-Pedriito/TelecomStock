@@ -19,4 +19,6 @@ export const AppDataSource = new DataSource({
   entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation],
   migrations: ['src/migration/*.ts'],
   subscribers: [],
+  // SSL configuration for Neon and other cloud PostgreSQL providers
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });

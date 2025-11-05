@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
@@ -109,9 +110,13 @@ app.use('/localisations', localisationsRouter);
 AppDataSource.initialize().then(async () => {
   console.log('✅ Main database connection established');
   
-  // Initialize READ-ONLY AI connection
-  await initAIDataSource();
-  console.log('✅ AI READ-ONLY connection established');
+  // Initialize READ-ONLY AI connection (optionnel, désactivé si ai_assistant n'existe pas)
+  try {
+    await initAIDataSource();
+    console.log('✅ AI READ-ONLY connection established');
+  } catch (error) {
+    console.log('⚠️  AI DataSource skipped (user ai_assistant not found or error)');
+  }
   
   // Add request logging middleware
   app.use((req, res, next) => {
@@ -121,7 +126,8 @@ AppDataSource.initialize().then(async () => {
   });
 
   // Start HTTP server only (no HTTPS)
-  const httpPort = 3080;
+  // Support for Fly.io PORT environment variable
+  const httpPort = process.env.PORT || 3080;
   const httpServer = http.createServer(app);
   
   // Initialize Socket.IO with HTTP server
@@ -129,7 +135,7 @@ AppDataSource.initialize().then(async () => {
   
   httpServer.listen(httpPort, '0.0.0.0', () => {
     console.log(`✅ HTTP Server running on port ${httpPort}`);
-    console.log(`� HTTP URL: http://${process.env.HOST || 'localhost'}:${httpPort}`);
+    console.log(`🌐 HTTP URL: http://${process.env.HOST || 'localhost'}:${httpPort}`);
     console.log(`🔄 WebSocket temps réel activé sur HTTP`);
   });
 }).catch(error => {

@@ -20,6 +20,8 @@ export const AIDataSource = new DataSource({
   entities: [Article, Mouvement, Fournisseur, Localisation, User],
   synchronize: false, // IMPORTANT: Pas de migration avec cet utilisateur
   logging: process.env.NODE_ENV === 'development',
+  // SSL configuration for Neon and other cloud PostgreSQL providers
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   // Configuration de sécurité supplémentaire
   extra: {
     statement_timeout: 120000, // Timeout de 120 secondes (2 minutes) max par requête
