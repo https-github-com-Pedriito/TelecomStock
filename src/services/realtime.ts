@@ -19,7 +19,7 @@ export interface SocketUser {
 }
 
 class RealtimeService {
-  private io: SocketIOServer;
+  private io!: SocketIOServer;
   private connectedUsers = new Map<string, SocketUser>();
 
   constructor() {
