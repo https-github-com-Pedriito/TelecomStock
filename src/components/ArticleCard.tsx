@@ -3,7 +3,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { BarcodeGenerator } from './BarcodeGenerator';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
-import { Article } from '../types';
+import { Article, Mouvement } from '../types';
+import { api } from '../lib/api';
 import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer } from 'lucide-react';
 interface ArticleCardProps {
   article: Article;
@@ -56,13 +57,33 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
     if (!onDelete) return;
 
     try {
+      console.log('Début de la suppression forcée pour l\'article:', article.id);
+      
+      // 1. Récupérer tous les mouvements
+      const mouvements: Mouvement[] = await api.getMouvements();
+      console.log('Mouvements récupérés:', mouvements.length);
+      
+      // 2. Filtrer les mouvements associés à cet article
+      const mouvementsArticle = mouvements.filter((m: Mouvement) => m.article.id === article.id);
+      console.log('Mouvements associés à l\'article:', mouvementsArticle.length);
+      
+      // 3. Supprimer chaque mouvement un par un
+      for (const mouvement of mouvementsArticle) {
+        console.log('Suppression du mouvement:', mouvement.id);
+        await api.deleteMouvement(mouvement.id);
+      }
+      
+      // 4. Supprimer l'article
+      console.log('Suppression de l\'article:', article.id);
       await onDelete(article.id, true);
-      toast.success('Article et mouvements associés supprimés avec succès', {
+      
+      toast.success(`Article supprimé avec succès`, {
         position: "top-right",
         autoClose: 3000,
       });
-    } catch (error) {
-      toast.error('Erreur lors de la suppression forcée', {
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression forcée:', error.message);
+      toast.error(`Erreur lors de la suppression`, {
         position: "top-right",
         autoClose: 5000,
       });

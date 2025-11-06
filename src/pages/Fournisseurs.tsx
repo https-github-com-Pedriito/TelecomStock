@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Fournisseur } from '../types';
 import { FournisseurModal } from '../components/FournisseurModal';
 import { Plus, Search, Edit2, Trash2, Truck, Mail, Phone, MapPin } from 'lucide-react';
@@ -19,12 +19,8 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Rafraîchir les fournisseurs à chaque visite de la page
-  useEffect(() => {
-    if (onRefreshFournisseurs) {
-      onRefreshFournisseurs();
-    }
-  }, []); // Se déclenche uniquement au montage du composant
+  // Les fournisseurs sont déjà chargés par le hook useStock
+  // Pas besoin de les recharger ici
 
   const filteredFournisseurs = fournisseurs.filter(fournisseur =>
     fournisseur.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||

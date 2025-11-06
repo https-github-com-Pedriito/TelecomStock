@@ -226,6 +226,20 @@ class ApiService {
     });
   }
 
+  async updateArticle(id: string, article: any) {
+    return this.request(`/articles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(article),
+    });
+  }
+
+  async deleteArticle(id: string) {
+    return this.request(`/articles/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+
   // Mouvements
   async getMouvements() {
     return this.request('/mouvements');
@@ -235,6 +249,12 @@ class ApiService {
     return this.request('/mouvements', {
       method: 'POST',
       body: JSON.stringify(mouvement),
+    });
+  }
+
+  async deleteMouvement(id: string) {
+    return this.request(`/mouvements/${id}`, {
+      method: 'DELETE',
     });
   }
 

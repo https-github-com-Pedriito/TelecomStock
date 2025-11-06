@@ -39,10 +39,14 @@ function App() {
   const {
     articles,
     mouvements,
+    fournisseurs: fournisseursFromHook,
     createArticle,
     updateArticle,
     deleteArticle,
     createMouvement,
+    createFournisseur,
+    updateFournisseur: updateFournisseurFromHook,
+    deleteFournisseur: deleteFournisseurFromHook,
     refreshFournisseurs,
     refreshAll
   } = useStock(user, showStockNotification);
@@ -71,62 +75,12 @@ function App() {
     }
   };
 
-  // État et gestion des fournisseurs
-  const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
+  // Utiliser les fournisseurs du hook useStock
+  // Pas besoin de gestion locale, tout est géré dans le hook
   
-  // Charger les fournisseurs au démarrage
-  useEffect(() => {
-    const fetchFournisseurs = async () => {
-      try {
-        console.log('Chargement des fournisseurs...');
-        const response = await api.get<Fournisseur[]>('/fournisseurs');
-        console.log('Fournisseurs reçus:', response);
-        setFournisseurs(response);
-      } catch (error) {
-        console.error('Erreur lors du chargement des fournisseurs:', error);
-      }
-    };
-
-    fetchFournisseurs();
-  }, []);
-
-  const addFournisseur = async (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>): Promise<Fournisseur> => {
-    try {
-      console.log('Création d\'un nouveau fournisseur:', fournisseur);
-      const newFournisseur = await api.post<Fournisseur>('/fournisseurs', fournisseur);
-      console.log('Réponse de l\'API:', newFournisseur);
-      setFournisseurs(prev => [...prev, newFournisseur]);
-      return newFournisseur;
-    } catch (error) {
-      console.error('Erreur lors de la création du fournisseur:', error);
-      throw error;
-    }
-  };
-
-  const updateFournisseur = async (id: string, data: Partial<Fournisseur>) => {
-    try {
-      console.log('Mise à jour du fournisseur:', id, data);
-      const updatedFournisseur = await api.put<Fournisseur>(`/fournisseurs/${id}`, data);
-      console.log('Réponse de l\'API:', updatedFournisseur);
-      setFournisseurs(prev =>
-        prev.map(f => f.id === id ? updatedFournisseur : f)
-      );
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du fournisseur:', error);
-      throw error;
-    }
-  };
-
-  const deleteFournisseur = async (id: string) => {
-    try {
-      console.log('Suppression du fournisseur:', id);
-      await api.delete(`/fournisseurs/${id}`);
-      console.log('Fournisseur supprimé avec succès');
-      setFournisseurs(prev => prev.filter(f => f.id !== id));
-    } catch (error) {
-      console.error('Erreur lors de la suppression du fournisseur:', error);
-      throw error;
-    }
+  // Adapter le type de updateFournisseur pour correspondre à l'interface attendue
+  const updateFournisseurAdapter = async (id: string, updates: Partial<Fournisseur>): Promise<void> => {
+    await updateFournisseurFromHook(id, updates);
   };
 
   // Gestion des localisations / entrepôts
@@ -185,10 +139,10 @@ function App() {
 
   const deleteLocalisation = async (id: string): Promise<void> => {
     try {
-      console.log('Désactivation de la localisation:', id);
-  await api.deleteLocalisation(id);
-      // Marquer comme inactive localement
-      setLocalisations(prev => prev.map(loc => loc.id === id ? { ...loc, est_active: false } : loc));
+      console.log('Suppression définitive de la localisation:', id);
+      await api.deleteLocalisation(id);
+      // Supprimer complètement de la liste locale
+      setLocalisations(prev => prev.filter(loc => loc.id !== id));
     } catch (error) {
       console.error('Erreur lors de la suppression de la localisation:', error);
       setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
@@ -432,7 +386,7 @@ function App() {
           <Articles
             articles={articles}
             hasPermission={hasPermission}
-            fournisseurs={fournisseurs}
+            fournisseurs={fournisseursFromHook}
             onAddArticle={handleAddArticle}
             onUpdateArticle={updateArticle}
             onDeleteArticle={deleteArticle}
@@ -451,7 +405,7 @@ function App() {
             getArticleByCodeBarres={getArticleByCodeBarres}
             onAddMouvement={handleAddMouvement}
             onAddArticle={handleAddArticle}
-            fournisseurs={fournisseurs}
+            fournisseurs={fournisseursFromHook}
             currentUser={currentUserForComponents!}
           />
         );
@@ -464,10 +418,10 @@ function App() {
       case 'fournisseurs':
         return hasPermission('manage_users') && (
           <Fournisseurs
-            fournisseurs={fournisseurs}
-            onAddFournisseur={addFournisseur}
-            onUpdateFournisseur={updateFournisseur}
-            onDeleteFournisseur={deleteFournisseur}
+            fournisseurs={fournisseursFromHook}
+            onAddFournisseur={createFournisseur}
+            onUpdateFournisseur={updateFournisseurAdapter}
+            onDeleteFournisseur={deleteFournisseurFromHook}
             onRefreshFournisseurs={refreshFournisseurs}
           />
         );
