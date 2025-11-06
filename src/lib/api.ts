@@ -5,31 +5,18 @@ class ApiService {
   private token: string | null;
 
   constructor() {
-    // Configuration HTTP uniquement
-    const apiUrl = import.meta.env.VITE_API_URL;
+    // Utiliser uniquement la variable d'environnement
+    this.baseUrl = import.meta.env.VITE_API_URL || '';
     
-    console.log('[DEBUG] Environment variables:', {
-      VITE_API_URL: apiUrl,
-      window_hostname: window.location.hostname,
-      window_protocol: window.location.protocol
-    });
-    
-    // Utiliser la variable d'environnement en priorité, sinon utiliser l'hostname actuel
-    if (apiUrl) {
-      this.baseUrl = apiUrl;
-      console.log('[DEBUG] API URL from environment:', apiUrl);
-    } else {
-      // Fallback: utiliser l'hostname actuel avec le port API 3080
-      const host = window.location.hostname;
-      this.baseUrl = `http://${host}:3080`;
-      console.log('[DEBUG] API URL auto-detected:', this.baseUrl);
+    if (!this.baseUrl) {
+      console.error('❌ VITE_API_URL n\'est pas défini dans le fichier .env');
     }
     
-    console.log('[DEBUG] Final API Configuration:', {
+    console.log('[DEBUG] API Configuration:', {
       baseUrl: this.baseUrl,
-      protocol: 'HTTP',
-      host: window.location.hostname
+      VITE_API_URL: import.meta.env.VITE_API_URL
     });
+    
     this.token = localStorage.getItem('auth_token');
   }
 
@@ -238,6 +225,7 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
 
 
   // Mouvements
