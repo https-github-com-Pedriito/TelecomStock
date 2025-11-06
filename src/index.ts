@@ -23,7 +23,9 @@ const httpsPort = process.env.API_HTTPS_PORT || 3443;
 // Middleware
 // Configuration CORS
 const allowedOrigins = [
-  'http://localhost:5173',  // Vite dev local
+  'http://localhost:5173',
+  'http://localhost:5174',
+  // Vite dev local
   'http://localhost:3000',  // Alternative dev port
   'http://localhost:3080',  // API locale
   'https://decimale-api-production.up.railway.app', // API Railway (pour Swagger UI)
