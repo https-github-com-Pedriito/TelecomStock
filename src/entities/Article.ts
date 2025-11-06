@@ -30,6 +30,9 @@ export class Article {
   @Column({ unique: true, nullable: true })
   code_barres?: string;
 
+  @Column({ nullable: true })
+  image_url?: string;
+
   @CreateDateColumn()
   created_at!: Date;
 
