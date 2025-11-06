@@ -95,15 +95,31 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md p-6 transition-all hover:shadow-lg ${
+    <div className={`bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg ${
       isLowStock ? 'border-l-4 border-orange-500' : ''
     }`}>
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900">{article.nom}</h3>
-          <p className="text-sm text-gray-600">{article.categorie}</p>
+      {/* Image de l'article */}
+      {article.image_url && (
+        <div className="w-full h-48 overflow-hidden bg-gray-100">
+          <img
+            src={article.image_url}
+            alt={article.nom}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Masquer l'image si elle ne charge pas
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
         </div>
-        <div className="flex gap-2">
+      )}
+
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-gray-900">{article.nom}</h3>
+            <p className="text-sm text-gray-600">{article.categorie}</p>
+          </div>
+          <div className="flex gap-2">
           <button
             onClick={() => onPrintLabel(article)}
             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -236,6 +252,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
             Code: {article.code_barres || 'Non défini'}
           </div>
         </div>
+      </div>
       </div>
       
       {/* Modal de confirmation de suppression */}

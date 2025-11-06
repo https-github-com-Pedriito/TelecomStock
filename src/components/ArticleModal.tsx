@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Article, Localisation } from '../types';
 import { X, Package } from 'lucide-react';
 import { api } from '../lib/api';
+import { ImageUpload } from './ImageUpload';
 
 interface ArticleModalProps {
   isOpen: boolean;
@@ -56,6 +57,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     quantite_stock: 0,
     prix_unitaire: 0,
     code_barres: '',  // Ajout du champ code_barres
+    image_url: '',
   });
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         quantite_stock: article.quantite_stock,
         prix_unitaire: article.prix_unitaire || 0,
         code_barres: article.code_barres,
+        image_url: article.image_url || '',
       });
     } else {
       setFormData({
@@ -80,6 +83,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         quantite_stock: 0,
         prix_unitaire: 0,
         code_barres: barcodeFromURL || '',
+        image_url: '',
       });
     }
   }, [article]);
@@ -131,6 +135,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
       quantite_stock: Number(formData.quantite_stock) || 0,
       prix_unitaire: Number(formData.prix_unitaire) || 0,
       code_barres: formData.code_barres,
+      image_url: formData.image_url || undefined,
     };
     
     console.log('Données envoyées à l\'API:', articleData);
@@ -315,6 +320,13 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
               Permet de calculer la valeur totale du stock
             </p>
           </div>
+
+          {/* Image Upload */}
+          <ImageUpload
+            currentImageUrl={formData.image_url}
+            onImageChange={(url) => setFormData({ ...formData, image_url: url })}
+            onRemove={() => setFormData({ ...formData, image_url: '' })}
+          />
 
           {/* Boutons d'action */}
           <div className="flex gap-3 pt-4">

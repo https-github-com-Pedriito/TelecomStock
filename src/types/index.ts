@@ -8,6 +8,7 @@ export interface Article {
   quantite_stock: number;
   prix_unitaire?: number;
   code_barres: string;
+  image_url?: string;
   created_at: Date;
   updated_at: Date;
 }
