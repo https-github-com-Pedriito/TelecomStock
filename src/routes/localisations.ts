@@ -250,11 +250,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Localisation non trouvée' });
     }
     
-    // Désactiver au lieu de supprimer pour préserver l'intégrité des données
-    localisation.est_active = false;
-    await localisationRepository.save(localisation);
-    
-    res.json({ message: 'Localisation désactivée avec succès' });
+    // Supprimer définitivement la localisation
+    await localisationRepository.remove(localisation);
+    res.status(200).json({ message: 'Localisation supprimée avec succès' });
   } catch (error) {
     console.error('Erreur lors de la suppression de la localisation:', error);
     res.status(500).json({ error: 'Erreur serveur' });
