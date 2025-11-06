@@ -15,7 +15,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3080',
+        url: 'https://decimale-api-production.up.railway.app',
         description: 'Serveur de développement HTTP',
       },
     ],
