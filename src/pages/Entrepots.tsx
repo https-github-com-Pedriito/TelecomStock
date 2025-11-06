@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Localisation, LocalisationInput } from '../types';
 import { EntrepotModal } from '../components/EntrepotModal';
+import Toggle from 'react-toggle';
+import 'react-toggle/style.css';
 import {
   Building2,
   Warehouse,
   Search,
   Plus,
   Edit2,
-  ToggleLeft,
-  ToggleRight,
   MapPin,
   RefreshCcw,
   CalendarDays,
@@ -116,9 +116,6 @@ export function Entrepots({
   };
 
   const handleDisableLocalisation = async (localisation: Localisation) => {
-    if (!confirm(`Voulez vous vraiment désactiver le lieu ? « ${localisation.nom} » ?`)) {
-      return;
-    }
     try {
       setActionLoadingId(localisation.id);
       await onUpdateLocalisation(localisation.id, { est_active: false });
@@ -336,7 +333,7 @@ export function Entrepots({
                       {localisation.nom}
                     </h3>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <button
                       onClick={() => openEditModal(localisation)}
                       className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -345,32 +342,27 @@ export function Entrepots({
                     >
                       <Edit2 size={16} />
                     </button>
-                    {localisation.est_active ? (
-                      <button
-                        onClick={() => handleDisableLocalisation(localisation)}
-                        className="p-2 text-emerald-600 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                        title="Désactiver ce lieu"
+                    <div className="flex items-center gap-2">
+                      <Toggle
+                        checked={localisation.est_active}
                         disabled={isActionLoading}
-                      >
-                        {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ToggleRight size={20} />}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleReactivateLocalisation(localisation)}
-                        className="p-2 text-amber-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                        title="Réactiver ce lieu"
-                        disabled={isActionLoading}
-                      >
-                        {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ToggleLeft size={20} />}
-                      </button>
-                    )}
+                        onChange={() => {
+                          if (localisation.est_active) {
+                            handleDisableLocalisation(localisation);
+                          } else {
+                            handleReactivateLocalisation(localisation);
+                          }
+                        }}
+                        icons={false}
+                      />
+                    </div>
                     <button
                       onClick={() => handleDeleteLocalisation(localisation)}
                       className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       title="Supprimer définitivement"
-                      disabled={isActionLoading || !localisation.est_active}
+                      disabled={isActionLoading}
                     >
-                      {isActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={16} />}
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
