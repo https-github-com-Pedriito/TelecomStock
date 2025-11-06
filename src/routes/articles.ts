@@ -224,7 +224,7 @@ router.post('/', authMiddleware, async (req, res) => {
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *         description: ID de l'article
  *     requestBody:
  *       required: true
@@ -285,7 +285,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *         description: ID de l'article
  *     responses:
  *       200:
