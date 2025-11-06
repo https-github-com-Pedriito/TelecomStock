@@ -10,7 +10,7 @@ const localisationRepository = AppDataSource.getRepository(Localisation);
  * @swagger
  * /localisations:
  *   get:
- *     summary: Récupérer toutes les localisations actives
+ *     summary: Récupérer toutes les localisations (actives et inactives)
  *     tags: [Localisations]
  *     security:
  *       - bearerAuth: []
@@ -27,7 +27,6 @@ const localisationRepository = AppDataSource.getRepository(Localisation);
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const localisations = await localisationRepository.find({
-      where: { est_active: true },
       order: { nom: 'ASC' }
     });
     res.json(localisations);
