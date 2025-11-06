@@ -21,11 +21,23 @@ const httpPort = process.env.API_PORT || 3001;
 const httpsPort = process.env.API_HTTPS_PORT || 3443;
 
 // Middleware
-// Configuration CORS plus permissive pour le développement
+// Configuration CORS
+const allowedOrigins = [
+  'http://localhost:5173',  // Vite dev local
+  'http://localhost:3000',  // Alternative dev port
+  'https://telecom-stock-7uz7fmkw4-pedriitos-projects.vercel.app', // Vercel production
+  'https://telecom-stock.vercel.app', // Vercel custom domain (si configuré)
+];
+
 const corsOptions = {
   origin: (origin: any, callback: any) => {
     console.log('CORS Origin:', origin);
-    callback(null, true); // allow any origin
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
