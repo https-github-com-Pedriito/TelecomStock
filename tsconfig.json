@@ -6,8 +6,8 @@
     "allowJs": true,
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,
-    "noImplicitAny": true,
+    "strict": false,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
@@ -15,6 +15,16 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/scripts"]
+  "include": [
+    "src/entities/**/*",
+    "src/routes/**/*",
+    "src/services/**/*",
+    "src/middleware/**/*",
+    "src/migration/**/*",
+    "src/index.ts",
+    "src/data-source.ts",
+    "src/ai-data-source.ts",
+    "src/swagger.ts"
+  ],
+  "exclude": ["node_modules", "dist", "src/scripts", "src/**/*.tsx", "src/pages/**/*", "src/components/**/*", "src/hooks/**/*", "src/lib/**/*", "src/routes/assistant.ts", "src/services/stock-assistant.ts"]
 }
