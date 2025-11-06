@@ -24,6 +24,9 @@ export class Article {
   @Column({ default: 0 })
   quantite_stock!: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0, nullable: true })
+  prix_unitaire?: number;
+
   @Column({ unique: true, nullable: true })
   code_barres?: string;
 
