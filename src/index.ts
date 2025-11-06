@@ -6,7 +6,6 @@ import http from 'http';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import { AppDataSource } from './data-source';
-import { initAIDataSource } from './ai-data-source';
 import { authRouter } from './routes/auth';
 import { articlesRouter } from './routes/articles';
 import { mouvementsRouter } from './routes/mouvements';
