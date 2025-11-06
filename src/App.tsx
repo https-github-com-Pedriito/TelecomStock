@@ -207,7 +207,7 @@ function App() {
   const [usersForComponents, setUsersForComponents] = useState<User[]>([]);
 
   useEffect(() => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && user?.role?.toLowerCase() === 'admin') {
       const fetchUsers = async () => {
         try {
           const fetchedUsers = await api.getUsers();
@@ -234,7 +234,7 @@ function App() {
   };
 
   const refreshUsers = async () => {
-    if (isAuthenticated && user?.role === 'admin') {
+    if (isAuthenticated && user?.role?.toLowerCase() === 'admin') {
       try {
         const fetchedUsers = await api.getUsers();
         setUsersForComponents(fetchedUsers);
@@ -409,7 +409,7 @@ function App() {
     switch (currentView) {
       case 'dashboard':
         return hasPermission('view_dashboard') && (
-          useNewUX && user?.role === 'admin' ? (
+          useNewUX && user?.role?.toLowerCase() === 'admin' ? (
             <AdminPortal
               articles={articles}
               mouvements={mouvements}
@@ -588,6 +588,7 @@ function App() {
             currentView={currentView}
             onViewChange={setCurrentView}
             hasPermission={hasPermission}
+            userRole={user?.role}
             alertsCount={getArticlesWithAlerts().length}
           />
         </div>

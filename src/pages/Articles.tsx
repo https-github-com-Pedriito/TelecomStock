@@ -18,6 +18,12 @@ interface ArticlesProps {
 
 export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
   const { user } = useAuth();
+  
+  // Debug: Log user info
+  console.log('Articles - User:', user);
+  console.log('Articles - User role:', user?.role);
+  console.log('Articles - canDelete should be:', user?.role?.toLowerCase() === 'admin');
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,6 +34,13 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
   const [localisationsFromDB, setLocalisationsFromDB] = useState<Localisation[]>([]);
 
   const canManageArticles = hasPermission('manage_articles');
+  
+  // Debug: Log du rôle utilisateur
+  React.useEffect(() => {
+    console.log('👤 User role:', user?.role);
+    console.log('👤 Is admin:', user?.role === 'admin');
+    console.log('👤 User complet:', user);
+  }, [user]);
   
   // Debug: Log des articles reçus
   React.useEffect(() => {
@@ -310,10 +323,10 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
             <ArticleCard
               key={article.id}
               article={article}
-              onEdit={canManageArticles && user?.role !== 'technicien' ? handleEditArticle : undefined}
+              onEdit={canManageArticles && user?.role?.toLowerCase() !== 'technicien' ? handleEditArticle : undefined}
               onDelete={canManageArticles ? handleDeleteArticle : undefined}
               onPrintLabel={handlePrintLabel}
-              canDelete={user?.role === 'admin'}
+              canDelete={user?.role?.toLowerCase() === 'admin'}
             />
           ))}
         </div>
