@@ -209,9 +209,14 @@ function App() {
       case 'view_dashboard':
       case 'manage_users':
         return role === 'admin';
+      case 'edit_articles':
+        return role === 'admin' || role === 'manager';
+      case 'delete_articles':
+        return role === 'admin';
+      case 'view_articles':
+        return ['admin', 'manager', 'technicien'].includes(role);
       case 'manage_articles':
         return role === 'admin' || role === 'manager';
-      case 'view_articles':
       case 'view_mouvements':
       case 'view_historique':
       case 'view_inventory':

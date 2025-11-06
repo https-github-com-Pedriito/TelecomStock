@@ -323,10 +323,10 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
             <ArticleCard
               key={article.id}
               article={article}
-              onEdit={canManageArticles && user?.role?.toLowerCase() !== 'technicien' ? handleEditArticle : undefined}
-              onDelete={canManageArticles ? handleDeleteArticle : undefined}
+              onEdit={hasPermission('edit_articles') ? handleEditArticle : undefined}
+              onDelete={hasPermission('delete_articles') ? handleDeleteArticle : undefined}
               onPrintLabel={handlePrintLabel}
-              canDelete={user?.role?.toLowerCase() === 'admin'}
+              canDelete={hasPermission('delete_articles')}
             />
           ))}
         </div>
