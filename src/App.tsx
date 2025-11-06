@@ -215,6 +215,8 @@ function App() {
         return role === 'admin';
       case 'view_articles':
         return ['admin', 'manager', 'technicien'].includes(role);
+      case 'view_prices':
+        return role === 'admin' || role === 'manager';
       case 'manage_articles':
         return role === 'admin' || role === 'manager';
       case 'view_mouvements':

@@ -12,9 +12,10 @@ interface ArticleCardProps {
   onDelete?: (id: string, force?: boolean) => Promise<void>;
   onPrintLabel: (article: Article) => void;
   canDelete?: boolean; // Nouvelle prop pour contrôler la visibilité du bouton supprimer
+  canViewPrice?: boolean; // Nouvelle prop pour contrôler l'affichage des prix
 }
 
-export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete = false }: ArticleCardProps) {
+export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete = false, canViewPrice = true }: ArticleCardProps) {
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
   // Afficher les codes-barres pour tous
   const canShowBarcode = true;
@@ -211,7 +212,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           <span>{article.localisation}</span>
         </div>
 
-        {article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
+        {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
           <div className="flex items-center justify-between text-sm bg-blue-50 p-2 rounded">
             <span className="text-gray-700">Prix unitaire:</span>
             <span className="font-semibold text-blue-700">
@@ -220,7 +221,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           </div>
         )}
 
-        {article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
+        {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
           <div className="flex items-center justify-between text-sm bg-green-50 p-2 rounded">
             <span className="text-gray-700">Valeur stock:</span>
             <span className="font-semibold text-green-700">

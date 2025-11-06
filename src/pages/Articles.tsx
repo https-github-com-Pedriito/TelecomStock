@@ -327,6 +327,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
               onDelete={hasPermission('delete_articles') ? handleDeleteArticle : undefined}
               onPrintLabel={handlePrintLabel}
               canDelete={hasPermission('delete_articles')}
+              canViewPrice={hasPermission('view_prices')}
             />
           ))}
         </div>
