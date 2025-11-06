@@ -1,65 +1,58 @@
-# Fichier de configuration pour Fly.io
-app = "telecomstock-api"
-primary_region = "cdg" # Paris
+# fly.toml app configuration file generated for telecomstock-api on 2025-11-05T18:18:53+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'telecomstock-api'
+primary_region = 'ams'
 
 [build]
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '8080'
 
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
 
 [[services]]
-  protocol = "tcp"
+  protocol = 'tcp'
   internal_port = 8080
-  processes = ["app"]
+  processes = ['app']
 
   [[services.ports]]
     port = 80
-    handlers = ["http"]
+    handlers = ['http']
     force_https = true
 
   [[services.ports]]
     port = 443
-    handlers = ["tls", "http"]
+    handlers = ['tls', 'http']
 
   [services.concurrency]
-    type = "connections"
+    type = 'connections'
     hard_limit = 25
     soft_limit = 20
 
   [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "10s"
-    restart_limit = 0
+    interval = '15s'
+    timeout = '2s'
+    grace_period = '10s'
 
   [[services.http_checks]]
-    interval = "30s"
-    timeout = "2s"
-    grace_period = "10s"
-    method = "get"
-    path = "/health"
-    protocol = "http"
-    restart_limit = 0
+    interval = '30s'
+    timeout = '2s'
+    grace_period = '10s'
+    method = 'get'
+    path = '/health'
+    protocol = 'http'
 
-[env]
-  NODE_ENV = "production"
-  PORT = "8080"
-
-# Définir les secrets avec: fly secrets set KEY=VALUE
-# Requis:
-# - DB_HOST
-# - DB_PORT
-# - DB_USER
-# - DB_PASSWORD
-# - DB_NAME
-# - JWT_SECRET
-# Optionnels:
-# - AI_PROVIDER (ollama ou openai)
-# - OLLAMA_HOST
-# - OLLAMA_MODEL
-# - OPENAI_API_KEY
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
