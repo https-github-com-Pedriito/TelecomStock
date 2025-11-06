@@ -160,15 +160,54 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const toggleTorch = async () => {
     if (scannerRef.current && isScanning) {
       try {
-        const capabilities = await (scannerRef.current as any).getCapabilities();
-        if (capabilities.torch) {
-          await (scannerRef.current as any).applyVideoConstraints({
-            advanced: [{ torch: !torch }]
-          });
+        // Obtenir la caméra rendue depuis le scanner
+        const cameras = await (scannerRef.current as any).getRunningTrackCameraCapabilities();
+        
+        if (!cameras) {
+          console.warn("❌ Impossible d'obtenir les capacités de la caméra");
+          return;
+        }
+
+        // Utiliser la nouvelle API CameraCapabilities
+        const cameraCapabilities = cameras.getCapabilities();
+        const torchFeature = cameraCapabilities.torchFeature();
+        
+        if (torchFeature.isSupported()) {
+          // Appliquer la nouvelle valeur de torch
+          await torchFeature.apply(!torch);
           setTorch(!torch);
+          console.log(`✅ Lampe torche ${!torch ? 'activée' : 'désactivée'}`);
+        } else {
+          console.warn("⚠️ Lampe torche non supportée par cette caméra");
         }
       } catch (err) {
-        console.warn("Torch non disponible:", err);
+        console.warn("❌ Erreur lors du toggle de la lampe torche:", err);
+        
+        // Fallback vers l'ancienne méthode si la nouvelle API échoue
+        try {
+          const videoElement = document.querySelector("#reader video") as HTMLVideoElement;
+          if (videoElement && videoElement.srcObject) {
+            const stream = videoElement.srcObject as MediaStream;
+            const track = stream.getVideoTracks()[0];
+            
+            if (track) {
+              const capabilities = track.getCapabilities();
+              
+              if ('torch' in capabilities) {
+                await track.applyConstraints({
+                  // @ts-ignore - torch n'est pas dans les types TypeScript standard
+                  advanced: [{ torch: !torch }]
+                });
+                setTorch(!torch);
+                console.log(`✅ Lampe torche ${!torch ? 'activée' : 'désactivée'} (fallback)`);
+              } else {
+                console.warn("⚠️ Lampe torche non disponible sur cet appareil");
+              }
+            }
+          }
+        } catch (fallbackErr) {
+          console.error("❌ Fallback échoué:", fallbackErr);
+        }
       }
     }
   };
