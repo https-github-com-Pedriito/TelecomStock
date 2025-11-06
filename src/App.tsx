@@ -106,10 +106,13 @@ function App() {
   }, []);
 
   useEffect(() => {
-    refreshLocalisations().catch(err => {
-      console.error('Erreur lors de l\'initialisation des localisations:', err);
-    });
-  }, [refreshLocalisations]);
+    // Ne charger les localisations que si l'utilisateur est authentifié
+    if (isAuthenticated) {
+      refreshLocalisations().catch(err => {
+        console.error('Erreur lors de l\'initialisation des localisations:', err);
+      });
+    }
+  }, [refreshLocalisations, isAuthenticated]);
 
   const addLocalisation = async (localisation: LocalisationInput): Promise<Localisation> => {
     try {
