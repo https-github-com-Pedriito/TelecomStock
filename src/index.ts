@@ -25,6 +25,8 @@ const httpsPort = process.env.API_HTTPS_PORT || 3443;
 const allowedOrigins = [
   'http://localhost:5173',  // Vite dev local
   'http://localhost:3000',  // Alternative dev port
+  'http://localhost:3080',  // API locale
+  'https://decimale-api-production.up.railway.app', // API Railway (pour Swagger UI)
   'https://telecom-stock-7uz7fmkw4-pedriitos-projects.vercel.app', // Vercel production
   'https://telecom-stock.vercel.app', // Vercel custom domain (si configuré)
 ];
