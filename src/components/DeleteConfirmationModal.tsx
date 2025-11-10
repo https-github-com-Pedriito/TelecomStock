@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -9,6 +9,7 @@ interface DeleteConfirmationModalProps {
   hasMovements: boolean;
   movementCount?: number;
   warningMessage?: string;
+  isDeleting?: boolean;
 }
 
 export function DeleteConfirmationModal({
@@ -18,7 +19,8 @@ export function DeleteConfirmationModal({
   articleName,
   hasMovements,
   movementCount,
-  warningMessage
+  warningMessage,
+  isDeleting = false
 }: DeleteConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -28,21 +30,23 @@ export function DeleteConfirmationModal({
         {/* Overlay */}
         <div 
           className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
+          onClick={isDeleting ? undefined : onClose}
         />
         
         {/* Modal */}
         <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-            <button
-              type="button"
-              className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              onClick={onClose}
-            >
-              <span className="sr-only">Fermer</span>
-              <X className="h-6 w-6" />
-            </button>
-          </div>
+          {!isDeleting && (
+            <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
+              <button
+                type="button"
+                className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                onClick={onClose}
+              >
+                <span className="sr-only">Fermer</span>
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+          )}
           
           <div className="sm:flex sm:items-start">
             <div className={`mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${
@@ -94,18 +98,33 @@ export function DeleteConfirmationModal({
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button
               type="button"
-              className={`inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
-                hasMovements 
-                  ? 'bg-red-600 hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600'
-                  : 'bg-orange-600 hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600'
+              disabled={isDeleting}
+              className={`inline-flex w-full justify-center items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
+                isDeleting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : hasMovements 
+                    ? 'bg-red-600 hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600'
+                    : 'bg-orange-600 hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600'
               }`}
               onClick={onConfirm}
             >
-              {hasMovements ? 'Supprimer tout' : 'Supprimer'}
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Suppression en cours...</span>
+                </>
+              ) : (
+                <span>{hasMovements ? 'Supprimer tout' : 'Supprimer'}</span>
+              )}
             </button>
             <button
               type="button"
-              className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+              disabled={isDeleting}
+              className={`mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset sm:mt-0 sm:w-auto ${
+                isDeleting
+                  ? 'bg-gray-100 text-gray-400 ring-gray-200 cursor-not-allowed'
+                  : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'
+              }`}
               onClick={onClose}
             >
               Annuler

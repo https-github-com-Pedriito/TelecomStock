@@ -5,17 +5,19 @@ class ApiService {
   private token: string | null;
 
   constructor() {
-    // Utiliser uniquement la variable d'environnement
-    this.baseUrl = import.meta.env.VITE_API_URL || '';
+    // Debug : voir toutes les variables d'environnement
+    console.log('[DEBUG] All env vars:', import.meta.env);
+    console.log('[DEBUG] VITE_API_URL:', import.meta.env.VITE_API_URL);
+    console.log('[DEBUG] Mode:', import.meta.env.MODE);
     
-    if (!this.baseUrl) {
-      console.error('❌ VITE_API_URL n\'est pas défini dans le fichier .env');
+    // Utiliser la variable d'environnement avec fallback temporaire
+    this.baseUrl = import.meta.env.VITE_API_URL || 'https://decimale-api-production.up.railway.app';
+    
+    if (!import.meta.env.VITE_API_URL) {
+      console.warn('⚠️ VITE_API_URL non trouvé dans .env, utilisation du fallback');
     }
     
-    console.log('[DEBUG] API Configuration:', {
-      baseUrl: this.baseUrl,
-      VITE_API_URL: import.meta.env.VITE_API_URL
-    });
+    console.log('[DEBUG] Final baseUrl:', this.baseUrl);
     
     this.token = localStorage.getItem('auth_token');
   }

@@ -26,6 +26,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
     hasMovements: boolean;
     movementCount: number;
   } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -57,6 +58,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
   const handleForceDelete = async () => {
     if (!onDelete) return;
 
+    setIsDeleting(true);
     try {
       console.log('Début de la suppression forcée pour l\'article:', article.id);
       
@@ -89,6 +91,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
         autoClose: 5000,
       });
     } finally {
+      setIsDeleting(false);
       setShowDeleteModal(false);
       setDeleteInfo(null);
     }
@@ -259,13 +262,16 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => {
-          setShowDeleteModal(false);
-          setDeleteInfo(null);
+          if (!isDeleting) {
+            setShowDeleteModal(false);
+            setDeleteInfo(null);
+          }
         }}
         onConfirm={handleForceDelete}
         articleName={article.nom}
         hasMovements={deleteInfo?.hasMovements || false}
         movementCount={deleteInfo?.movementCount || 0}
+        isDeleting={isDeleting}
       />
       
       <ToastContainer position="bottom-right" autoClose={2500} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />

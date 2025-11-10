@@ -47,7 +47,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     }
 
     // Déterminer l'URL du WebSocket selon l'environnement
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:3443';
+    const apiUrl = import.meta.env.VITE_API_URL ;
     const wsUrl = apiUrl.replace('/api', ''); // Enlever /api si présent
     
     log(`🔗 Connexion WebSocket vers: ${wsUrl}`);
