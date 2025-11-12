@@ -62,13 +62,13 @@ export function AdminPortal({
 
   const renderSidebar = () => (
     <div
-      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out relative ${isCollapsed ? 'w-20' : 'w-64'
+      className={`bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-all duration-300 ease-in-out relative ${isCollapsed ? 'w-20' : 'w-64'
         }`}
     >
       {/* Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 z-10 bg-white border border-gray-200 rounded-full p-1 shadow-md hover:shadow-lg transition-all hover:bg-gray-50"
+        className="absolute -right-3 top-6 z-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full p-1 shadow-md hover:shadow-lg transition-all hover:bg-gray-50 dark:hover:bg-gray-700"
         title={isCollapsed ? 'Étendre le menu' : 'Réduire le menu'}
       >
         {isCollapsed ? (
@@ -79,17 +79,17 @@ export function AdminPortal({
       </button>
 
       {/* Header */}
-      <div className={`p-6 border-b border-gray-200 ${isCollapsed ? 'px-3' : ''}`}>
+      <div className={`p-6 border-b border-gray-200 dark:border-gray-700 ${isCollapsed ? 'px-3' : ''}`}>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'}`}>
-          <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-            <SettingsIcon className="h-6 w-6 text-blue-600" />
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex-shrink-0">
+            <SettingsIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           </div>
           {!isCollapsed && (
             <div className="overflow-hidden">
-              <h2 className="text-lg font-semibold text-gray-900 truncate">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                 Administration
               </h2>
-              <p className="text-sm text-gray-500 truncate">
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                 {currentUser.prenom} {currentUser.nom}
               </p>
             </div>
@@ -103,8 +103,8 @@ export function AdminPortal({
           <button
             onClick={() => setCurrentView('dashboard')}
             className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'dashboard'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             title={isCollapsed ? 'Vue d\'ensemble' : ''}
           >
@@ -120,8 +120,8 @@ export function AdminPortal({
           <button
             onClick={() => setCurrentView('alerts')}
             className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'alerts'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             title={isCollapsed ? 'Centre d\'Alertes' : ''}
           >
@@ -153,8 +153,8 @@ export function AdminPortal({
           <button
             onClick={() => setCurrentView('users')}
             className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'users'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             title={isCollapsed ? 'Utilisateurs' : ''}
           >
@@ -170,8 +170,8 @@ export function AdminPortal({
           <button
             onClick={() => setCurrentView('settings')}
             className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-3'} py-2 text-left rounded-lg transition-colors group relative ${currentView === 'settings'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                : 'text-gray-700 hover:bg-gray-50'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             title={isCollapsed ? 'Paramètres Système' : ''}
           >
@@ -187,14 +187,14 @@ export function AdminPortal({
       </nav>
 
       {/* Statistiques rapides */}
-      <div className={`p-4 border-t border-gray-200 ${isCollapsed ? 'px-2' : ''}`}>
+      <div className={`p-4 border-t border-gray-200 dark:border-gray-700 ${isCollapsed ? 'px-2' : ''}`}>
         <div className="space-y-3">
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} text-sm group relative`}>
-            <div className={`flex items-center text-gray-600 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
+            <div className={`flex items-center text-gray-600 dark:text-gray-400 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
               <Package className="h-4 w-4 mr-2 flex-shrink-0" />
-              {!isCollapsed && <span>Articles</span>}
-            </div>
-            {!isCollapsed && <span className="font-semibold text-gray-900">{articles.length}</span>}
+            {!isCollapsed && <span>Articles</span>}
+          </div>
+            {!isCollapsed && <span className="font-semibold text-gray-900 dark:text-white">{articles.length}</span>}
             {isCollapsed && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                 Articles: {articles.length}
@@ -203,11 +203,11 @@ export function AdminPortal({
           </div>
 
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} text-sm group relative`}>
-            <div className={`flex items-center text-gray-600 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
+            <div className={`flex items-center text-gray-600 dark:text-gray-400 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
               <Activity className="h-4 w-4 mr-2 flex-shrink-0" />
               {!isCollapsed && <span>Mouvements</span>}
             </div>
-            {!isCollapsed && <span className="font-semibold text-gray-900">{mouvements.length}</span>}
+            {!isCollapsed && <span className="font-semibold text-gray-900 dark:text-white">{mouvements.length}</span>}
             {isCollapsed && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                 Mouvements: {mouvements.length}
@@ -216,12 +216,12 @@ export function AdminPortal({
           </div>
 
           <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} text-sm group relative`}>
-            <div className={`flex items-center text-red-600 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
+            <div className={`flex items-center text-red-600 dark:text-red-400 ${isCollapsed ? '' : 'flex-shrink-0'}`}>
               <Bell className="h-4 w-4 mr-2 flex-shrink-0" />
               {!isCollapsed && <span>Stock épuisé</span>}
             </div>
             {!isCollapsed && (
-              <span className="font-semibold text-red-900">
+              <span className="font-semibold text-red-900 dark:text-red-400">
                 {articles.filter(a => a.quantite_stock === 0).length}
               </span>
             )}
@@ -285,7 +285,7 @@ export function AdminPortal({
             <div className="max-w-6xl mx-auto">
               {/* Header avec bouton d'ajout */}
               <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                   Utilisateurs
                 </h1>
                 <button
@@ -306,13 +306,13 @@ export function AdminPortal({
                 {users.map(user => (
                   <div
                     key={user.id}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between gap-3">
                       {/* Info utilisateur */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-base font-semibold text-gray-900 truncate">
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white truncate">
                             {user.prenom} {user.nom}
                           </h3>
                           <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
@@ -322,7 +322,7 @@ export function AdminPortal({
                           </span>
                         </div>
                         
-                        <p className="text-sm text-gray-600 mb-2 truncate">{user.email}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 truncate">{user.email}</p>
                         
                         <div className="flex flex-wrap items-center gap-2">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -372,9 +372,9 @@ export function AdminPortal({
                 ))}
 
                 {users.length === 0 && (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-                    <Users size={48} className="mx-auto text-gray-400 mb-3" />
-                    <p className="text-gray-500">Aucun utilisateur trouvé</p>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+                    <Users size={48} className="mx-auto text-gray-400 dark:text-gray-500 mb-3" />
+                    <p className="text-gray-500 dark:text-gray-400">Aucun utilisateur trouvé</p>
                   </div>
                 )}
               </div>
@@ -412,7 +412,7 @@ export function AdminPortal({
   };
 
   return (
-    <div className="flex h-full bg-gray-50 w-full overflow-x-hidden">
+    <div className="flex h-full bg-gray-50 dark:bg-gray-900 w-full overflow-x-hidden">
       {renderSidebar()}
       <div className="flex-1 overflow-y-auto overflow-x-hidden w-full">
         {renderContent()}

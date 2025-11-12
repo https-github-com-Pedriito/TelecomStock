@@ -72,24 +72,24 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Scanner</h1>
-        <p className="text-gray-600">Scanner des codes-barres pour identifier les articles</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Scanner</h1>
+        <p className="text-gray-600 dark:text-gray-400">Scanner des codes-barres pour identifier les articles</p>
       </div>
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <button
           onClick={() => startScanForType('ENTREE')}
-          className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-green-500 text-left group"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-green-500 text-left group border border-gray-200 dark:border-gray-700"
         >
           <div className="flex items-center gap-4">
-            <div className="bg-green-100 p-4 rounded-full group-hover:bg-green-200 transition-colors">
-              <ArrowUp className="w-8 h-8 text-green-600" />
+            <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
+              <ArrowUp className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Entrée de Stock</h2>
-              <p className="text-gray-600 mb-4">Scanner un article pour enregistrer une entrée</p>
-              <div className="flex items-center gap-2 text-green-600">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Entrée de Stock</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un article pour enregistrer une entrée</p>
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                 <ScanLine size={18} />
                 <span className="text-sm font-medium">Scanner maintenant</span>
               </div>
@@ -99,16 +99,16 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
 
         <button
           onClick={() => startScanForType('SORTIE')}
-          className="bg-white rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-orange-500 text-left group"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-orange-500 text-left group border border-gray-200 dark:border-gray-700"
         >
           <div className="flex items-center gap-4">
-            <div className="bg-orange-100 p-4 rounded-full group-hover:bg-orange-200 transition-colors">
-              <ArrowDown className="w-8 h-8 text-orange-600" />
+            <div className="bg-orange-100 dark:bg-orange-900/30 p-4 rounded-full group-hover:bg-orange-200 dark:group-hover:bg-orange-900/50 transition-colors">
+              <ArrowDown className="w-8 h-8 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Sortie de Stock</h2>
-              <p className="text-gray-600 mb-4">Scanner un article pour enregistrer une sortie</p>
-              <div className="flex items-center gap-2 text-orange-600">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sortie de Stock</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un article pour enregistrer une sortie</p>
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                 <ScanLine size={18} />
                 <span className="text-sm font-medium">Scanner maintenant</span>
               </div>
@@ -118,9 +118,9 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       </div>
 
       {/* Instructions */}
-      <div className="bg-blue-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">Instructions d'utilisation</h3>
-        <div className="space-y-2 text-blue-800">
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3">Instructions d'utilisation</h3>
+        <div className="space-y-2 text-blue-800 dark:text-blue-300">
           <p>• Pointez la caméra vers le code-barres</p>
           <p>• Assurez-vous que l'éclairage est suffisant</p>
           <p>• Maintenez l'appareil stable pendant le scan</p>

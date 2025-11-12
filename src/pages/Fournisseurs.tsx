@@ -69,8 +69,8 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Fournisseurs</h1>
-          <p className="text-gray-600">{filteredFournisseurs.length} fournisseur{filteredFournisseurs.length > 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fournisseurs</h1>
+          <p className="text-gray-600 dark:text-gray-400">{filteredFournisseurs.length} fournisseur{filteredFournisseurs.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => {
@@ -85,7 +85,7 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
@@ -93,7 +93,7 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
             placeholder="Rechercher par nom, contact ou email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -101,7 +101,7 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
       {/* Fournisseurs Grid */}
       {filteredFournisseurs.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">
             {fournisseurs.length === 0 ? 'Aucun fournisseur enregistré' : 'Aucun fournisseur trouvé'}
           </p>
           {fournisseurs.length === 0 && (
@@ -116,23 +116,23 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredFournisseurs.map(fournisseur => (
-            <div key={fournisseur.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div key={fournisseur.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-2">
-                  <Truck className="w-5 h-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold text-gray-900">{fournisseur.nom}</h3>
+                  <Truck className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{fournisseur.nom}</h3>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEditFournisseur(fournisseur)}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                     title="Modifier"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
                     onClick={() => handleDeleteFournisseur(fournisseur.id)}
-                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                     title="Supprimer"
                   >
                     <Trash2 size={16} />
@@ -141,32 +141,32 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Mail size={16} />
                   <span>{fournisseur.contact}</span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Mail size={16} />
-                  <a href={`mailto:${fournisseur.email}`} className="text-blue-600 hover:underline">
+                  <a href={`mailto:${fournisseur.email}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                     {fournisseur.email}
                   </a>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Phone size={16} />
-                  <a href={`tel:${fournisseur.telephone}`} className="text-blue-600 hover:underline">
+                  <a href={`tel:${fournisseur.telephone}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                     {fournisseur.telephone}
                   </a>
                 </div>
 
-                <div className="flex items-start gap-2 text-sm text-gray-600">
+                <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <MapPin size={16} className="mt-0.5 flex-shrink-0" />
                   <span>{fournisseur.adresse}</span>
                 </div>
 
-                <div className="pt-2 border-t border-gray-200">
-                  <p className="text-xs text-gray-500">
+                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Créé le {format(new Date(fournisseur.createdAt), 'dd/MM/yyyy', { locale: fr })}
                   </p>
                 </div>

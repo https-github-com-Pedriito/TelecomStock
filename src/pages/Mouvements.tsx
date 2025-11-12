@@ -119,58 +119,58 @@ export function Mouvements({ mouvements }: MouvementsProps) {
     <div className="space-y-6">
       {/* En-tête */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Mouvements de Stock</h1>
-        <p className="text-gray-600">Consultez et analysez l'historique des mouvements de stock</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Mouvements de Stock</h1>
+        <p className="text-gray-600 dark:text-gray-400">Consultez et analysez l'historique des mouvements de stock</p>
       </div>
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Mouvements</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalMouvements}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Mouvements</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.totalMouvements}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-green-600" />
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Entrées</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalEntrees}</p>
-              <p className="text-xs text-gray-500">{stats.nombreEntrees} mouvements</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Entrées</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.totalEntrees}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{stats.nombreEntrees} mouvements</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <TrendingDown className="h-6 w-6 text-red-600" />
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+              <TrendingDown className="h-6 w-6 text-red-600 dark:text-red-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Sorties</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalSorties}</p>
-              <p className="text-xs text-gray-500">{stats.nombreSorties} mouvements</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sorties</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.totalSorties}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{stats.nombreSorties} mouvements</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Calendar className="h-6 w-6 text-purple-600" />
+            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+              <Calendar className="h-6 w-6 text-purple-600 dark:text-purple-400" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Solde Net</p>
-              <p className={`text-2xl font-semibold ${stats.totalEntrees - stats.totalSorties >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Solde Net</p>
+              <p className={`text-2xl font-semibold ${stats.totalEntrees - stats.totalSorties >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {stats.totalEntrees - stats.totalSorties}
               </p>
             </div>
@@ -179,18 +179,18 @@ export function Mouvements({ mouvements }: MouvementsProps) {
       </div>
 
       {/* Filtres et recherche */}
-      <div className="bg-white p-6 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Rechercher
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Article, code-barres, utilisateur..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -198,11 +198,11 @@ export function Mouvements({ mouvements }: MouvementsProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Type de mouvement
             </label>
             <select
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as '' | 'ENTREE' | 'SORTIE')}
             >
@@ -213,11 +213,11 @@ export function Mouvements({ mouvements }: MouvementsProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Utilisateur
             </label>
             <select
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               value={filterUser}
               onChange={(e) => setFilterUser(e.target.value)}
             >
@@ -241,13 +241,13 @@ export function Mouvements({ mouvements }: MouvementsProps) {
       </div>
 
       {/* Tableau des mouvements */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleSort('dateHeure')}
                 >
                   <div className="flex items-center">
@@ -256,7 +256,7 @@ export function Mouvements({ mouvements }: MouvementsProps) {
                   </div>
                 </th>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleSort('type')}
                 >
                   <div className="flex items-center">
@@ -264,14 +264,14 @@ export function Mouvements({ mouvements }: MouvementsProps) {
                     <ArrowUpDown className="ml-1 h-4 w-4" />
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Article
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Code-barres
                 </th>
                 <th 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleSort('quantite')}
                 >
                   <div className="flex items-center">
@@ -279,15 +279,15 @@ export function Mouvements({ mouvements }: MouvementsProps) {
                     <ArrowUpDown className="ml-1 h-4 w-4" />
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Utilisateur
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {paginatedMouvements.map((mouvement) => (
-                <tr key={mouvement.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr key={mouvement.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {format(new Date(mouvement.dateHeure), 'dd/MM/yyyy HH:mm', { locale: fr })}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -299,20 +299,20 @@ export function Mouvements({ mouvements }: MouvementsProps) {
                       {mouvement.type === 'ENTREE' ? 'Entrée' : 'Sortie'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     {mouvement.article?.nom || (
-                      <span className="text-gray-400 italic">Article supprimé</span>
+                      <span className="text-gray-400 dark:text-gray-500 italic">Article supprimé</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {mouvement.article?.code_barres || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <span className={mouvement.type === 'ENTREE' ? 'text-green-600' : 'text-red-600'}>
+                    <span className={mouvement.type === 'ENTREE' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
                       {mouvement.type === 'ENTREE' ? '+' : '-'}{mouvement.quantite}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     {mouvement.utilisateur}
                   </td>
                 </tr>
@@ -394,10 +394,10 @@ export function Mouvements({ mouvements }: MouvementsProps) {
       </div>
 
       {filteredMouvements.length === 0 && (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun mouvement trouvé</h3>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <Package className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Aucun mouvement trouvé</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {searchTerm || filterType || filterUser 
               ? 'Aucun mouvement ne correspond à vos critères de recherche.'
               : 'Aucun mouvement de stock enregistré pour le moment.'

@@ -92,7 +92,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Image de l'article
       </label>
 
@@ -101,7 +101,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
           <img
             src={currentImageUrl}
             alt="Article"
-            className="w-full h-48 object-contain rounded-lg border-2 border-gray-300 bg-gray-50"
+            className="w-full h-48 object-contain rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
           />
           <button
             type="button"
@@ -121,8 +121,8 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
             relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
             transition-all duration-200
             ${isDragging 
-              ? 'border-blue-500 bg-blue-50' 
-              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+              ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
+              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }
             ${isUploading ? 'opacity-50 cursor-wait' : ''}
           `}
@@ -138,23 +138,23 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
 
           {isUploading ? (
             <div className="flex flex-col items-center gap-2">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-sm text-gray-600">Upload en cours...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Upload en cours...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
               {isDragging ? (
-                <Upload className="h-8 w-8 text-blue-500" />
+                <Upload className="h-8 w-8 text-blue-500 dark:text-blue-400" />
               ) : (
-                <ImageIcon className="h-8 w-8 text-gray-400" />
+                <ImageIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
               )}
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {isDragging 
                   ? 'Déposez l\'image ici' 
                   : 'Glissez-déposez une image ou cliquez pour sélectionner'
                 }
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 PNG, JPG, GIF jusqu'à 5MB
               </p>
             </div>
@@ -163,10 +163,10 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
       )}
 
       {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+        <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
-      <p className="mt-2 text-xs text-gray-500">
+      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
         💡 Astuce: Configurez votre clé ImgBB dans le fichier .env (VITE_IMGBB_API_KEY)
       </p>
     </div>

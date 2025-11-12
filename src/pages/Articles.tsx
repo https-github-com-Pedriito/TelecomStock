@@ -214,16 +214,16 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Articles</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Articles</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''}
             {!barcodesLoaded && articles.length > 0 && (
-              <span className="ml-2 text-sm text-blue-600">
+              <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
                 ⏳ Génération des codes-barres...
               </span>
             )}
             {barcodesLoaded && articles.length > 0 && (
-              <span className="ml-2 text-sm text-green-600">
+              <span className="ml-2 text-sm text-green-600 dark:text-green-400">
                 ✅ Codes-barres prêts
               </span>
             )}
@@ -232,7 +232,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
         <div className="flex flex-col sm:flex-row gap-2">
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors"
           >
             <Download size={18} />
             Exporter
@@ -253,17 +253,17 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
               <input
                 type="text"
                 placeholder="Rechercher par nom, code-barres ou fournisseur..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
           </div>

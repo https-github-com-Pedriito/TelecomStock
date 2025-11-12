@@ -147,18 +147,18 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-hidden flex flex-col mb-16 sm:mb-0">
-        <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-end sm:items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-t-lg sm:rounded-lg shadow-xl w-full sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-hidden flex flex-col mb-16 sm:mb-0">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <Package size={18} className="text-blue-600" />
-            <h2 className="text-lg font-semibold">
+            <Package size={18} className="text-blue-600 dark:text-blue-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               {article ? 'Modifier l\'article' : 'Nouvel article'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-300"
           >
             <X size={18} />
           </button>
@@ -167,27 +167,27 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         <form onSubmit={handleSubmit} className="p-4 space-y-3 overflow-y-auto flex-1">
           {/* Nom de l'article */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
               Nom de l'article *
             </label>
             <input
               type="text"
               value={formData.nom}
               onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             />
           </div>
 
           {/* Catégorie */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
               Catégorie *
             </label>
             <select
               value={formData.categorie}
               onChange={(e) => setFormData({ ...formData, categorie: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
               <option value="">Sélectionner une catégorie</option>
@@ -199,13 +199,13 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
 
           {/* Fournisseur */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
               Fournisseur *
             </label>
             <select
               value={formData.fournisseur}
               onChange={(e) => setFormData({ ...formData, fournisseur: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
               <option value="">Sélectionner un fournisseur</option>
@@ -217,13 +217,13 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
 
           {/* Localisation */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
               Localisation *
             </label>
             <select
               value={formData.localisation}
               onChange={(e) => setFormData({ ...formData, localisation: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
               disabled={loadingLocalisations}
             >
@@ -244,14 +244,14 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
 
           {/* Code-barres */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-0.5">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
               Code-barres
             </label>
             <input
               type="text"
               value={formData.code_barres || ''}
               onChange={(e) => setFormData({ ...formData, code_barres: e.target.value })}
-              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Optionnel - génération auto"
             />
           </div>
@@ -259,7 +259,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
           {/* Seuil minimum, Stock initial et Prix unitaire */}
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
                 Seuil min. *
               </label>
               <input
@@ -270,13 +270,13 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                   const value = e.target.value === '' ? 0 : Number(e.target.value);
                   setFormData({ ...formData, seuil_minimum: value });
                 }}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
                 Stock initial
               </label>
               <input
@@ -287,12 +287,12 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                   const value = e.target.value === '' ? 0 : Number(e.target.value);
                   setFormData({ ...formData, quantite_stock: value });
                 }}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-0.5">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
                 Prix (€)
               </label>
               <input
@@ -304,7 +304,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                   const value = e.target.value === '' ? 0 : Number(e.target.value);
                   setFormData({ ...formData, prix_unitaire: value });
                 }}
-                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="0.00"
               />
             </div>
@@ -318,11 +318,11 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
           />
 
           {/* Boutons d'action */}
-          <div className="flex gap-2 pt-2 sticky bottom-0 bg-white pb-2">
+          <div className="flex gap-2 pt-2 sticky bottom-0 bg-white dark:bg-gray-800 pb-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-3 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="flex-1 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
             >
               Annuler
             </button>

@@ -331,8 +331,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventaire</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventaire</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             {currentInventaire 
               ? `Inventaire en cours: ${currentInventaire.nom}`
               : "Aucun inventaire en cours — créez-en un nouveau"
@@ -363,7 +363,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
             <>
               <button
                 onClick={() => setShowScanner(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
               >
                 <ScanLine size={16} />
                 Scanner
@@ -433,7 +433,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
           <h2 className="text-lg font-semibold mb-4">Créer un nouvel inventaire</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Nom de l'inventaire
               </label>
               <input

@@ -98,18 +98,18 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md ${
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md ${
       isLowStock ? 'border-l-2 border-orange-500' : ''
     }`}>
       <div className="p-1.5 md:p-3">
         <div className="flex justify-between items-start mb-1 md:mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xs md:text-base font-semibold text-gray-900 md:truncate">{article.nom}</h3>
-            <p className="text-[10px] md:text-sm text-gray-500">{article.categorie}</p>
+            <h3 className="text-xs md:text-base font-semibold text-gray-900 dark:text-white md:truncate">{article.nom}</h3>
+            <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-400">{article.categorie}</p>
           </div>
           <button
             onClick={() => onPrintLabel(article)}
-            className="hidden md:block p-0.5 md:p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            className="hidden md:block p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
             title="Imprimer étiquette"
           >
             <Printer size={10} className="md:w-4 md:h-4" />
@@ -117,7 +117,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           {onEdit && (
             <button
               onClick={() => onEdit(article)}
-              className="p-0.5 md:p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
               title="Modifier"
             >
               <Edit2 size={10} className="md:w-4 md:h-4" />
@@ -126,7 +126,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           {onDelete && canDelete && (
             <button
               onClick={handleDelete}
-              className="p-0.5 md:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+              className="p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 rounded transition-colors"
               title="Supprimer"
             >
               <Trash2 size={10} className="md:w-4 md:h-4" />
@@ -153,13 +153,13 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
         )}
         
         {canShowBarcode && (
-          <div className="hidden md:flex items-center gap-1 py-1 bg-gray-50 rounded">
+          <div className="hidden md:flex items-center gap-1 py-1 bg-gray-50 dark:bg-gray-700 rounded">
             {/* Code-barres à gauche */}
             <div className="flex flex-col items-center flex-1">
               <div id={`barcode-container-${article.id}`} className="mb-0.5 scale-50">
                 <BarcodeGenerator value={article.code_barres || article.id || ''} />
               </div>
-              <span className="text-[9px] text-gray-400 mb-0.5">
+              <span className="text-[9px] text-gray-400 dark:text-gray-500 mb-0.5">
                 {article.code_barres || 'Auto'}
               </span>
               <div className="flex gap-0.5">
@@ -283,9 +283,9 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           </div>
         )}
 
-        <div className="flex items-center justify-between text-[9px] md:text-xs text-gray-500">
+        <div className="flex items-center justify-between text-[9px] md:text-xs text-gray-500 dark:text-gray-400">
           <span className="truncate">Fournisseur: {article.fournisseur}</span>
-          <div className="font-mono bg-gray-100 px-1 md:px-2 py-0.5 md:py-1 rounded text-[8px] md:text-xs">
+          <div className="font-mono bg-gray-100 dark:bg-gray-700 px-1 md:px-2 py-0.5 md:py-1 rounded text-[8px] md:text-xs text-gray-700 dark:text-gray-300">
             {article.code_barres || 'N/A'}
           </div>
         </div>

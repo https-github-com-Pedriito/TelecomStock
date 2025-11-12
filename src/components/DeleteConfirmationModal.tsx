@@ -29,17 +29,17 @@ export function DeleteConfirmationModal({
       <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         {/* Overlay */}
         <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-opacity"
           onClick={isDeleting ? undefined : onClose}
         />
         
         {/* Modal */}
-        <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+        <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
           {!isDeleting && (
             <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
               <button
                 type="button"
-                className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="rounded-md bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                 onClick={onClose}
               >
                 <span className="sr-only">Fermer</span>
@@ -50,34 +50,34 @@ export function DeleteConfirmationModal({
           
           <div className="sm:flex sm:items-start">
             <div className={`mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${
-              hasMovements ? 'bg-red-100' : 'bg-orange-100'
+              hasMovements ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'
             } sm:mx-0 sm:h-10 sm:w-10`}>
               <AlertTriangle className={`h-6 w-6 ${
-                hasMovements ? 'text-red-600' : 'text-orange-600'
+                hasMovements ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'
               }`} />
             </div>
             
             <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 className="text-base font-semibold leading-6 text-gray-900">
+              <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
                 {hasMovements ? 'Suppression avec mouvements associés' : 'Confirmer la suppression'}
               </h3>
               
               <div className="mt-2">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Êtes-vous sûr de vouloir supprimer l'article{' '}
-                  <span className="font-medium text-gray-900">"{articleName}"</span> ?
+                  <span className="font-medium text-gray-900 dark:text-white">"{articleName}"</span> ?
                 </p>
                 
                 {hasMovements && (
-                  <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md">
                     <div className="flex">
-                      <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5" />
+                      <AlertTriangle className="h-5 w-5 text-red-400 dark:text-red-500 mt-0.5" />
                       <div className="ml-3">
-                        <p className="text-sm text-red-700">
+                        <p className="text-sm text-red-700 dark:text-red-400">
                           <strong>Attention :</strong> Cet article a{' '}
                           <span className="font-bold">{movementCount} mouvement(s)</span> associé(s).
                         </p>
-                        <p className="text-sm text-red-600 mt-1">
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                           Cette action supprimera définitivement l'article ET tous ses mouvements 
                           de l'historique. Cette action est irréversible.
                         </p>
@@ -87,7 +87,7 @@ export function DeleteConfirmationModal({
                 )}
                 
                 {!hasMovements && (
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                     Cette action est irréversible.
                   </p>
                 )}
@@ -101,7 +101,7 @@ export function DeleteConfirmationModal({
               disabled={isDeleting}
               className={`inline-flex w-full justify-center items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
                 isDeleting
-                  ? 'bg-gray-400 cursor-not-allowed'
+                  ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
                   : hasMovements 
                     ? 'bg-red-600 hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600'
                     : 'bg-orange-600 hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600'
@@ -122,8 +122,8 @@ export function DeleteConfirmationModal({
               disabled={isDeleting}
               className={`mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset sm:mt-0 sm:w-auto ${
                 isDeleting
-                  ? 'bg-gray-100 text-gray-400 ring-gray-200 cursor-not-allowed'
-                  : 'bg-white text-gray-900 ring-gray-300 hover:bg-gray-50'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 ring-gray-200 dark:ring-gray-600 cursor-not-allowed'
+                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
               }`}
               onClick={onClose}
             >

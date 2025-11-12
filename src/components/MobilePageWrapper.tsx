@@ -37,9 +37,9 @@ export function MobilePageWrapper({
       
       {/* Header de page (optionnel) */}
       {(title || actions) && (
-        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-[34px] md:top-0 z-10">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between sticky top-[34px] md:top-0 z-10">
           {title && (
-            <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate flex-1">
               {title}
             </h1>
           )}
@@ -70,7 +70,7 @@ export function MobileCard({
   className?: string;
 }) {
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 w-full max-w-full ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 w-full max-w-full ${className}`}>
       {children}
     </div>
   );

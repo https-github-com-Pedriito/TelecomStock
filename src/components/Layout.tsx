@@ -27,6 +27,8 @@ interface LayoutProps {
   };
   onLogout: () => void;
   hasPermission: (permission: string) => boolean;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
   children: React.ReactNode;
 }
 
@@ -36,7 +38,9 @@ export function Layout({
   alertsCount, 
   currentUser, 
   onLogout, 
-  hasPermission, 
+  hasPermission,
+  isDarkMode,
+  toggleDarkMode,
   children 
 }: LayoutProps) {
   const menuItems = [
@@ -106,9 +110,9 @@ export function Layout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Bannière Beta moderne avec effet néon - Visible uniquement sur desktop */}
-      <div className="hidden md:block fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50">
+      <div className="hidden md:block fixed top-0 left-0 right-0 bg-black/95 dark:bg-black backdrop-blur-xl border-b border-purple-500/30 z-50">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
         <div className="relative container mx-auto max-w-full py-1.5 px-4 flex items-center justify-center gap-2">
           <span className="relative inline-flex items-center justify-center">
@@ -127,7 +131,7 @@ export function Layout({
       <div className="hidden md:block h-[34px]"></div>
       
       {/* Header */}
-      <header className="bg-blue-700 text-white shadow-lg sticky top-[34px] md:top-[34px] z-40">
+      <header className="bg-blue-700 dark:bg-gray-800 text-white shadow-lg sticky top-[34px] md:top-[34px] z-40">
         <div className="container mx-auto px-4 py-4 max-w-full">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -168,9 +172,27 @@ export function Layout({
                     </span>
                   </div>
                 </div>
+                
+                {/* Bouton mode sombre */}
+                <button
+                  onClick={toggleDarkMode}
+                  className="p-2 hover:bg-blue-600 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title={isDarkMode ? 'Mode clair' : 'Mode sombre'}
+                >
+                  {isDarkMode ? (
+                    <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                    </svg>
+                  )}
+                </button>
+                
                 <button
                   onClick={onLogout}
-                  className="p-2 hover:bg-blue-600 rounded-lg transition-colors"
+                  className="p-2 hover:bg-blue-600 dark:hover:bg-gray-700 rounded-lg transition-colors"
                   title="Se déconnecter"
                 >
                   <LogOut size={18} />
@@ -182,7 +204,7 @@ export function Layout({
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white shadow-md border-b">
+      <nav className="bg-white dark:bg-gray-800 shadow-md border-b dark:border-gray-700">
         <div className="container mx-auto px-4 max-w-full">
           <div className="flex overflow-x-auto min-w-0">
             {menuItems.map((item) => {
@@ -193,8 +215,8 @@ export function Layout({
                   onClick={() => onViewChange(item.id)}
                   className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                     currentView === item.id
-                      ? 'text-blue-600 border-blue-600 bg-blue-50'
-                      : 'text-gray-600 border-transparent hover:text-blue-600 hover:border-blue-300'
+                      ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-gray-700'
+                      : 'text-gray-600 dark:text-gray-300 border-transparent hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500'
                   }`}
                 >
                   <Icon size={18} />

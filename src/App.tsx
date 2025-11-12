@@ -2,6 +2,7 @@ import React,{ useState, useEffect, useCallback } from 'react';
 import { ViewMode, Article, Mouvement, User, Fournisseur, Localisation, LocalisationInput, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
 import { useAuth } from './hooks/useAuth';
+import { useDarkMode } from './hooks/useDarkMode';
 import { useNotifications } from './components/Notification';
 import { api } from './lib/api';
 import { Layout } from './components/Layout';
@@ -24,6 +25,9 @@ function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [loginError, setLoginError] = useState('');
   const [useNewUX] = useState(true); // Toggle pour la nouvelle UX
+  
+  // Mode sombre
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   
   // Système de notifications
   const { showStockNotification, NotificationContainer } = useNotifications();
@@ -511,7 +515,7 @@ function App() {
     return (
       <FeedbackProvider>
         {/* Header mobile fixe avec déconnexion */}
-        <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-50 overflow-hidden">
+        <div className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-50 overflow-hidden">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-sm">
@@ -519,14 +523,31 @@ function App() {
               </span>
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-semibold text-gray-900 truncate">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                 {currentUserForComponents.prenom} {currentUserForComponents.nom}
               </span>
-              <span className="text-xs text-gray-500 capitalize truncate">
+              <span className="text-xs text-gray-500 dark:text-gray-400 capitalize truncate">
                 {currentUserForComponents.role}
               </span>
             </div>
           </div>
+          
+          {/* Bouton mode sombre */}
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0 mr-2"
+            title={isDarkMode ? 'Mode clair' : 'Mode sombre'}
+          >
+            {isDarkMode ? (
+              <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            )}
+          </button>
           
           {/* Badge BETA visible sur mobile */}
           <div className="relative inline-flex items-center justify-center mr-3 flex-shrink-0 pointer-events-none">
@@ -548,7 +569,7 @@ function App() {
           </button>
         </div>
         
-        <div className="h-screen flex flex-col bg-gray-50 overflow-hidden max-w-full pt-[72px]">
+        <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden max-w-full pt-[72px]">
           {/* Contenu principal - avec overflow contrôlé et padding généreux */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
             <div className="px-6 py-6 max-w-full">
@@ -581,6 +602,8 @@ function App() {
         currentUser={currentUserForComponents}
         onLogout={signOut}
         hasPermission={hasPermission}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
       >
         {renderCurrentView()}
       </Layout>

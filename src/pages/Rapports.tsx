@@ -112,22 +112,22 @@ Généré le ${new Date().toLocaleString('fr-FR')}
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rapports Mensuels</h1>
-          <p className="text-gray-600">Analyse des mouvements et statistiques</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Rapports Mensuels</h1>
+          <p className="text-gray-600 dark:text-gray-400">Analyse des mouvements et statistiques</p>
         </div>
         <div className="flex gap-2">
           <div className="flex items-center gap-2">
-            <Calendar size={18} className="text-gray-500" />
+            <Calendar size={18} className="text-gray-500 dark:text-gray-400" />
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
             />
           </div>
           <button
             onClick={exportToPDF}
-            className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <Download size={18} />
             Exporter
@@ -137,71 +137,71 @@ Généré le ${new Date().toLocaleString('fr-FR')}
 
       {/* Résumé */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Entrées</p>
-              <p className="text-2xl font-bold text-green-600">{rapportMensuel.totalEntrees}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Entrées</p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{rapportMensuel.totalEntrees}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-green-600" />
+            <TrendingUp className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Sorties</p>
-              <p className="text-2xl font-bold text-orange-600">{rapportMensuel.totalSorties}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Sorties</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{rapportMensuel.totalSorties}</p>
             </div>
-            <TrendingDown className="w-8 h-8 text-orange-600" />
+            <TrendingDown className="w-8 h-8 text-orange-600 dark:text-orange-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Articles ajoutés</p>
-              <p className="text-2xl font-bold text-blue-600">{rapportMensuel.articlesAjoutes}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Articles ajoutés</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{rapportMensuel.articlesAjoutes}</p>
             </div>
-            <Package className="w-8 h-8 text-blue-600" />
+            <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Alertes stock</p>
-              <p className="text-2xl font-bold text-red-600">{rapportMensuel.alertesStock}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Alertes stock</p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">{rapportMensuel.alertesStock}</p>
             </div>
-            <AlertTriangle className="w-8 h-8 text-red-600" />
+            <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Mouvements par Catégorie */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
             <FileText size={20} />
             Mouvements par Catégorie
           </h2>
           
           {Object.keys(rapportMensuel.mouvementsParCategorie).length === 0 ? (
-            <p className="text-gray-500 text-center py-4">Aucun mouvement ce mois-ci</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-4">Aucun mouvement ce mois-ci</p>
           ) : (
             <div className="space-y-4">
               {Object.entries(rapportMensuel.mouvementsParCategorie)
                 .sort(([,a], [,b]) => (b.entrees + b.sorties) - (a.entrees + a.sorties))
                 .map(([categorie, data]) => (
-                  <div key={categorie} className="border-b border-gray-200 pb-3 last:border-b-0">
-                    <h3 className="font-medium text-gray-900 mb-2">{categorie}</h3>
+                  <div key={categorie} className="border-b border-gray-200 dark:border-gray-700 pb-3 last:border-b-0">
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-2">{categorie}</h3>
                     <div className="flex justify-between text-sm">
-                      <span className="text-green-600">Entrées: {data.entrees}</span>
-                      <span className="text-orange-600">Sorties: {data.sorties}</span>
+                      <span className="text-green-600 dark:text-green-400">Entrées: {data.entrees}</span>
+                      <span className="text-orange-600 dark:text-orange-400">Sorties: {data.sorties}</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full"
+                        className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full"
                         style={{ 
                           width: `${Math.max(10, (data.entrees + data.sorties) / Math.max(...Object.values(rapportMensuel.mouvementsParCategorie).map(d => d.entrees + d.sorties)) * 100)}%` 
                         }}
@@ -214,25 +214,25 @@ Généré le ${new Date().toLocaleString('fr-FR')}
         </div>
 
         {/* Top Articles */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
             <TrendingUp size={20} />
             Top Articles (Mouvements)
           </h2>
           
           {rapportMensuel.topArticles.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">Aucun mouvement ce mois-ci</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-4">Aucun mouvement ce mois-ci</p>
           ) : (
             <div className="space-y-3">
               {rapportMensuel.topArticles.map((article, index) => (
-                <div key={article.nom} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div key={article.nom} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <span className="bg-blue-600 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                    <span className="bg-blue-600 dark:bg-blue-500 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center">
                       {index + 1}
                     </span>
-                    <span className="font-medium text-gray-900 truncate">{article.nom}</span>
+                    <span className="font-medium text-gray-900 dark:text-white truncate">{article.nom}</span>
                   </div>
-                  <span className="text-sm font-semibold text-blue-600">{article.quantite}</span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{article.quantite}</span>
                 </div>
               ))}
             </div>
