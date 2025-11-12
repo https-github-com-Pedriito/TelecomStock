@@ -197,7 +197,33 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// GET /inventaires/:id/entries - Récupérer toutes les entrées d'un inventaire
+/**
+ * @swagger
+ * /inventaires/{id}/entries:
+ *   get:
+ *     summary: Récupérer toutes les entrées d'un inventaire
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'inventaire
+ *     responses:
+ *       200:
+ *         description: Liste des entrées d'inventaire
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/InventaireEntry'
+ *       500:
+ *         description: Erreur serveur
+ */
 router.get('/:id/entries', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -216,7 +242,54 @@ router.get('/:id/entries', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /inventaires/:id/entries - Ajouter une entrée à un inventaire
+/**
+ * @swagger
+ * /inventaires/{id}/entries:
+ *   post:
+ *     summary: Ajouter ou mettre à jour une entrée d'inventaire
+ *     description: Ajoute une nouvelle entrée ou met à jour une entrée existante si l'utilisateur a déjà compté cet article
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'inventaire
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - article_id
+ *               - quantite_comptee
+ *             properties:
+ *               article_id:
+ *                 type: string
+ *                 format: uuid
+ *                 example: 550e8400-e29b-41d4-a716-446655440000
+ *               quantite_comptee:
+ *                 type: number
+ *                 example: 25
+ *               commentaire:
+ *                 type: string
+ *                 example: Stock vérifié dans l'entrepôt A
+ *     responses:
+ *       200:
+ *         description: Entrée créée ou mise à jour avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/InventaireEntry'
+ *       404:
+ *         description: Inventaire ou article non trouvé
+ *       500:
+ *         description: Erreur serveur
+ */
 router.post('/:id/entries', authMiddleware, async (req, res) => {
   try {
     const { id: inventaireId } = req.params;
@@ -288,7 +361,34 @@ router.post('/:id/entries', authMiddleware, async (req, res) => {
   }
 });
 
-// PUT /inventaires/:id/finalize - Finaliser un inventaire
+/**
+ * @swagger
+ * /inventaires/{id}/finalize:
+ *   put:
+ *     summary: Finaliser un inventaire
+ *     description: Marque un inventaire comme finalisé. Cette action est irréversible.
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'inventaire à finaliser
+ *     responses:
+ *       200:
+ *         description: Inventaire finalisé avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Inventaire'
+ *       404:
+ *         description: Inventaire non trouvé ou déjà finalisé
+ *       500:
+ *         description: Erreur serveur
+ */
 router.put('/:id/finalize', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -325,7 +425,36 @@ router.put('/:id/finalize', authMiddleware, async (req, res) => {
   }
 });
 
-// DELETE /inventaires/:id/entries/:entryId - Supprimer une entrée d'inventaire
+/**
+ * @swagger
+ * /inventaires/{id}/entries/{entryId}:
+ *   delete:
+ *     summary: Supprimer une entrée d'inventaire
+ *     description: Supprime une entrée d'inventaire. Seul l'utilisateur qui a créé l'entrée peut la supprimer.
+ *     tags: [Inventaires]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'inventaire
+ *       - in: path
+ *         name: entryId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de l'entrée à supprimer
+ *     responses:
+ *       204:
+ *         description: Entrée supprimée avec succès (pas de contenu)
+ *       404:
+ *         description: Inventaire non trouvé, non modifiable, ou entrée non autorisée
+ *       500:
+ *         description: Erreur serveur
+ */
 router.delete('/:id/entries/:entryId', authMiddleware, async (req, res) => {
   try {
     const { id: inventaireId, entryId } = req.params;
