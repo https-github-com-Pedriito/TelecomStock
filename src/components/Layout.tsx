@@ -106,14 +106,41 @@ export function Layout({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50">
+      {/* Bannière Beta moderne avec effet néon - Visible uniquement sur desktop */}
+      <div className="hidden md:block fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
+        <div className="relative container mx-auto max-w-full py-1.5 px-4 flex items-center justify-center gap-2">
+          <span className="relative inline-flex items-center justify-center">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping"></span>
+            <span className="relative inline-flex items-center justify-center px-2.5 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50">
+              BETA
+            </span>
+          </span>
+          <span className="text-xs font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Version de test
+          </span>
+        </div>
+      </div>
+      
+      {/* Spacer pour la bannière fixe */}
+      <div className="hidden md:block h-[34px]"></div>
+      
       {/* Header */}
-      <header className="bg-blue-700 text-white shadow-lg">
+      <header className="bg-blue-700 text-white shadow-lg sticky top-[34px] md:top-[34px] z-40">
         <div className="container mx-auto px-4 py-4 max-w-full">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-full shadow-md bg-white" />
-              <h1 className="text-lg sm:text-xl font-bold truncate max-w-[50vw] sm:max-w-none">Decimale Stock</h1>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <h1 className="text-lg sm:text-xl font-bold truncate max-w-[30vw] sm:max-w-none">Decimale Stock</h1>
+                <span className="hidden md:inline-flex relative items-center justify-center">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-50 animate-ping"></span>
+                  <span className="relative inline-flex items-center justify-center px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50">
+                    BETA
+                  </span>
+                </span>
+              </div>
               {alertsCount > 0 && hasPermission('view_dashboard') && (
                 <div className="hidden min-[880px]:flex items-center gap-2 bg-orange-500 px-3 py-1 rounded-full text-sm font-medium">
                   <AlertTriangle size={16} />
@@ -122,7 +149,15 @@ export function Layout({
               )}
             </div>
             
-            <div className="flex items-center gap-4 shrink-0 ml-auto">
+            <div className="flex items-center gap-3 sm:gap-4 shrink-0 ml-auto">
+              {/* Badge BETA visible sur mobile à côté du logout */}
+              <div className="md:hidden relative inline-flex items-center justify-center">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping"></span>
+                <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50">
+                  BETA
+                </span>
+              </div>
+              
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium">{currentUser.nom}</p>

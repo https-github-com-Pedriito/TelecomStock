@@ -510,36 +510,45 @@ function App() {
   if (isMobile && useNewUX) {
     return (
       <FeedbackProvider>
-        <div className="h-screen flex flex-col bg-gray-50 overflow-hidden max-w-full">
-          {/* Header mobile avec déconnexion */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center space-x-3 min-w-0 flex-1">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">
-                  {currentUserForComponents.prenom.charAt(0)}{currentUserForComponents.nom.charAt(0)}
-                </span>
-              </div>
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-semibold text-gray-900 truncate">
-                  {currentUserForComponents.prenom} {currentUserForComponents.nom}
-                </span>
-                <span className="text-xs text-gray-500 capitalize truncate">
-                  {currentUserForComponents.role}
-                </span>
-              </div>
+        {/* Header mobile fixe avec déconnexion */}
+        <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-50 overflow-hidden">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">
+                {currentUserForComponents.prenom.charAt(0)}{currentUserForComponents.nom.charAt(0)}
+              </span>
             </div>
-            <button
-              onClick={signOut}
-              className="flex items-center space-x-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex-shrink-0 ml-2"
-              title="Se déconnecter"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              <span className="text-sm font-medium hidden sm:inline">Quitter</span>
-            </button>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-sm font-semibold text-gray-900 truncate">
+                {currentUserForComponents.prenom} {currentUserForComponents.nom}
+              </span>
+              <span className="text-xs text-gray-500 capitalize truncate">
+                {currentUserForComponents.role}
+              </span>
+            </div>
           </div>
           
+          {/* Badge BETA visible sur mobile */}
+          <div className="relative inline-flex items-center justify-center mr-3 flex-shrink-0 pointer-events-none">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping pointer-events-none"></span>
+            <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50 pointer-events-none">
+              BETA
+            </span>
+          </div>
+          
+          <button
+            onClick={signOut}
+            className="flex items-center space-x-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex-shrink-0 ml-2"
+            title="Se déconnecter"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span className="text-sm font-medium hidden sm:inline">Quitter</span>
+          </button>
+        </div>
+        
+        <div className="h-screen flex flex-col bg-gray-50 overflow-hidden max-w-full pt-[72px]">
           {/* Contenu principal - avec overflow contrôlé et padding généreux */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
             <div className="px-6 py-6 max-w-full">

@@ -41,7 +41,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
 
       // Informations de l'inventaire
       worksheet.mergeCells('A1:F1');
-      worksheet.getCell('A1').value = `Inventaire: ${inventaire.nom}`;
+      worksheet.getCell('A1').value = inventaire.nom;
       worksheet.getCell('A1').font = { bold: true, size: 16 };
       worksheet.getCell('A1').alignment = { horizontal: 'center' };
 
@@ -133,7 +133,10 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Inventaire_${inventaire.nom.replace(/[^a-z0-9]/gi, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const now = new Date();
+      const formattedDate = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const fileName = inventaire.nom.replace(/[^a-z0-9]/gi, '_');
+      a.download = `${fileName}_${formattedDate}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -180,22 +183,26 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
   const stats = calculateStats();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="bg-blue-600 text-white p-6 flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">{inventaire.nom}</h2>
-            <p className="text-blue-100">{inventaire.description}</p>
-            <div className="flex gap-4 mt-3 text-sm">
-              <span className="bg-blue-700 px-3 py-1 rounded">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pb-20">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[85vh] flex flex-col overflow-hidden">
+        {/* Header - Fixed, no scroll */}
+        <div className="bg-blue-600 text-white p-4 flex-shrink-0 flex justify-between items-start">
+          <div className="flex-1 overflow-hidden">
+            <h2 className="text-xl font-bold mb-1 truncate" title={inventaire.nom}>
+              {inventaire.nom}
+            </h2>
+            <p className="text-blue-100 text-sm truncate" title={inventaire.description}>
+              {inventaire.description}
+            </p>
+            <div className="flex flex-wrap gap-2 mt-2 text-xs">
+              <span className="bg-blue-700 px-2 py-1 rounded whitespace-nowrap">
                 {inventaire.statut}
               </span>
-              <span>
+              <span className="whitespace-nowrap">
                 Créé le {new Date(inventaire.created_at).toLocaleDateString('fr-FR')}
               </span>
               {inventaire.finalized_at && (
-                <span>
+                <span className="whitespace-nowrap">
                   Finalisé le {new Date(inventaire.finalized_at).toLocaleDateString('fr-FR')}
                 </span>
               )}
@@ -203,55 +210,56 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 p-2 rounded"
+            className="text-white hover:bg-blue-700 p-2 rounded flex-shrink-0 ml-2"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 p-6 bg-gray-50 border-b">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-600 mb-1">Total Articles</div>
-            <div className="text-2xl font-bold">{entries.length}</div>
+        {/* Stats - Fixed, no scroll */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 bg-gray-50 border-b flex-shrink-0">
+          <div className="bg-white p-2 rounded-lg shadow">
+            <div className="text-xs text-gray-600 mb-1 truncate" title="Total Articles">Articles</div>
+            <div className="text-lg font-bold truncate">{entries.length}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-600 mb-1">Quantité Comptée</div>
-            <div className="text-2xl font-bold text-blue-600">{stats.totalComptee}</div>
+          <div className="bg-green-50 p-2 rounded-lg shadow border border-green-200">
+            <div className="text-xs text-green-700 mb-1 truncate flex items-center gap-1">
+              <CheckCircle className="h-3 w-3" /> OK
+            </div>
+            <div className="text-lg font-bold text-green-600 truncate">{stats.articlesOk}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-600 mb-1">Quantité Théorique</div>
-            <div className="text-2xl font-bold text-gray-600">{stats.totalTheorique}</div>
+          <div className="bg-red-50 p-2 rounded-lg shadow border border-red-200">
+            <div className="text-xs text-red-700 mb-1 truncate flex items-center gap-1">
+              <TrendingDown className="h-3 w-3" /> Manq.
+            </div>
+            <div className="text-lg font-bold text-red-600 truncate">{stats.articlesManquants}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <div className="text-sm text-gray-600 mb-1">Écart Total</div>
-            <div className={`text-2xl font-bold ${
+          <div className="bg-blue-50 p-2 rounded-lg shadow border border-blue-200">
+            <div className="text-xs text-blue-700 mb-1 truncate flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" /> Excéd.
+            </div>
+            <div className="text-lg font-bold text-blue-600 truncate">{stats.articlesExcedents}</div>
+          </div>
+          <div className="bg-blue-50 p-2 rounded-lg shadow border border-blue-200">
+            <div className="text-xs text-blue-700 mb-1 truncate" title="Quantité Comptée">Qté Compt.</div>
+            <div className="text-lg font-bold text-blue-600 truncate">{stats.totalComptee}</div>
+          </div>
+          <div className={`p-2 rounded-lg shadow border ${
+            stats.ecartTotal === 0 ? 'bg-green-50 border-green-200' : 
+            stats.ecartTotal > 0 ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'
+          }`}>
+            <div className="text-xs mb-1 truncate" title="Écart Total">Écart</div>
+            <div className={`text-lg font-bold truncate ${
               stats.ecartTotal === 0 ? 'text-green-600' : 
               stats.ecartTotal > 0 ? 'text-blue-600' : 'text-red-600'
-            }`}>
-              {stats.ecartTotal > 0 ? '+' : ''}{stats.ecartTotal} ({stats.ecartPct}%)
+            }`} title={`${stats.ecartTotal > 0 ? '+' : ''}${stats.ecartTotal} (${stats.ecartPct}%)`}>
+              {stats.ecartTotal > 0 ? '+' : ''}{stats.ecartTotal}
             </div>
           </div>
         </div>
 
-        {/* Summary */}
-        <div className="flex gap-4 px-6 py-4 bg-gray-50 border-b">
-          <div className="flex items-center gap-2 text-green-600">
-            <CheckCircle className="h-5 w-5" />
-            <span className="font-semibold">{stats.articlesOk} OK</span>
-          </div>
-          <div className="flex items-center gap-2 text-red-600">
-            <TrendingDown className="h-5 w-5" />
-            <span className="font-semibold">{stats.articlesManquants} Manquants</span>
-          </div>
-          <div className="flex items-center gap-2 text-blue-600">
-            <TrendingUp className="h-5 w-5" />
-            <span className="font-semibold">{stats.articlesExcedents} Excédents</span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -270,32 +278,32 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
               Aucune entrée dans cet inventaire
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="w-full">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Article
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Image
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Code Barres
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Réf.
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Comptée
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Compt.
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Théorique
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Théor.
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Écart
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Compté par
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Par
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Commentaire
                     </th>
                   </tr>
@@ -309,48 +317,68 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
 
                     return (
                       <tr key={entry.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {entry.article?.nom || 'Article supprimé'}
+                        <td className="px-2 py-2">
+                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mx-auto">
+                            {entry.article?.image_url ? (
+                              <img 
+                                src={entry.article.image_url} 
+                                alt={entry.article.nom}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <span className={`text-xs font-semibold text-gray-400 ${entry.article?.image_url ? 'hidden' : ''}`}>
+                              {entry.article?.nom?.substring(0, 2).toUpperCase() || '??'}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {entry.article?.code_barres || 'N/A'}
+                        <td className="px-2 py-2 text-sm text-gray-600 whitespace-nowrap hidden md:table-cell">
+                          <div className="truncate max-w-[120px]" title={entry.article?.code_barres || 'N/A'}>
+                            {entry.article?.code_barres || 'N/A'}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-blue-600">
+                        <td className="px-2 py-2 text-center text-sm font-semibold text-blue-600 whitespace-nowrap">
                           {entry.quantite_comptee}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 whitespace-nowrap">
                           {entry.quantite_theorique}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <span className={`text-sm font-semibold ${
-                            ecart === 0 ? 'text-green-600' :
-                            ecart > 0 ? 'text-blue-600' : 'text-red-600'
-                          }`}>
-                            {ecart > 0 ? '+' : ''}{ecart} ({ecartPct}%)
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {ecart === 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                              <CheckCircle className="h-3 w-3" /> OK
+                        <td className="px-2 py-2 text-center whitespace-nowrap">
+                          <div className="flex flex-col items-center">
+                            <span className={`text-sm font-bold ${
+                              ecart === 0 ? 'text-green-600' :
+                              ecart > 0 ? 'text-blue-600' : 'text-red-600'
+                            }`}>
+                              {ecart > 0 ? '+' : ''}{ecart}
                             </span>
-                          ) : ecart > 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              <TrendingUp className="h-3 w-3" /> Excédent
+                            <span className="text-xs text-gray-500">
+                              {ecartPct}%
                             </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              <TrendingDown className="h-3 w-3" /> Manquant
-                            </span>
-                          )}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {entry.utilisateur?.nom || 'N/A'}
+                        <td className="px-2 py-2 text-center">
+                          <div title={ecart === 0 ? 'OK' : ecart > 0 ? 'Excédent' : 'Manquant'}>
+                            {ecart === 0 ? (
+                              <CheckCircle className="h-5 w-5 text-green-600 mx-auto" />
+                            ) : ecart > 0 ? (
+                              <TrendingUp className="h-5 w-5 text-blue-600 mx-auto" />
+                            ) : (
+                              <TrendingDown className="h-5 w-5 text-red-600 mx-auto" />
+                            )}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {entry.commentaire || '-'}
+                        <td className="px-2 py-2 text-xs text-gray-500">
+                          <div className="truncate max-w-[100px]" title={entry.utilisateur?.nom || 'N/A'}>
+                            {entry.utilisateur?.nom || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-xs text-gray-500">
+                          <div className="truncate max-w-[200px]" title={entry.commentaire || '-'}>
+                            {entry.commentaire || '-'}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -361,25 +389,25 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
           )}
         </div>
 
-        {/* Footer */}
-        <div className="border-t p-4 bg-gray-50 flex justify-between items-center">
-          <div className="text-sm text-gray-600">
+        {/* Footer - Fixed, no scroll */}
+        <div className="border-t p-3 bg-gray-50 flex-shrink-0 flex flex-wrap justify-between items-center gap-2">
+          <div className="text-sm text-gray-600 whitespace-nowrap">
             {entries.length} entrée(s) au total
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap"
             >
               Fermer
             </button>
             <button
               onClick={handleExportExcel}
               disabled={exporting || entries.length === 0}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
             >
-              <Download className="h-4 w-4" />
-              {exporting ? 'Export en cours...' : 'Télécharger Excel'}
+              <Download className="h-4 w-4 flex-shrink-0" />
+              {exporting ? 'Export...' : 'Excel'}
             </button>
           </div>
         </div>

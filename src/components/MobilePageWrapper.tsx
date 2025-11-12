@@ -19,9 +19,25 @@ export function MobilePageWrapper({
 }: MobilePageWrapperProps) {
   return (
     <div className={`w-full h-full overflow-x-hidden overflow-y-auto ${className}`}>
+      {/* Bannière BETA pour mobile */}
+      <div className="md:hidden bg-black/95 backdrop-blur-xl border-b border-purple-500/30 sticky top-0 z-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
+        <div className="relative py-1.5 px-4 flex items-center justify-center gap-2">
+          <span className="relative inline-flex items-center justify-center">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping"></span>
+            <span className="relative inline-flex items-center justify-center px-2.5 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-[10px] tracking-widest text-white shadow-lg shadow-purple-500/50">
+              BETA
+            </span>
+          </span>
+          <span className="text-[10px] text-white/70 font-medium">
+            Version de test
+          </span>
+        </div>
+      </div>
+      
       {/* Header de page (optionnel) */}
       {(title || actions) && (
-        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+        <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-[34px] md:top-0 z-10">
           {title && (
             <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">
               {title}

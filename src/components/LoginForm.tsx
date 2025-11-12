@@ -41,7 +41,32 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8">
+      {/* Bannière Beta moderne avec effet néon */}
+      <div className="fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
+        <div className="relative max-w-7xl mx-auto py-2.5 px-4 flex items-center justify-center gap-3">
+          <div className="flex items-center gap-3">
+            <span className="relative inline-flex items-center justify-center">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping"></span>
+              <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs sm:text-sm tracking-widest text-white shadow-lg shadow-purple-500/50">
+                BETA
+              </span>
+            </span>
+            <div className="hidden sm:flex items-center gap-2 text-white/90">
+              <span className="text-sm font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Version de test
+              </span>
+              <span className="text-xs text-white/60">•</span>
+              <span className="text-xs text-white/60">Vos retours comptent</span>
+            </div>
+            <span className="sm:hidden text-xs text-white/70 font-medium">
+              Test en cours
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 mt-16">
         <div className="text-center mb-8">
           <div className="w-48 h-48 flex items-center justify-center mx-auto mb-6 rounded-full shadow-lg shadow-blue-200 p-6 bg-white">
             <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-36 h-36 object-contain rounded-full" />
