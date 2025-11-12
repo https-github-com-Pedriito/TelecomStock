@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { InventaireDetailModal } from '../components/InventaireDetailModal';
 import { useInventaire } from '../hooks/useInventaire';
-import { ScanLine, FileText, Filter, Edit2, Plus, History, Archive, Eye } from 'lucide-react';
+import { ScanLine, FileText, Filter, Edit2, Plus, History, Archive, Eye, Search, List, Package, MapPin, Trash2, CheckCircle } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface InventoryProps {
   articles: any[];
@@ -42,6 +44,49 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
   
   // État pour la modale de détails
   const [selectedInventaire, setSelectedInventaire] = useState<any>(null);
+  
+  // États pour la nouvelle interface de saisie
+  const [inputMode, setInputMode] = useState<'search' | 'scan' | 'list'>('search');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [mostSearchedArticles, setMostSearchedArticles] = useState<any[]>([]);
+  
+  // Calculer les 3 articles les plus comptés
+  useEffect(() => {
+    if (currentEntries.length > 0) {
+      const articleCounts = currentEntries.reduce((acc, entry) => {
+        acc[entry.article_id] = (acc[entry.article_id] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const sorted = Object.entries(articleCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([articleId]) => articles.find(a => a.id === articleId))
+        .filter(Boolean);
+      
+      setMostSearchedArticles(sorted);
+    } else {
+      // Si pas d'entrées, prendre les 3 premiers articles
+      setMostSearchedArticles(articles.slice(0, 3));
+    }
+  }, [currentEntries, articles]);
+  
+  // Recherche d'articles
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const results = articles.filter(article => 
+        article.nom.toLowerCase().includes(query) ||
+        article.code_barres?.toLowerCase().includes(query) ||
+        article.categorie.toLowerCase().includes(query)
+      ).slice(0, 5); // Limiter à 5 résultats sur mobile
+      
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, articles]);
 
   // Auto-générer le nom d'inventaire par défaut
   useEffect(() => {
@@ -73,12 +118,18 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
   const submitCount = async () => {
     if (!selectedArticleId) {
-      alert('Sélectionnez un article');
+      toast.error('Sélectionnez un article', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
     
     if (!currentInventaire) {
-      alert('Créez d\'abord un inventaire');
+      toast.error('Créez d\'abord un inventaire', {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
     
@@ -95,10 +146,16 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       setCommentaire('');
       setEditingEntry(null);
       
-      alert('Comptage enregistré avec succès');
+      toast.success('Comptage enregistré avec succès', {
+        position: "top-right",
+        autoClose: 2000,
+      });
     } catch (err) {
       console.error('Erreur lors de l\'enregistrement:', err);
-      alert('Erreur lors de l\'enregistrement du comptage');
+      toast.error('Erreur lors de l\'enregistrement du comptage', {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   };
 
@@ -109,8 +166,14 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       alert("Article non trouvé dans la base — impossible d'enregistrer");
       return;
     }
-    setSelectedArticleId(found.id);
-    setQuantite(1);
+    selectArticle(found);
+  };
+  
+  const selectArticle = (article: any) => {
+    setSelectedArticleId(article.id);
+    setQuantite(article.quantite_stock || 0);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
   const handleEditEntry = (entry: any) => {
@@ -125,10 +188,16 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     
     try {
       await deleteEntry(entryId);
-      alert('Entrée supprimée avec succès');
+      toast.success('Entrée supprimée avec succès', {
+        position: "top-right",
+        autoClose: 2000,
+      });
     } catch (err) {
       console.error('Erreur lors de la suppression:', err);
-      alert('Erreur lors de la suppression de l\'entrée');
+      toast.error('Erreur lors de la suppression de l\'entrée', {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -190,23 +259,25 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       entry.quantite_comptee !== entry.quantite_theorique
     ).length;
     
-    let applyAdjustments = true;
+    // Confirmation irréversible
+    const confirmMessage = articlesWithDifferences > 0
+      ? `⚠️ ATTENTION - OPÉRATION IRRÉVERSIBLE ⚠️\n\n` +
+        `Vous êtes sur le point de finaliser l'inventaire "${currentInventaire.nom}".\n\n` +
+        `${articlesWithDifferences} article(s) présentent des différences.\n` +
+        `Les stocks seront automatiquement réajustés et des mouvements seront créés.\n\n` +
+        `Cette action ne peut pas être annulée.\n\n` +
+        `Voulez-vous continuer ?`
+      : `⚠️ ATTENTION - OPÉRATION IRRÉVERSIBLE ⚠️\n\n` +
+        `Vous êtes sur le point de finaliser l'inventaire "${currentInventaire.nom}".\n\n` +
+        `Aucune différence détectée.\n\n` +
+        `Cette action ne peut pas être annulée.\n\n` +
+        `Voulez-vous continuer ?`;
     
-    if (articlesWithDifferences > 0) {
-      const message = `${articlesWithDifferences} article(s) présentent des différences entre le stock théorique et compté.\n\n` +
-        `Voulez-vous appliquer les réajustements de stock ?\n\n` +
-        `OUI = Les stocks seront mis à jour selon le comptage et des mouvements seront créés\n` +
-        `NON = L'inventaire sera finalisé sans modifier les stocks\n` +
-        `ANNULER = Annuler la finalisation`;
-      
-      const choice = confirm(message);
-      if (choice === null) return; // Annuler
-      applyAdjustments = choice;
-    } else {
-      if (!confirm(`Êtes-vous sûr de vouloir finaliser l'inventaire "${currentInventaire.nom}" ?\n\nAucune différence détectée. Cette action est irréversible.`)) {
-        return;
-      }
+    if (!confirm(confirmMessage)) {
+      return;
     }
+    
+    let applyAdjustments = articlesWithDifferences > 0;
     
     try {
       await finalizeInventaire(applyAdjustments);
@@ -392,57 +463,171 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         </div>
       )}
 
-      {/* Formulaire de comptage */}
+      {/* Formulaire de comptage amélioré */}
       {currentInventaire && (
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-lg font-semibold mb-4">Enregistrer un comptage</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div>
+          
+          {/* Mode Recherche */}
+          {(
+            <div className="space-y-4">
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <select
-                  value={selectedArticleId}
-                  onChange={(e) => setSelectedArticleId(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                >
-                  <option value="">Sélectionner un article</option>
-                  {articles.map(a => (
-                    <option key={a.id} value={a.id}>{a.nom} — {a.code_barres}</option>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher par nom, référence ou catégorie..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                />
+              </div>
+
+              {/* Résultats de recherche (max 5 sur mobile) */}
+              {searchResults.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto">
+                  {searchResults.map(article => (
+                    <button
+                      key={article.id}
+                      onClick={() => selectArticle(article)}
+                      className="p-3 border rounded-lg hover:bg-blue-50 text-left transition-colors flex items-center gap-3"
+                    >
+                      {/* Image de l'article */}
+                      {article.image_url ? (
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0">
+                          <img
+                            src={article.image_url}
+                            alt={article.nom}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                          <Package size={24} className="text-gray-400" />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium">{article.nom}</div>
+                        <div className="text-sm text-gray-600 flex items-center gap-1">
+                          <MapPin size={14} className="text-blue-600" />
+                          {article.localisation}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {article.code_barres} • Stock: {article.quantite_stock}
+                        </div>
+                      </div>
+                    </button>
                   ))}
-                </select>
+                </div>
+              ) : searchQuery ? (
+                <div className="text-center text-gray-500 py-8">
+                  Aucun article trouvé
+                </div>
+              ) : (
+                // Afficher les 3 articles les plus comptés quand pas de recherche
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    {mostSearchedArticles.length > 0 && currentEntries.length > 0
+                      ? 'Articles les plus comptés'
+                      : 'Suggestions d\'articles'}
+                  </h3>
+                  <div className="grid grid-cols-1 gap-2">
+                    {mostSearchedArticles.map(article => (
+                      <button
+                        key={article.id}
+                        onClick={() => selectArticle(article)}
+                        className="p-3 border rounded-lg hover:bg-blue-50 text-left transition-colors flex items-center gap-3"
+                      >
+                        {/* Image de l'article */}
+                        {article.image_url ? (
+                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0">
+                            <img
+                              src={article.image_url}
+                              alt={article.nom}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                            <Package size={24} className="text-gray-400" />
+                          </div>
+                        )}
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium">{article.nom}</div>
+                          <div className="text-sm text-gray-600 flex items-center gap-1">
+                            <MapPin size={14} className="text-blue-600" />
+                            {article.localisation}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {article.code_barres} • Stock: {article.quantite_stock}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Formulaire de saisie de quantité */}
+          {selectedArticleId && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg space-y-3">
+              <div className="font-medium text-lg">
+                {articles.find(a => a.id === selectedArticleId)?.nom}
+              </div>
+              <div className="text-sm text-gray-600">
+                Stock théorique: {articles.find(a => a.id === selectedArticleId)?.quantite_stock}
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Quantité comptée *</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={quantite === 0 ? '' : quantite}
+                    onChange={(e) => setQuantite(e.target.value === '' ? 0 : parseInt(e.target.value))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium mb-1">Commentaire (optionnel)</label>
+                  <input
+                    type="text"
+                    value={commentaire}
+                    onChange={(e) => setCommentaire(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="Commentaire"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button 
+                  onClick={submitCount}
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                >
+                  {editingEntry ? 'Modifier' : 'Enregistrer'}
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedArticleId('');
+                    setQuantite(0);
+                    setCommentaire('');
+                    setEditingEntry(null);
+                  }}
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg"
+                >
+                  Annuler
+                </button>
               </div>
             </div>
-
-            <div>
-              <input
-                type="number"
-                value={quantite}
-                onChange={(e) => setQuantite(parseInt(e.target.value || '0'))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Quantité"
-              />
-            </div>
-
-            <div>
-              <input
-                type="text"
-                value={commentaire}
-                onChange={(e) => setCommentaire(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Commentaire (optionnel)"
-              />
-            </div>
-
-            <div>
-              <button 
-                onClick={submitCount} 
-                disabled={!selectedArticleId}
-                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg"
-              >
-                {editingEntry ? 'Modifier' : 'Enregistrer'}
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -493,13 +678,29 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                           className="p-2 hover:bg-gray-100 rounded-full"
                           title="Supprimer"
                         >
-                          <Archive size={16} className="text-red-500" />
+                          <Trash2 size={16} className="text-red-500" />
                         </button>
                       </div>
                     )}
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Bouton de finalisation en bas */}
+          {currentEntries.length > 0 && (
+            <div className="mt-6 p-4 bg-gray-50 border-t sticky bottom-0">
+              <button
+                onClick={handleFinalize}
+                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-semibold"
+              >
+                <CheckCircle size={20} />
+                Finaliser et enregistrer l'inventaire
+              </button>
+              <p className="text-xs text-gray-600 text-center mt-2">
+                ⚠️ Cette action est irréversible et mettra à jour les stocks
+              </p>
             </div>
           )}
         </div>
@@ -522,6 +723,9 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
           onClose={() => setSelectedInventaire(null)}
         />
       )}
+      
+      {/* Toast notifications */}
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </div>
   );
 }
