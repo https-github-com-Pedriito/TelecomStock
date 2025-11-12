@@ -209,17 +209,17 @@ export function Entrepots({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-lg border border-blue-100 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/20 p-4">
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-400">Total</p>
-          <p className="mt-2 text-2xl font-semibold text-blue-900 dark:text-blue-300">{totalLocalisations}</p>
+        <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-4">
+          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total</p>
+          <p className="mt-2 text-2xl font-semibold text-blue-900 dark:text-blue-100">{totalLocalisations}</p>
         </div>
-        <div className="rounded-lg border border-emerald-100 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-900/20 p-4">
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Actifs</p>
-          <p className="mt-2 text-2xl font-semibold text-emerald-900 dark:text-emerald-300">{activeLocalisations}</p>
+        <div className="rounded-lg border border-emerald-100 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 p-4">
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Actifs</p>
+          <p className="mt-2 text-2xl font-semibold text-emerald-900 dark:text-emerald-100">{activeLocalisations}</p>
         </div>
-        <div className="rounded-lg border border-amber-100 dark:border-amber-900 bg-amber-50 dark:bg-amber-900/20 p-4">
-          <p className="text-sm font-medium text-amber-700 dark:text-amber-400">Inactifs</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-900 dark:text-amber-300">{inactiveLocalisations}</p>
+        <div className="rounded-lg border border-amber-100 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-4">
+          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Inactifs</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-900 dark:text-amber-100">{inactiveLocalisations}</p>
         </div>
       </div>
 
@@ -375,13 +375,13 @@ export function Entrepots({
 
                 <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <span>
                       {localisation.type ? typeLabels[localisation.type] || localisation.type : 'Type non défini'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-gray-400" />
+                    <CalendarDays className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <span>
                       Créé le {format(new Date(localisation.created_at), 'dd/MM/yyyy', { locale: fr })}
                     </span>

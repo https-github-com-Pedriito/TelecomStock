@@ -184,18 +184,18 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pb-20">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-[85vh] flex flex-col overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-7xl h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
         {/* Header - Fixed, no scroll */}
-        <div className="bg-blue-600 text-white p-4 flex-shrink-0 flex justify-between items-start">
+        <div className="bg-blue-600 dark:bg-blue-700 text-white p-4 flex-shrink-0 flex justify-between items-start">
           <div className="flex-1 overflow-hidden">
             <h2 className="text-xl font-bold mb-1 truncate" title={inventaire.nom}>
               {inventaire.nom}
             </h2>
-            <p className="text-blue-100 text-sm truncate" title={inventaire.description}>
+            <p className="text-blue-100 dark:text-blue-200 text-sm truncate" title={inventaire.description}>
               {inventaire.description}
             </p>
             <div className="flex flex-wrap gap-2 mt-2 text-xs">
-              <span className="bg-blue-700 px-2 py-1 rounded whitespace-nowrap">
+              <span className="bg-blue-700 dark:bg-blue-800 px-2 py-1 rounded whitespace-nowrap">
                 {inventaire.statut}
               </span>
               <span className="whitespace-nowrap">
@@ -210,48 +210,48 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 p-2 rounded flex-shrink-0 ml-2"
+            className="text-white hover:bg-blue-700 dark:hover:bg-blue-800 p-2 rounded flex-shrink-0 ml-2"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Stats - Fixed, no scroll */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 bg-gray-50 border-b flex-shrink-0">
-          <div className="bg-white p-2 rounded-lg shadow">
-            <div className="text-xs text-gray-600 mb-1 truncate" title="Total Articles">Articles</div>
-            <div className="text-lg font-bold truncate">{entries.length}</div>
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow border border-gray-200 dark:border-gray-600">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate" title="Total Articles">Articles</div>
+            <div className="text-lg font-bold dark:text-white truncate">{entries.length}</div>
           </div>
-          <div className="bg-green-50 p-2 rounded-lg shadow border border-green-200">
-            <div className="text-xs text-green-700 mb-1 truncate flex items-center gap-1">
+          <div className="bg-green-50 dark:bg-green-900/30 p-2 rounded-lg shadow border border-green-200 dark:border-green-700">
+            <div className="text-xs text-green-700 dark:text-green-400 mb-1 truncate flex items-center gap-1">
               <CheckCircle className="h-3 w-3" /> OK
             </div>
-            <div className="text-lg font-bold text-green-600 truncate">{stats.articlesOk}</div>
+            <div className="text-lg font-bold text-green-600 dark:text-green-400 truncate">{stats.articlesOk}</div>
           </div>
-          <div className="bg-red-50 p-2 rounded-lg shadow border border-red-200">
-            <div className="text-xs text-red-700 mb-1 truncate flex items-center gap-1">
+          <div className="bg-red-50 dark:bg-red-900/30 p-2 rounded-lg shadow border border-red-200 dark:border-red-700">
+            <div className="text-xs text-red-700 dark:text-red-400 mb-1 truncate flex items-center gap-1">
               <TrendingDown className="h-3 w-3" /> Manq.
             </div>
-            <div className="text-lg font-bold text-red-600 truncate">{stats.articlesManquants}</div>
+            <div className="text-lg font-bold text-red-600 dark:text-red-400 truncate">{stats.articlesManquants}</div>
           </div>
-          <div className="bg-blue-50 p-2 rounded-lg shadow border border-blue-200">
-            <div className="text-xs text-blue-700 mb-1 truncate flex items-center gap-1">
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg shadow border border-blue-200 dark:border-blue-700">
+            <div className="text-xs text-blue-700 dark:text-blue-400 mb-1 truncate flex items-center gap-1">
               <TrendingUp className="h-3 w-3" /> Excéd.
             </div>
-            <div className="text-lg font-bold text-blue-600 truncate">{stats.articlesExcedents}</div>
+            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{stats.articlesExcedents}</div>
           </div>
-          <div className="bg-blue-50 p-2 rounded-lg shadow border border-blue-200">
-            <div className="text-xs text-blue-700 mb-1 truncate" title="Quantité Comptée">Qté Compt.</div>
-            <div className="text-lg font-bold text-blue-600 truncate">{stats.totalComptee}</div>
+          <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg shadow border border-blue-200 dark:border-blue-700">
+            <div className="text-xs text-blue-700 dark:text-blue-400 mb-1 truncate" title="Quantité Comptée">Qté Compt.</div>
+            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{stats.totalComptee}</div>
           </div>
           <div className={`p-2 rounded-lg shadow border ${
-            stats.ecartTotal === 0 ? 'bg-green-50 border-green-200' : 
-            stats.ecartTotal > 0 ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'
+            stats.ecartTotal === 0 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 
+            stats.ecartTotal > 0 ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700' : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700'
           }`}>
-            <div className="text-xs mb-1 truncate" title="Écart Total">Écart</div>
+            <div className="text-xs mb-1 truncate dark:text-gray-300" title="Écart Total">Écart</div>
             <div className={`text-lg font-bold truncate ${
-              stats.ecartTotal === 0 ? 'text-green-600' : 
-              stats.ecartTotal > 0 ? 'text-blue-600' : 'text-red-600'
+              stats.ecartTotal === 0 ? 'text-green-600 dark:text-green-400' : 
+              stats.ecartTotal > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
             }`} title={`${stats.ecartTotal > 0 ? '+' : ''}${stats.ecartTotal} (${stats.ecartPct}%)`}>
               {stats.ecartTotal > 0 ? '+' : ''}{stats.ecartTotal}
             </div>
@@ -262,53 +262,53 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
         <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement des données...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto"></div>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">Chargement des données...</p>
             </div>
           ) : error ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-red-800">Erreur</h3>
-                <p className="text-red-600">{error}</p>
+                <h3 className="font-semibold text-red-800 dark:text-red-300">Erreur</h3>
+                <p className="text-red-600 dark:text-red-400">{error}</p>
               </div>
             </div>
           ) : entries.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               Aucune entrée dans cet inventaire
             </div>
           ) : (
             <div className="w-full">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0 z-10">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Image
                     </th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
                       Réf.
                     </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Compt.
                     </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Théor.
                     </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Écart
                     </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Par
                     </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Commentaire
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {entries.map((entry) => {
                     const ecart = entry.quantite_comptee - entry.quantite_theorique;
                     const ecartPct = entry.quantite_theorique > 0 
@@ -316,9 +316,9 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
                       : '0';
 
                     return (
-                      <tr key={entry.id} className="hover:bg-gray-50">
+                      <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-2 py-2">
-                          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mx-auto">
+                          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden mx-auto">
                             {entry.article?.image_url ? (
                               <img 
                                 src={entry.article.image_url} 
@@ -335,26 +335,26 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
                             </span>
                           </div>
                         </td>
-                        <td className="px-2 py-2 text-sm text-gray-600 whitespace-nowrap hidden md:table-cell">
+                        <td className="px-2 py-2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap hidden md:table-cell">
                           <div className="truncate max-w-[120px]" title={entry.article?.code_barres || 'N/A'}>
                             {entry.article?.code_barres || 'N/A'}
                           </div>
                         </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold text-blue-600 whitespace-nowrap">
+                        <td className="px-2 py-2 text-center text-sm font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
                           {entry.quantite_comptee}
                         </td>
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 whitespace-nowrap">
+                        <td className="px-2 py-2 text-center text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                           {entry.quantite_theorique}
                         </td>
                         <td className="px-2 py-2 text-center whitespace-nowrap">
                           <div className="flex flex-col items-center">
                             <span className={`text-sm font-bold ${
-                              ecart === 0 ? 'text-green-600' :
-                              ecart > 0 ? 'text-blue-600' : 'text-red-600'
+                              ecart === 0 ? 'text-green-600 dark:text-green-400' :
+                              ecart > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
                             }`}>
                               {ecart > 0 ? '+' : ''}{ecart}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               {ecartPct}%
                             </span>
                           </div>
@@ -362,20 +362,20 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
                         <td className="px-2 py-2 text-center">
                           <div title={ecart === 0 ? 'OK' : ecart > 0 ? 'Excédent' : 'Manquant'}>
                             {ecart === 0 ? (
-                              <CheckCircle className="h-5 w-5 text-green-600 mx-auto" />
+                              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto" />
                             ) : ecart > 0 ? (
-                              <TrendingUp className="h-5 w-5 text-blue-600 mx-auto" />
+                              <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400 mx-auto" />
                             ) : (
-                              <TrendingDown className="h-5 w-5 text-red-600 mx-auto" />
+                              <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400 mx-auto" />
                             )}
                           </div>
                         </td>
-                        <td className="px-2 py-2 text-xs text-gray-500">
+                        <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400">
                           <div className="truncate max-w-[100px]" title={entry.utilisateur?.nom || 'N/A'}>
                             {entry.utilisateur?.nom || 'N/A'}
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-xs text-gray-500">
+                        <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
                           <div className="truncate max-w-[200px]" title={entry.commentaire || '-'}>
                             {entry.commentaire || '-'}
                           </div>
@@ -390,21 +390,21 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
         </div>
 
         {/* Footer - Fixed, no scroll */}
-        <div className="border-t p-3 bg-gray-50 flex-shrink-0 flex flex-wrap justify-between items-center gap-2">
-          <div className="text-sm text-gray-600 whitespace-nowrap">
+        <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900 flex-shrink-0 flex flex-wrap justify-between items-center gap-2">
+          <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
             {entries.length} entrée(s) au total
           </div>
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 whitespace-nowrap"
+              className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap"
             >
               Fermer
             </button>
             <button
               onClick={handleExportExcel}
               disabled={exporting || entries.length === 0}
-              className="px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
+              className="px-3 py-2 text-sm bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
             >
               <Download className="h-4 w-4 flex-shrink-0" />
               {exporting ? 'Export...' : 'Excel'}

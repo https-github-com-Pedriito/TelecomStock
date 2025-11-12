@@ -354,13 +354,13 @@ export function AlertsManager({
     
     switch (status) {
       case 'new':
-        return <span className={`${baseClasses} bg-red-100 text-red-800`}>Nouveau</span>;
+        return <span className={`${baseClasses} bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400`}>Nouveau</span>;
       case 'read':
-        return <span className={`${baseClasses} bg-blue-100 text-blue-800`}>Lu</span>;
+        return <span className={`${baseClasses} bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400`}>Lu</span>;
       case 'resolved':
-        return <span className={`${baseClasses} bg-green-100 text-green-800`}>Résolu</span>;
+        return <span className={`${baseClasses} bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400`}>Résolu</span>;
       case 'archived':
-        return <span className={`${baseClasses} bg-gray-100 text-gray-800`}>Archivé</span>;
+        return <span className={`${baseClasses} bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300`}>Archivé</span>;
     }
   };
 
@@ -369,11 +369,11 @@ export function AlertsManager({
     
     switch (priority) {
       case 'high':
-        return <span className={`${baseClasses} bg-red-100 text-red-800`}>Haute</span>;
+        return <span className={`${baseClasses} bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400`}>Haute</span>;
       case 'medium':
-        return <span className={`${baseClasses} bg-yellow-100 text-yellow-800`}>Moyenne</span>;
+        return <span className={`${baseClasses} bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400`}>Moyenne</span>;
       case 'low':
-        return <span className={`${baseClasses} bg-blue-100 text-blue-800`}>Basse</span>;
+        return <span className={`${baseClasses} bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400`}>Basse</span>;
     }
   };
 
@@ -381,19 +381,19 @@ export function AlertsManager({
   const criticalAlertsCount = alerts.filter(a => a.priority === 'high' && a.status !== 'archived').length;
 
   return (
-    <div className="flex-1 bg-gray-50 overflow-hidden">
+    <div className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Bell className="h-6 w-6 text-blue-600" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <Bell className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Centre d'Alertes
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Surveillance et gestion des alertes système
               </p>
             </div>
@@ -403,7 +403,7 @@ export function AlertsManager({
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50"
+              className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Actualiser</span>
@@ -421,44 +421,44 @@ export function AlertsManager({
 
         {/* Statistiques rapides */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
             <div className="flex items-center">
-              <AlertTriangle className="h-4 sm:h-5 w-4 sm:w-5 text-red-500 mr-2 flex-shrink-0" />
+              <AlertTriangle className="h-4 sm:h-5 w-4 sm:w-5 text-red-500 dark:text-red-400 mr-2 flex-shrink-0" />
               <div>
-                <p className="text-xs sm:text-sm font-medium text-red-900">Nouvelles</p>
-                <p className="text-base sm:text-lg font-bold text-red-900">{newAlertsCount}</p>
+                <p className="text-xs sm:text-sm font-medium text-red-900 dark:text-red-300">Nouvelles</p>
+                <p className="text-base sm:text-lg font-bold text-red-900 dark:text-red-100">{newAlertsCount}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
             <div className="flex items-center">
-              <XCircle className="h-4 sm:h-5 w-4 sm:w-5 text-yellow-500 mr-2 flex-shrink-0" />
+              <XCircle className="h-4 sm:h-5 w-4 sm:w-5 text-yellow-500 dark:text-yellow-400 mr-2 flex-shrink-0" />
               <div>
-                <p className="text-xs sm:text-sm font-medium text-yellow-900">Critiques</p>
-                <p className="text-base sm:text-lg font-bold text-yellow-900">{criticalAlertsCount}</p>
+                <p className="text-xs sm:text-sm font-medium text-yellow-900 dark:text-yellow-300">Critiques</p>
+                <p className="text-base sm:text-lg font-bold text-yellow-900 dark:text-yellow-100">{criticalAlertsCount}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
             <div className="flex items-center">
-              <Package className="h-4 sm:h-5 w-4 sm:w-5 text-blue-500 mr-2 flex-shrink-0" />
+              <Package className="h-4 sm:h-5 w-4 sm:w-5 text-blue-500 dark:text-blue-400 mr-2 flex-shrink-0" />
               <div>
-                <p className="text-xs sm:text-sm font-medium text-blue-900">Stock</p>
-                <p className="text-base sm:text-lg font-bold text-blue-900">
+                <p className="text-xs sm:text-sm font-medium text-blue-900 dark:text-blue-300">Stock</p>
+                <p className="text-base sm:text-lg font-bold text-blue-900 dark:text-blue-100">
                   {alerts.filter(a => ['stock_out', 'stock_low', 'stock_critical'].includes(a.type)).length}
                 </p>
               </div>
             </div>
           </div>
           
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
             <div className="flex items-center">
-              <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-green-500 mr-2 flex-shrink-0" />
+              <CheckCircle className="h-4 sm:h-5 w-4 sm:w-5 text-green-500 dark:text-green-400 mr-2 flex-shrink-0" />
               <div>
-                <p className="text-xs sm:text-sm font-medium text-green-900">Résolues</p>
-                <p className="text-base sm:text-lg font-bold text-green-900">
+                <p className="text-xs sm:text-sm font-medium text-green-900 dark:text-green-300">Résolues</p>
+                <p className="text-base sm:text-lg font-bold text-green-900 dark:text-green-100">
                   {alerts.filter(a => a.status === 'resolved').length}
                 </p>
               </div>
@@ -468,25 +468,25 @@ export function AlertsManager({
       </div>
 
       {/* Filtres et recherche */}
-      <div className="bg-white border-b border-gray-200 p-3 sm:p-4">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 sm:p-4">
         <div className="flex flex-col sm:flex-row flex-wrap gap-3">
           <div className="flex items-center space-x-2 flex-1 min-w-[200px]">
-            <Search className="h-4 w-4 text-gray-500 flex-shrink-0" />
+            <Search className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
             <input
               type="text"
               placeholder="Rechercher..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           
           <div className="flex items-center space-x-2 flex-1 min-w-[150px]">
-            <Filter className="h-4 w-4 text-gray-500 flex-shrink-0" />
+            <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
             <select
               value={selectedFilter}
               onChange={(e) => setSelectedFilter(e.target.value as any)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Tous types</option>
               <option value="stock_out">Épuisé</option>
@@ -501,11 +501,11 @@ export function AlertsManager({
           </div>
           
           <div className="flex items-center space-x-2">
-            <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">Priorité:</span>
+            <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 hidden sm:inline">Priorité:</span>
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Toutes</option>
               <option value="high">Haute</option>
@@ -520,9 +520,9 @@ export function AlertsManager({
               id="showArchived"
               checked={showArchived}
               onChange={(e) => setShowArchived(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
             />
-            <label htmlFor="showArchived" className="ml-2 text-xs sm:text-sm text-gray-600">
+            <label htmlFor="showArchived" className="ml-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
               Archives
             </label>
           </div>
@@ -533,11 +533,11 @@ export function AlertsManager({
       <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         {filteredAlerts.length === 0 ? (
           <div className="text-center py-12">
-            <Bell className="h-12 sm:h-16 w-12 sm:w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+            <Bell className="h-12 sm:h-16 w-12 sm:w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Aucune alerte trouvée
             </h3>
-            <p className="text-sm sm:text-base text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               {searchQuery || selectedFilter !== 'all' || priorityFilter !== 'all'
                 ? 'Aucune alerte ne correspond aux filtres sélectionnés'
                 : 'Aucune alerte active pour le moment'
@@ -549,10 +549,10 @@ export function AlertsManager({
             {filteredAlerts.map(alert => (
               <div
                 key={alert.id}
-                className={`bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow ${
+                className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border hover:shadow-md transition-shadow ${
                   alert.status === 'new' 
-                    ? 'border-l-4 border-l-blue-500 border-t border-r border-b border-gray-200' 
-                    : 'border-gray-200'
+                    ? 'border-l-4 border-l-blue-500 border-t border-r border-b border-gray-200 dark:border-gray-700' 
+                    : 'border-gray-200 dark:border-gray-700'
                 }`}
               >
                 <div className="p-3 sm:p-4">
@@ -565,7 +565,7 @@ export function AlertsManager({
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <h3 className={`text-sm sm:text-base font-semibold truncate ${
-                          alert.status === 'new' ? 'text-gray-900' : 'text-gray-700'
+                          alert.status === 'new' ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'
                         }`}>
                           {alert.title}
                         </h3>
@@ -573,12 +573,12 @@ export function AlertsManager({
                         {getStatusBadge(alert.status)}
                       </div>
                       
-                      <p className="text-xs sm:text-sm text-gray-600 mb-2 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
                         {alert.message}
                       </p>
                       
                       {/* Métadonnées compactes */}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mb-2">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400 mb-2">
                         <div className="flex items-center">
                           <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
                           <span className="truncate">
@@ -621,7 +621,7 @@ export function AlertsManager({
                               className={`px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-medium transition-colors ${
                                 action.primary
                                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                               }`}
                             >
                               {action.label}
@@ -636,7 +636,7 @@ export function AlertsManager({
                       {alert.status === 'new' && (
                         <button
                           onClick={() => markAsRead(alert.id)}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                          className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                           title="Marquer comme lu"
                         >
                           <Eye className="h-4 w-4" />
@@ -646,7 +646,7 @@ export function AlertsManager({
                       {alert.status !== 'resolved' && alert.status !== 'archived' && (
                         <button
                           onClick={() => markAsResolved(alert.id)}
-                          className="p-1.5 text-green-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                          className="p-1.5 text-green-400 hover:text-green-600 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 rounded transition-colors"
                           title="Marquer comme résolu"
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -656,7 +656,7 @@ export function AlertsManager({
                       {alert.status !== 'archived' && (
                         <button
                           onClick={() => archiveAlert(alert.id)}
-                          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                          className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                           title="Archiver"
                         >
                           <Archive className="h-4 w-4" />
@@ -665,7 +665,7 @@ export function AlertsManager({
                       
                       <button
                         onClick={() => deleteAlert(alert.id)}
-                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className="p-1.5 text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                         title="Supprimer"
                       >
                         <Trash2 className="h-4 w-4" />

@@ -385,24 +385,24 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
       {/* Historique des inventaires */}
       {showHistory && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-semibold mb-4">Historique des inventaires</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Historique des inventaires</h2>
           {inventaires.length === 0 ? (
-            <p className="text-gray-500">Aucun inventaire trouvé</p>
+            <p className="text-gray-500 dark:text-gray-400">Aucun inventaire trouvé</p>
           ) : (
             <div className="space-y-2">
               {inventaires.map(inv => (
-                <div key={inv.id} className="flex justify-between items-center p-3 border rounded-lg hover:bg-gray-50">
+                <div key={inv.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                   <div className="flex-1">
-                    <div className="font-medium">{inv.nom}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-medium text-gray-900 dark:text-white">{inv.nom}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       {inv.description} • Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}
                     </div>
                     <div className="text-sm mt-1">
                       <span className={`px-2 py-1 rounded text-xs ${
-                        inv.statut === 'EN_COURS' ? 'bg-green-100 text-green-800' :
-                        inv.statut === 'FINALISE' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
+                        inv.statut === 'EN_COURS' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
+                        inv.statut === 'FINALISE' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
+                        'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                       }`}>
                         {inv.statut}
                       </span>
@@ -417,7 +417,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                       Voir détails
                     </button>
                     {inv.statut === 'FINALISE' && (
-                      <Archive className="text-gray-400" size={20} />
+                      <Archive className="text-gray-400 dark:text-gray-500" size={20} />
                     )}
                   </div>
                 </div>
@@ -429,8 +429,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
       {/* Formulaire de création d'inventaire */}
       {showCreateForm && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-semibold mb-4">Créer un nouvel inventaire</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Créer un nouvel inventaire</h2>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -440,18 +440,18 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                 type="text"
                 value={newInventaireName}
                 onChange={(e) => setNewInventaireName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500"
                 placeholder="Ex: Inventaire Janvier 2024"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Description
               </label>
               <textarea
                 value={newInventaireDescription}
                 onChange={(e) => setNewInventaireDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="Description de l'inventaire..."
               />
@@ -460,13 +460,13 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
               <button
                 onClick={handleCreateInventaire}
                 disabled={!newInventaireName.trim()}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white rounded-lg"
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg"
               >
                 Créer
               </button>
               <button
                 onClick={() => setShowCreateForm(false)}
-                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg"
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg"
               >
                 Annuler
               </button>
@@ -477,8 +477,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
       {/* Formulaire de comptage amélioré */}
       {currentInventaire && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-semibold mb-4">Enregistrer un comptage</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Enregistrer un comptage</h2>
           
           {/* Mode Recherche */}
           {(
@@ -489,7 +489,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Rechercher par nom, référence ou catégorie..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                 />
               </div>
 
@@ -500,11 +500,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                     <button
                       key={article.id}
                       onClick={() => selectArticle(article)}
-                      className="p-3 border rounded-lg hover:bg-blue-50 text-left transition-colors flex items-center gap-3"
+                      className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-left transition-colors flex items-center gap-3"
                     >
                       {/* Image de l'article */}
                       {article.image_url ? (
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex-shrink-0">
                           <img
                             src={article.image_url}
                             alt={article.nom}
@@ -512,18 +512,18 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                           />
                         </div>
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center flex-shrink-0">
                           <Package size={24} className="text-gray-400" />
                         </div>
                       )}
                       
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium">{article.nom}</div>
-                        <div className="text-sm text-gray-600 flex items-center gap-1">
-                          <MapPin size={14} className="text-blue-600" />
+                        <div className="font-medium text-gray-900 dark:text-white">{article.nom}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <MapPin size={14} className="text-blue-600 dark:text-blue-400" />
                           {article.localisation}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {article.code_barres} • Stock: {article.quantite_stock}
                         </div>
                       </div>
@@ -531,13 +531,13 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                   ))}
                 </div>
               ) : searchQuery ? (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                   Aucun article trouvé
                 </div>
               ) : (
                 // Afficher les 3 articles les plus comptés quand pas de recherche
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {mostSearchedArticles.length > 0 && currentEntries.length > 0
                       ? 'Articles les plus comptés'
                       : 'Suggestions d\'articles'}
@@ -547,11 +547,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                       <button
                         key={article.id}
                         onClick={() => selectArticle(article)}
-                        className="p-3 border rounded-lg hover:bg-blue-50 text-left transition-colors flex items-center gap-3"
+                        className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-left transition-colors flex items-center gap-3"
                       >
                         {/* Image de l'article */}
                         {article.image_url ? (
-                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-200 flex-shrink-0">
+                          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex-shrink-0">
                             <img
                               src={article.image_url}
                               alt={article.nom}
@@ -559,18 +559,18 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                             />
                           </div>
                         ) : (
-                          <div className="w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                          <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center flex-shrink-0">
                             <Package size={24} className="text-gray-400" />
                           </div>
                         )}
                         
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium">{article.nom}</div>
-                          <div className="text-sm text-gray-600 flex items-center gap-1">
-                            <MapPin size={14} className="text-blue-600" />
+                          <div className="font-medium text-gray-900 dark:text-white">{article.nom}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                            <MapPin size={14} className="text-blue-600 dark:text-blue-400" />
                             {article.localisation}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
                             {article.code_barres} • Stock: {article.quantite_stock}
                           </div>
                         </div>
@@ -584,36 +584,36 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
           {/* Formulaire de saisie de quantité */}
           {selectedArticleId && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg space-y-3">
-              <div className="font-medium text-lg">
+            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-3">
+              <div className="font-medium text-lg text-gray-900 dark:text-white">
                 {articles.find(a => a.id === selectedArticleId)?.nom}
               </div>
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 Stock théorique: {articles.find(a => a.id === selectedArticleId)?.quantite_stock}
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Quantité comptée *</label>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Quantité comptée *</label>
                   <input
                     type="number"
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={quantite === 0 ? '' : quantite}
                     onChange={(e) => setQuantite(e.target.value === '' ? 0 : parseInt(e.target.value))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="0"
                     min="0"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Commentaire (optionnel)</label>
+                  <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Commentaire (optionnel)</label>
                   <input
                     type="text"
                     value={commentaire}
                     onChange={(e) => setCommentaire(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     placeholder="Commentaire"
                   />
                 </div>
@@ -633,7 +633,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                     setCommentaire('');
                     setEditingEntry(null);
                   }}
-                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg"
+                  className="px-4 py-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg"
                 >
                   Annuler
                 </button>
@@ -645,12 +645,12 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
       {/* Liste des entrées */}
       {currentInventaire && (
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-lg font-semibold mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
             Articles comptés ({currentEntries.length})
           </h2>
           {currentEntries.length === 0 ? (
-            <p className="text-gray-500">Aucun article compté pour le moment</p>
+            <p className="text-gray-500 dark:text-gray-400">Aucun article compté pour le moment</p>
           ) : (
             <div className="space-y-2">
               {currentEntries.map(entry => {
@@ -659,18 +659,18 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                 const difference = entry.quantite_comptee - entry.quantite_theorique;
                 
                 return (
-                  <div key={entry.id} className="flex justify-between items-center p-3 border rounded-lg">
+                  <div key={entry.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
                     <div className="flex-1">
-                      <div className="font-medium">{article?.nom || 'Article inconnu'}</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="font-medium text-gray-900 dark:text-white">{article?.nom || 'Article inconnu'}</div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
                         Théorique: {entry.quantite_theorique} • Compté: {entry.quantite_comptee}
                         {difference !== 0 && (
-                          <span className={`ml-2 ${difference > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`ml-2 ${difference > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             ({difference > 0 ? '+' : ''}{difference})
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-gray-400 dark:text-gray-500">
                         Par: {user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id} • 
                         Le: {new Date(entry.created_at).toLocaleDateString('fr-FR')}
                         {entry.commentaire && ` • ${entry.commentaire}`}
@@ -680,17 +680,17 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEditEntry(entry)}
-                          className="p-2 hover:bg-gray-100 rounded-full"
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                           title="Modifier"
                         >
-                          <Edit2 size={16} className="text-blue-500" />
+                          <Edit2 size={16} className="text-blue-500 dark:text-blue-400" />
                         </button>
                         <button
                           onClick={() => handleDeleteEntry(entry.id)}
-                          className="p-2 hover:bg-gray-100 rounded-full"
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                           title="Supprimer"
                         >
-                          <Trash2 size={16} className="text-red-500" />
+                          <Trash2 size={16} className="text-red-500 dark:text-red-400" />
                         </button>
                       </div>
                     )}
@@ -702,7 +702,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
           {/* Bouton de finalisation en bas */}
           {currentEntries.length > 0 && (
-            <div className="mt-6 p-4 bg-gray-50 border-t sticky bottom-0">
+            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 sticky bottom-0">
               <button
                 onClick={handleFinalize}
                 className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-semibold"
@@ -710,7 +710,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                 <CheckCircle size={20} />
                 Finaliser et enregistrer l'inventaire
               </button>
-              <p className="text-xs text-gray-600 text-center mt-2">
+              <p className="text-xs text-gray-600 dark:text-gray-400 text-center mt-2">
                 ⚠️ Cette action est irréversible et mettra à jour les stocks
               </p>
             </div>
@@ -721,8 +721,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       {/* Scanner modal */}
       {showScanner && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-lg max-w-lg w-full m-4">
-            <h2 className="text-lg font-semibold mb-4">Scanner un article</h2>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg max-w-lg w-full m-4 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Scanner un article</h2>
             <BarcodeScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
           </div>
         </div>
