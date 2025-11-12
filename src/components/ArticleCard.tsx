@@ -104,12 +104,12 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
       <div className="p-1.5">
         <div className="flex justify-between items-start mb-1">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xs font-semibold text-gray-900 truncate">{article.nom}</h3>
+            <h3 className="text-xs font-semibold text-gray-900 md:truncate">{article.nom}</h3>
             <p className="text-[10px] text-gray-500">{article.categorie}</p>
           </div>
           <button
             onClick={() => onPrintLabel(article)}
-            className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            className="hidden md:block p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title="Imprimer étiquette"
           >
             <Printer size={10} />
@@ -136,8 +136,24 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
       </div>
 
   <div className="space-y-1 px-1.5 pb-1.5">
+        {/* Image ronde - visible sur mobile et desktop */}
+        {article.image_url && (
+          <div className="flex items-center justify-center py-1 md:hidden">
+            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center p-0.5">
+              <img
+                src={article.image_url}
+                alt={article.nom}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+          </div>
+        )}
+        
         {canShowBarcode && (
-          <div className="flex items-center gap-1 py-1 bg-gray-50 rounded">
+          <div className="hidden md:flex items-center gap-1 py-1 bg-gray-50 rounded">
             {/* Code-barres à gauche */}
             <div className="flex flex-col items-center flex-1">
               <div id={`barcode-container-${article.id}`} className="mb-0.5 scale-50">
@@ -205,10 +221,10 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
               </div>
             </div>
             
-            {/* Image ronde à droite */}
+            {/* Image ronde à droite - visible sur desktop uniquement */}
             {article.image_url && (
               <div className="flex-1 flex items-center justify-center">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center p-0.5">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center p-0.5">
                   <img
                     src={article.image_url}
                     alt={article.nom}

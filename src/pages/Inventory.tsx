@@ -185,17 +185,42 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
   const handleFinalize = async () => {
     if (!currentInventaire) return;
     
-    if (!confirm(`Êtes-vous sûr de vouloir finaliser l'inventaire "${currentInventaire.nom}" ? Cette action est irréversible.`)) {
-      return;
+    // Compter combien d'articles ont des différences
+    const articlesWithDifferences = currentEntries.filter(entry => 
+      entry.quantite_comptee !== entry.quantite_theorique
+    ).length;
+    
+    let applyAdjustments = true;
+    
+    if (articlesWithDifferences > 0) {
+      const message = `${articlesWithDifferences} article(s) présentent des différences entre le stock théorique et compté.\n\n` +
+        `Voulez-vous appliquer les réajustements de stock ?\n\n` +
+        `OUI = Les stocks seront mis à jour selon le comptage et des mouvements seront créés\n` +
+        `NON = L'inventaire sera finalisé sans modifier les stocks\n` +
+        `ANNULER = Annuler la finalisation`;
+      
+      const choice = confirm(message);
+      if (choice === null) return; // Annuler
+      applyAdjustments = choice;
+    } else {
+      if (!confirm(`Êtes-vous sûr de vouloir finaliser l'inventaire "${currentInventaire.nom}" ?\n\nAucune différence détectée. Cette action est irréversible.`)) {
+        return;
+      }
     }
     
     try {
-      await finalizeInventaire();
+      await finalizeInventaire(applyAdjustments);
+      
       // Télécharger le rapport final
       if (currentEntries.length > 0) {
         downloadExcel(currentEntries);
       }
-      alert('Inventaire finalisé avec succès !');
+      
+      const successMessage = applyAdjustments && articlesWithDifferences > 0
+        ? `Inventaire finalisé avec succès !\n${articlesWithDifferences} article(s) ont été réajustés.`
+        : 'Inventaire finalisé avec succès !';
+      
+      alert(successMessage);
     } catch (err) {
       console.error('Erreur lors de la finalisation:', err);
       alert('Erreur lors de la finalisation de l\'inventaire');

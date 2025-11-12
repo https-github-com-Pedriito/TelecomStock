@@ -132,28 +132,6 @@ export const useInventaire = () => {
     }
   }, [currentInventaire]);
 
-  // Finaliser l'inventaire actuel
-  const finalizeInventaire = useCallback(async () => {
-    if (!currentInventaire) {
-      throw new Error('Aucun inventaire actuel');
-    }
-
-    try {
-      setLoading(true);
-      const finalizedInventaire = await api.finalizeInventaire(currentInventaire.id);
-      setCurrentInventaire(null);
-      setCurrentEntries([]);
-      await loadInventaires(); // Recharger la liste
-      return finalizedInventaire;
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la finalisation';
-      setError(errorMsg);
-      throw new Error(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentInventaire, loadInventaires]);
-
   // Sauvegarder localement (localStorage) pour persistance
   const saveToLocalStorage = useCallback(() => {
     if (currentInventaire && currentEntries.length > 0) {
@@ -191,6 +169,63 @@ export const useInventaire = () => {
   const clearLocalStorage = useCallback(() => {
     localStorage.removeItem('inventaire_en_cours');
   }, []);
+
+  // Finaliser l'inventaire actuel avec réajustement des stocks
+  const finalizeInventaire = useCallback(async (applyAdjustments: boolean = true) => {
+    if (!currentInventaire) {
+      throw new Error('Aucun inventaire actuel');
+    }
+
+    try {
+      setLoading(true);
+      
+      // Si on doit appliquer les réajustements
+      if (applyAdjustments && currentEntries.length > 0) {
+        // Pour chaque entrée avec une différence, créer un mouvement et mettre à jour le stock
+        for (const entry of currentEntries) {
+          const difference = entry.quantite_comptee - entry.quantite_theorique;
+          
+          if (difference !== 0) {
+            // Créer un mouvement de réajustement d'inventaire
+            const mouvementData = {
+              article_id: entry.article_id,
+              type: difference > 0 ? 'ENTREE' : 'SORTIE',
+              quantite: Math.abs(difference),
+              description: `Réajustement inventaire: ${currentInventaire.nom}`,
+              commentaire: entry.commentaire || `Différence détectée lors de l'inventaire (Théorique: ${entry.quantite_theorique}, Compté: ${entry.quantite_comptee})`
+            };
+            
+            try {
+              // Créer le mouvement via l'API
+              await api.createMouvement(mouvementData);
+              
+              // Mettre à jour l'article avec la nouvelle quantité
+              await api.updateArticle(entry.article_id, {
+                quantite_stock: entry.quantite_comptee
+              });
+            } catch (moveError) {
+              console.error(`Erreur lors du réajustement de l'article ${entry.article_id}:`, moveError);
+              // Continuer avec les autres entrées même si une échoue
+            }
+          }
+        }
+      }
+      
+      // Finaliser l'inventaire dans la base de données
+      const finalizedInventaire = await api.finalizeInventaire(currentInventaire.id);
+      setCurrentInventaire(null);
+      setCurrentEntries([]);
+      clearLocalStorage(); // Nettoyer le localStorage
+      await loadInventaires(); // Recharger la liste
+      return finalizedInventaire;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la finalisation';
+      setError(errorMsg);
+      throw new Error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentInventaire, currentEntries, loadInventaires, clearLocalStorage]);
 
   // Auto-sauvegarder quand les entrées changent
   useEffect(() => {
