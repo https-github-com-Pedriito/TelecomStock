@@ -192,11 +192,23 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         position: "top-right",
         autoClose: 2000,
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erreur lors de la suppression:', err);
-      toast.error('Erreur lors de la suppression de l\'entrée', {
+      
+      // Gestion spécifique des erreurs API
+      let errorMessage = 'Erreur lors de la suppression de l\'entrée';
+      
+      if (err.response?.status === 404) {
+        errorMessage = 'Vous ne pouvez supprimer que vos propres entrées';
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Vous devez être connecté pour supprimer une entrée';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 4000,
       });
     }
   };

@@ -121,9 +121,10 @@ export const useInventaire = () => {
     }
 
     try {
+      // Appel à l'API backend : DELETE /inventaires/:id/entries/:entryId
       await api.deleteInventaireEntry(currentInventaire.id, entryId);
       
-      // Mettre à jour les entrées locales
+      // Mettre à jour les entrées locales après succès de l'API
       setCurrentEntries(prev => prev.filter(e => e.id !== entryId));
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Erreur lors de la suppression de l\'entrée';
@@ -131,44 +132,6 @@ export const useInventaire = () => {
       throw new Error(errorMsg);
     }
   }, [currentInventaire]);
-
-  // Sauvegarder localement (localStorage) pour persistance
-  const saveToLocalStorage = useCallback(() => {
-    if (currentInventaire && currentEntries.length > 0) {
-      const inventaireData = {
-        inventaire: currentInventaire,
-        entries: currentEntries,
-        lastSaved: Date.now()
-      };
-      localStorage.setItem('inventaire_en_cours', JSON.stringify(inventaireData));
-    }
-  }, [currentInventaire, currentEntries]);
-
-  // Charger depuis localStorage
-  const loadFromLocalStorage = useCallback(() => {
-    try {
-      const saved = localStorage.getItem('inventaire_en_cours');
-      if (saved) {
-        const data = JSON.parse(saved);
-        // Vérifier que les données ne sont pas trop anciennes (24h)
-        const isRecent = Date.now() - data.lastSaved < 24 * 60 * 60 * 1000;
-        
-        if (isRecent && data.inventaire && data.entries) {
-          setCurrentInventaire(data.inventaire);
-          setCurrentEntries(data.entries);
-          return true;
-        }
-      }
-    } catch (err) {
-      console.error('Erreur lors du chargement depuis localStorage:', err);
-    }
-    return false;
-  }, []);
-
-  // Effacer le localStorage
-  const clearLocalStorage = useCallback(() => {
-    localStorage.removeItem('inventaire_en_cours');
-  }, []);
 
   // Finaliser l'inventaire actuel avec réajustement des stocks
   const finalizeInventaire = useCallback(async (applyAdjustments: boolean = true) => {
@@ -215,7 +178,6 @@ export const useInventaire = () => {
       const finalizedInventaire = await api.finalizeInventaire(currentInventaire.id);
       setCurrentInventaire(null);
       setCurrentEntries([]);
-      clearLocalStorage(); // Nettoyer le localStorage
       await loadInventaires(); // Recharger la liste
       return finalizedInventaire;
     } catch (err) {
@@ -225,31 +187,17 @@ export const useInventaire = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentInventaire, currentEntries, loadInventaires, clearLocalStorage]);
-
-  // Auto-sauvegarder quand les entrées changent
-  useEffect(() => {
-    if (currentInventaire && currentEntries.length > 0) {
-      const timeoutId = setTimeout(saveToLocalStorage, 1000); // Délai de 1s
-      return () => clearTimeout(timeoutId);
-    }
-  }, [currentEntries, currentInventaire, saveToLocalStorage]);
+  }, [currentInventaire, currentEntries, loadInventaires]);
 
   // Charger les données au montage
   useEffect(() => {
     const init = async () => {
-      // D'abord essayer de charger depuis localStorage
-      const hasLocalData = loadFromLocalStorage();
-      
-      // Ensuite charger depuis l'API
-      if (!hasLocalData) {
-        await loadCurrentInventaire();
-      }
+      await loadCurrentInventaire();
       await loadInventaires();
     };
     
     init();
-  }, [loadInventaires, loadCurrentInventaire, loadFromLocalStorage]);
+  }, [loadInventaires, loadCurrentInventaire]);
 
   return {
     // États
@@ -266,10 +214,6 @@ export const useInventaire = () => {
     finalizeInventaire,
     loadInventaires,
     loadCurrentInventaire,
-    
-    // Persistence locale
-    saveToLocalStorage,
-    clearLocalStorage,
     
     // Helper pour nettoyer les erreurs
     clearError: () => setError(null)
