@@ -124,7 +124,6 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
           <p>• Pointez la caméra vers le code-barres</p>
           <p>• Assurez-vous que l'éclairage est suffisant</p>
           <p>• Maintenez l'appareil stable pendant le scan</p>
-          <p>• Utilisez le flash si nécessaire (bouton en haut)</p>
           <p>• Vous pouvez aussi saisir le code manuellement</p>
         </div>
       </div>

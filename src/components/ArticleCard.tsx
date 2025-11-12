@@ -101,35 +101,35 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
     <div className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md ${
       isLowStock ? 'border-l-2 border-orange-500' : ''
     }`}>
-      <div className="p-1.5">
-        <div className="flex justify-between items-start mb-1">
+      <div className="p-1.5 md:p-3">
+        <div className="flex justify-between items-start mb-1 md:mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xs font-semibold text-gray-900 md:truncate">{article.nom}</h3>
-            <p className="text-[10px] text-gray-500">{article.categorie}</p>
+            <h3 className="text-xs md:text-base font-semibold text-gray-900 md:truncate">{article.nom}</h3>
+            <p className="text-[10px] md:text-sm text-gray-500">{article.categorie}</p>
           </div>
           <button
             onClick={() => onPrintLabel(article)}
-            className="hidden md:block p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            className="hidden md:block p-0.5 md:p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title="Imprimer étiquette"
           >
-            <Printer size={10} />
+            <Printer size={10} className="md:w-4 md:h-4" />
           </button>
           {onEdit && (
             <button
               onClick={() => onEdit(article)}
-              className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="p-0.5 md:p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
               title="Modifier"
             >
-              <Edit2 size={10} />
+              <Edit2 size={10} className="md:w-4 md:h-4" />
             </button>
           )}
           {onDelete && canDelete && (
             <button
               onClick={handleDelete}
-              className="p-0.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+              className="p-0.5 md:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
               title="Supprimer"
             >
-              <Trash2 size={10} />
+              <Trash2 size={10} className="md:w-4 md:h-4" />
             </button>
           )}
         </div>
@@ -240,33 +240,33 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
         )}
         
         {/* Stock et localisation */}
-        <div className="grid grid-cols-2 gap-1">
-          <div className={`flex items-center gap-1 text-xs p-1 rounded ${
+        <div className="grid grid-cols-2 gap-1 md:gap-2">
+          <div className={`flex items-center gap-1 md:gap-2 text-xs p-1 md:p-2 rounded ${
             isLowStock ? 'bg-orange-50' : 'bg-green-50'
           }`}>
-            <Package size={10} className={isLowStock ? 'text-orange-600' : 'text-green-600'} />
+            <Package size={10} className={`${isLowStock ? 'text-orange-600' : 'text-green-600'} md:w-5 md:h-5`} />
             <div className="flex flex-col">
-              <span className="text-[9px] text-gray-500">Stock</span>
-              <span className={`font-semibold text-[10px] ${isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
+              <span className="text-[9px] md:text-xs text-gray-500">Stock</span>
+              <span className={`font-semibold text-[10px] md:text-sm ${isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
                 {article.quantite_stock}
               </span>
             </div>
             {isLowStock && (
-              <AlertTriangle size={8} className="text-orange-500 ml-auto" />
+              <AlertTriangle size={8} className="text-orange-500 ml-auto md:w-4 md:h-4" />
             )}
           </div>
 
-          <div className="flex items-center gap-1 text-xs p-1 rounded bg-blue-50">
-            <MapPin size={10} className="text-blue-600 flex-shrink-0" />
+          <div className="flex items-center gap-1 md:gap-2 text-xs p-1 md:p-2 rounded bg-blue-50">
+            <MapPin size={10} className="text-blue-600 flex-shrink-0 md:w-5 md:h-5" />
             <div className="flex flex-col min-w-0">
-              <span className="text-[9px] text-gray-500">Lieu</span>
-              <span className="text-[9px] text-gray-700 font-medium truncate">{article.localisation}</span>
+              <span className="text-[9px] md:text-xs text-gray-500">Lieu</span>
+              <span className="text-[9px] md:text-xs text-gray-700 font-medium truncate">{article.localisation}</span>
             </div>
           </div>
         </div>
 
         {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
-          <div className="flex items-center justify-between text-[10px] bg-blue-50 p-1 rounded">
+          <div className="flex items-center justify-between text-[10px] md:text-sm bg-blue-50 p-1 md:p-2 rounded">
             <span className="text-gray-700">Prix:</span>
             <span className="font-semibold text-blue-700">
               {article.prix_unitaire.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
@@ -275,7 +275,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
         )}
 
         {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
-          <div className="flex items-center justify-between text-[10px] bg-green-50 p-1 rounded">
+          <div className="flex items-center justify-between text-[10px] md:text-sm bg-green-50 p-1 md:p-2 rounded">
             <span className="text-gray-700">Valeur:</span>
             <span className="font-semibold text-green-700">
               {(article.quantite_stock * article.prix_unitaire).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
@@ -283,9 +283,9 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           </div>
         )}
 
-        <div className="flex items-center justify-between text-[9px] text-gray-500">
+        <div className="flex items-center justify-between text-[9px] md:text-xs text-gray-500">
           <span className="truncate">Fournisseur: {article.fournisseur}</span>
-          <div className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[8px]">
+          <div className="font-mono bg-gray-100 px-1 md:px-2 py-0.5 md:py-1 rounded text-[8px] md:text-xs">
             {article.code_barres || 'N/A'}
           </div>
         </div>
