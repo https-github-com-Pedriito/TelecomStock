@@ -5,7 +5,7 @@ import { BarcodeGenerator } from './BarcodeGenerator';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { Article, Mouvement } from '../types';
 import { api } from '../lib/api';
-import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer } from 'lucide-react';
+import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer, Download } from 'lucide-react';
 interface ArticleCardProps {
   article: Article;
   onEdit?: (article: Article) => void;
@@ -98,142 +98,160 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden transition-all hover:shadow-lg ${
-      isLowStock ? 'border-l-4 border-orange-500' : ''
+    <div className={`bg-white rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md ${
+      isLowStock ? 'border-l-2 border-orange-500' : ''
     }`}>
-      {/* Image de l'article */}
-      {article.image_url && (
-        <div className="w-full h-48 overflow-hidden bg-gray-100">
-          <img
-            src={article.image_url}
-            alt={article.nom}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Masquer l'image si elle ne charge pas
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        </div>
-      )}
-
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">{article.nom}</h3>
-            <p className="text-sm text-gray-600">{article.categorie}</p>
+      <div className="p-1.5">
+        <div className="flex justify-between items-start mb-1">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-xs font-semibold text-gray-900 truncate">{article.nom}</h3>
+            <p className="text-[10px] text-gray-500">{article.categorie}</p>
           </div>
-          <div className="flex gap-2">
           <button
             onClick={() => onPrintLabel(article)}
-            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title="Imprimer étiquette"
           >
-            <Printer size={16} />
+            <Printer size={10} />
           </button>
           {onEdit && (
             <button
               onClick={() => onEdit(article)}
-              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="p-0.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
               title="Modifier"
             >
-              <Edit2 size={16} />
+              <Edit2 size={10} />
             </button>
           )}
           {onDelete && canDelete && (
             <button
               onClick={handleDelete}
-              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-0.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
               title="Supprimer"
             >
-              <Trash2 size={16} />
+              <Trash2 size={10} />
             </button>
           )}
         </div>
       </div>
 
-  <div className="space-y-3">
+  <div className="space-y-1 px-1.5 pb-1.5">
         {canShowBarcode && (
-          <div className="flex flex-col items-center mb-2">
-            {/* Barcode canvas */}
-            <div id={`barcode-container-${article.id}`} className="mb-1">
-              <BarcodeGenerator value={article.code_barres || article.id || ''} />
-            </div>
-            <span className="text-xs text-gray-500 mb-2">
-              {article.code_barres ? `Code: ${article.code_barres}` : 'Code-barres généré depuis ID'}
-            </span>
-            <div className="flex gap-2">
-              <button
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-                onClick={() => {
-                  const container = document.getElementById(`barcode-container-${article.id}`);
-                  if (!container) return;
-                  const canvas = container.querySelector('canvas');
-                  if (!canvas) return;
-                  const win = window.open('', 'PrintBarcode');
-                  if (win) {
-                    win.document.write('<img src="' + canvas.toDataURL() + '" style="width:300px" />');
-                    win.document.close();
-                    win.focus();
-                    win.print();
-                  }
-                }}
-              >Imprimer</button>
-              <button
-                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200"
-                onClick={() => {
-                  const container = document.getElementById(`barcode-container-${article.id}`);
-                  if (!container) {
-                    alert('Impossible de trouver le code-barres.');
-                    return;
-                  }
-                  const canvas = container.querySelector('canvas');
-                  if (!canvas) {
-                    alert('Le code-barres n\'est pas généré.');
-                    return;
-                  }
-                  try {
-                    const dataUrl = canvas.toDataURL('image/png');
-                    if (!dataUrl.startsWith('data:image/png')) {
-                      toast.error('Erreur lors de la génération de l\'image.');
+          <div className="flex items-center gap-1 py-1 bg-gray-50 rounded">
+            {/* Code-barres à gauche */}
+            <div className="flex flex-col items-center flex-1">
+              <div id={`barcode-container-${article.id}`} className="mb-0.5 scale-50">
+                <BarcodeGenerator value={article.code_barres || article.id || ''} />
+              </div>
+              <span className="text-[9px] text-gray-400 mb-0.5">
+                {article.code_barres || 'Auto'}
+              </span>
+              <div className="flex gap-0.5">
+                <button
+                  className="px-1 py-0.5 text-[9px] bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center gap-0.5"
+                  onClick={() => {
+                    const container = document.getElementById(`barcode-container-${article.id}`);
+                    if (!container) return;
+                    const canvas = container.querySelector('canvas');
+                    if (!canvas) return;
+                    const win = window.open('', 'PrintBarcode');
+                    if (win) {
+                      win.document.write('<img src="' + canvas.toDataURL() + '" style="width:300px" />');
+                      win.document.close();
+                      win.focus();
+                      win.print();
+                    }
+                  }}
+                  title="Imprimer le code-barres"
+                >
+                  <Printer size={10} className="md:hidden" />
+                  <span className="hidden md:inline">Imprimer</span>
+                </button>
+                <button
+                  className="px-1 py-0.5 text-[9px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex items-center gap-0.5"
+                  onClick={() => {
+                    const container = document.getElementById(`barcode-container-${article.id}`);
+                    if (!container) {
+                      alert('Impossible de trouver le code-barres.');
                       return;
                     }
-                    const link = document.createElement('a');
-                    link.download = `barcode-${article.code_barres || article.id}.png`;
-                    link.href = dataUrl;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    toast.success('Le code-barres a bien été téléchargé.');
-                  } catch (err) {
-                    toast.error('Erreur lors du téléchargement du code-barres.');
-                  }
-                }}
-              >Télécharger</button>
+                    const canvas = container.querySelector('canvas');
+                    if (!canvas) {
+                      alert('Le code-barres n\'est pas généré.');
+                      return;
+                    }
+                    try {
+                      const dataUrl = canvas.toDataURL('image/png');
+                      if (!dataUrl.startsWith('data:image/png')) {
+                        toast.error('Erreur lors de la génération de l\'image.');
+                        return;
+                      }
+                      const link = document.createElement('a');
+                      link.download = `barcode-${article.code_barres || article.id}.png`;
+                      link.href = dataUrl;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      toast.success('Le code-barres a bien été téléchargé.');
+                    } catch (err) {
+                      toast.error('Erreur lors du téléchargement du code-barres.');
+                    }
+                  }}
+                  title="Télécharger le code-barres"
+                >
+                  <Download size={10} className="md:hidden" />
+                  <span className="hidden md:inline">Télécharger</span>
+                </button>
+              </div>
             </div>
+            
+            {/* Image ronde à droite */}
+            {article.image_url && (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center p-0.5">
+                  <img
+                    src={article.image_url}
+                    alt={article.nom}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <Package size={16} />
-          <span>Stock: </span>
-          <span className={`font-semibold ${isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
-            {article.quantite_stock}
-          </span>
-          {isLowStock && (
-            <div className="flex items-center gap-1 text-orange-600">
-              <AlertTriangle size={14} />
-              <span className="text-xs">Seuil atteint</span>
+        
+        {/* Stock et localisation */}
+        <div className="grid grid-cols-2 gap-1">
+          <div className={`flex items-center gap-1 text-xs p-1 rounded ${
+            isLowStock ? 'bg-orange-50' : 'bg-green-50'
+          }`}>
+            <Package size={10} className={isLowStock ? 'text-orange-600' : 'text-green-600'} />
+            <div className="flex flex-col">
+              <span className="text-[9px] text-gray-500">Stock</span>
+              <span className={`font-semibold text-[10px] ${isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
+                {article.quantite_stock}
+              </span>
             </div>
-          )}
-        </div>
+            {isLowStock && (
+              <AlertTriangle size={8} className="text-orange-500 ml-auto" />
+            )}
+          </div>
 
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <MapPin size={16} />
-          <span>{article.localisation}</span>
+          <div className="flex items-center gap-1 text-xs p-1 rounded bg-blue-50">
+            <MapPin size={10} className="text-blue-600 flex-shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <span className="text-[9px] text-gray-500">Lieu</span>
+              <span className="text-[9px] text-gray-700 font-medium truncate">{article.localisation}</span>
+            </div>
+          </div>
         </div>
 
         {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
-          <div className="flex items-center justify-between text-sm bg-blue-50 p-2 rounded">
-            <span className="text-gray-700">Prix unitaire:</span>
+          <div className="flex items-center justify-between text-[10px] bg-blue-50 p-1 rounded">
+            <span className="text-gray-700">Prix:</span>
             <span className="font-semibold text-blue-700">
               {article.prix_unitaire.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </span>
@@ -241,21 +259,20 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
         )}
 
         {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
-          <div className="flex items-center justify-between text-sm bg-green-50 p-2 rounded">
-            <span className="text-gray-700">Valeur stock:</span>
+          <div className="flex items-center justify-between text-[10px] bg-green-50 p-1 rounded">
+            <span className="text-gray-700">Valeur:</span>
             <span className="font-semibold text-green-700">
               {(article.quantite_stock * article.prix_unitaire).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </span>
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">Fournisseur: {article.fournisseur}</span>
-          <div className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded">
-            Code: {article.code_barres || 'Non défini'}
+        <div className="flex items-center justify-between text-[9px] text-gray-500">
+          <span className="truncate">Fournisseur: {article.fournisseur}</span>
+          <div className="font-mono bg-gray-100 px-1 py-0.5 rounded text-[8px]">
+            {article.code_barres || 'N/A'}
           </div>
         </div>
-      </div>
       </div>
       
       {/* Modal de confirmation de suppression */}

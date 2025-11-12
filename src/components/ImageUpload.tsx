@@ -101,7 +101,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
           <img
             src={currentImageUrl}
             alt="Article"
-            className="w-full h-48 object-cover rounded-lg border-2 border-gray-300"
+            className="w-full h-48 object-contain rounded-lg border-2 border-gray-300 bg-gray-50"
           />
           <button
             type="button"

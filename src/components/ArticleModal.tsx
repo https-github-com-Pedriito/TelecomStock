@@ -60,6 +60,12 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     image_url: '',
   });
 
+  // Récupérer le code-barres de l'URL au montage du composant
+  const [barcodeFromURL] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('barcode');
+  });
+
   useEffect(() => {
     if (article) {
       setFormData({
@@ -86,11 +92,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         image_url: '',
       });
     }
-  }, [article]);
-
-  // Récupérer le code-barres de l'URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const barcodeFromURL = urlParams.get('barcode');
+  }, [article, barcodeFromURL]);
 
   // Charger les localisations depuis l'API
   useEffect(() => {
@@ -112,15 +114,14 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     }
   }, [isOpen]);
 
-  // Ajouter le code-barres dans le formulaire
+  // Nettoyer l'URL après avoir capturé le code-barres
   useEffect(() => {
-    if (barcodeFromURL && !article) {
-      setFormData(prev => ({
-        ...prev,
-        code_barres: barcodeFromURL
-      }));
+    if (barcodeFromURL && isOpen) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('barcode');
+      window.history.replaceState({}, '', url.toString());
     }
-  }, [barcodeFromURL, article]);
+  }, [barcodeFromURL, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
