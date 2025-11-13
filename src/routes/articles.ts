@@ -162,7 +162,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
  *               seuil_alerte:
  *                 type: integer
  *               localisation_id:
- *                 type: integer
+ *                 type: string
  *               fournisseur_id:
  *                 type: integer
  *     responses:
