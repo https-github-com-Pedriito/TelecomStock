@@ -292,17 +292,16 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     let applyAdjustments = articlesWithDifferences > 0;
     
     try {
-      await finalizeInventaire(applyAdjustments);
-      
+      // Toujours renseigner le nom complet de l'utilisateur
+      const utilisateurNom = currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur inconnu';
+      await finalizeInventaire(applyAdjustments, utilisateurNom);
       // Télécharger le rapport final
       if (currentEntries.length > 0) {
         downloadExcel(currentEntries);
       }
-      
       const successMessage = applyAdjustments && articlesWithDifferences > 0
         ? `Inventaire finalisé avec succès !\n${articlesWithDifferences} article(s) ont été réajustés.`
         : 'Inventaire finalisé avec succès !';
-      
       alert(successMessage);
     } catch (err) {
       console.error('Erreur lors de la finalisation:', err);
@@ -318,64 +317,59 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     );
   }
 
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
+      {/* Feedback d'erreur moderne */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          <div className="flex justify-between items-center">
-            <span>{error}</span>
-            <button onClick={clearError} className="text-red-500 hover:text-red-700">×</button>
-          </div>
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-4 animate-fade-in">
+          <span className="font-semibold">{error}</span>
+          <button onClick={clearError} className="ml-2 text-white/80 hover:text-white text-xl leading-none">×</button>
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Header sticky moderne */}
+      <div className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 py-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventaire</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {currentInventaire 
-              ? `Inventaire en cours: ${currentInventaire.nom}`
-              : "Aucun inventaire en cours — créez-en un nouveau"
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+            <Package size={28} className="text-blue-600 dark:text-blue-400" /> Inventaire
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1 text-base">
+            {currentInventaire
+              ? <span className="font-semibold text-blue-700 dark:text-blue-300">{currentInventaire.nom}</span>
+              : <span className="italic">Aucun inventaire en cours — créez-en un nouveau</span>
             }
           </p>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium shadow-sm transition-colors"
+          >
+            <History size={18} /> Historique
+          </button>
           {!currentInventaire && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-md transition-colors"
             >
-              <Plus size={16} />
-              Nouvel inventaire
+              <Plus size={18} /> Nouvel inventaire
             </button>
           )}
-          
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-          >
-            <History size={16} />
-            Historique
-          </button>
-
           {currentInventaire && (
             <>
               <button
                 onClick={() => setShowScanner(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-800 text-blue-700 dark:text-blue-300 rounded-lg font-semibold shadow-sm transition-colors"
               >
-                <ScanLine size={16} />
-                Scanner
+                <ScanLine size={18} /> Scanner
               </button>
-              
               {(currentUser.role === 'manager' || currentUser.role === 'admin') && (
-                <button 
+                <button
                   onClick={handleFinalize}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md transition-colors"
                 >
-                  <FileText size={16} />
-                  Finaliser
+                  <FileText size={18} /> Finaliser
                 </button>
               )}
             </>
@@ -383,93 +377,111 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         </div>
       </div>
 
-      {/* Historique des inventaires */}
+      {/* Historique des inventaires moderne */}
       {showHistory && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Historique des inventaires</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800 max-w-2xl mx-auto animate-fade-in">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+            <Archive size={22} className="text-blue-600 dark:text-blue-400" /> Historique des inventaires
+          </h2>
           {inventaires.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400">Aucun inventaire trouvé</p>
           ) : (
-            <div className="space-y-2">
-              {inventaires.map(inv => (
-                <div key={inv.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">{inv.nom}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {inv.description} • Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}
+            <ol className="relative border-l-2 border-blue-200 dark:border-blue-800 ml-2 space-y-0.5">
+              {inventaires.map((inv, idx) => (
+                <li key={inv.id} className="mb-6 ml-6 group">
+                  <span className={`absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white dark:ring-gray-900 border-2 ${
+                    inv.statut === 'EN_COURS' ? 'bg-green-500 border-green-700' :
+                    inv.statut === 'FINALISE' ? 'bg-blue-500 border-blue-700' :
+                    'bg-gray-400 border-gray-600'
+                  }`} />
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10 transition-colors">
+                    <div>
+                      <div className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                        {inv.nom}
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold tracking-wide ${
+                          inv.statut === 'EN_COURS' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                          inv.statut === 'FINALISE' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                          'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                        }`}>
+                          {inv.statut}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {inv.description} • <span className="italic">Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}</span>
+                      </div>
                     </div>
-                    <div className="text-sm mt-1">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        inv.statut === 'EN_COURS' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                        inv.statut === 'FINALISE' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
-                        'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                      }`}>
-                        {inv.statut}
-                      </span>
+                    <div className="flex gap-2 items-center mt-2 sm:mt-0">
+                      <button
+                        onClick={() => setSelectedInventaire(inv)}
+                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 font-semibold shadow-md transition-colors"
+                      >
+                        <Eye size={16} /> Voir détails
+                      </button>
+                      {inv.statut === 'FINALISE' && (
+                        <Archive className="text-gray-400 dark:text-gray-500" size={20} />
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <button
-                      onClick={() => setSelectedInventaire(inv)}
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
-                    >
-                      <Eye size={16} />
-                      Voir détails
-                    </button>
-                    {inv.statut === 'FINALISE' && (
-                      <Archive className="text-gray-400 dark:text-gray-500" size={20} />
-                    )}
-                  </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           )}
         </div>
       )}
 
-      {/* Formulaire de création d'inventaire */}
+      {/* Formulaire de création d'inventaire moderne */}
       {showCreateForm && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Créer un nouvel inventaire</h2>
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nom de l'inventaire
-              </label>
-              <input
-                type="text"
-                value={newInventaireName}
-                onChange={(e) => setNewInventaireName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500"
-                placeholder="Ex: Inventaire Janvier 2024"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description
-              </label>
-              <textarea
-                value={newInventaireDescription}
-                onChange={(e) => setNewInventaireDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500"
-                rows={3}
-                placeholder="Description de l'inventaire..."
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={handleCreateInventaire}
-                disabled={!newInventaireName.trim()}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg"
-              >
-                Créer
-              </button>
-              <button
-                onClick={() => setShowCreateForm(false)}
-                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg"
-              >
-                Annuler
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 animate-fade-in">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-800 w-full max-w-md mx-auto relative">
+            <button
+              onClick={() => setShowCreateForm(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 dark:hover:text-white text-2xl font-bold"
+              aria-label="Fermer"
+            >×</button>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+              <Plus size={22} className="text-green-600 dark:text-green-400" /> Créer un nouvel inventaire
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nom de l'inventaire
+                </label>
+                <input
+                  type="text"
+                  value={newInventaireName}
+                  onChange={(e) => setNewInventaireName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg font-semibold transition-all"
+                  placeholder="Ex: Inventaire Janvier 2024"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newInventaireDescription}
+                  onChange={(e) => setNewInventaireDescription(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base transition-all"
+                  rows={3}
+                  placeholder="Description de l'inventaire..."
+                />
+              </div>
+              <div className="flex gap-2 mt-6">
+                <button
+                  onClick={handleCreateInventaire}
+                  disabled={!newInventaireName.trim()}
+                  className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg font-bold text-lg shadow-md transition-colors"
+                >
+                  Créer
+                </button>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-semibold text-lg transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -584,15 +596,14 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
           {/* Formulaire de saisie de quantité */}
           {selectedArticleId && (
-            <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg space-y-3">
-              <div className="font-medium text-lg text-gray-900 dark:text-white">
-                {articles.find(a => a.id === selectedArticleId)?.nom}
+            <div className="mt-6 p-6 bg-gradient-to-br from-blue-50/80 dark:from-blue-900/30 to-green-50/80 dark:to-green-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl shadow-lg space-y-5 animate-fade-in">
+              <div className="font-bold text-xl text-gray-900 dark:text-white flex items-center gap-2">
+                <Package size={22} className="text-blue-600 dark:text-blue-400" /> {articles.find(a => a.id === selectedArticleId)?.nom}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Stock théorique: {articles.find(a => a.id === selectedArticleId)?.quantite_stock}
+              <div className="text-base text-gray-600 dark:text-gray-400">
+                Stock théorique : <span className="font-semibold text-gray-900 dark:text-white">{articles.find(a => a.id === selectedArticleId)?.quantite_stock}</span>
               </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
                 <div>
                   <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Quantité comptée *</label>
                   <input
@@ -601,28 +612,26 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                     pattern="[0-9]*"
                     value={quantite === 0 ? '' : quantite}
                     onChange={(e) => setQuantite(e.target.value === '' ? 0 : parseInt(e.target.value))}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-5 py-3 border border-gray-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg font-semibold transition-all"
                     placeholder="0"
                     min="0"
                   />
                 </div>
-
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Commentaire (optionnel)</label>
                   <input
                     type="text"
                     value={commentaire}
                     onChange={(e) => setCommentaire(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-5 py-3 border border-gray-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base transition-all"
                     placeholder="Commentaire"
                   />
                 </div>
               </div>
-
-              <div className="flex gap-2">
-                <button 
+              <div className="flex gap-2 mt-4">
+                <button
                   onClick={submitCount}
-                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg shadow-md transition-colors"
                 >
                   {editingEntry ? 'Modifier' : 'Enregistrer'}
                 </button>
@@ -633,7 +642,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                     setCommentaire('');
                     setEditingEntry(null);
                   }}
-                  className="px-4 py-2 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg"
+                  className="px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg font-semibold text-lg transition-colors"
                 >
                   Annuler
                 </button>
@@ -643,51 +652,61 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         </div>
       )}
 
-      {/* Liste des entrées */}
+      {/* Liste des entrées moderne */}
       {currentInventaire && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-            Articles comptés ({currentEntries.length})
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-800">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-2">
+            <List size={22} className="text-blue-600 dark:text-blue-400" /> Articles comptés <span className="ml-2 text-base font-normal text-gray-500 dark:text-gray-400">({currentEntries.length})</span>
           </h2>
           {currentEntries.length === 0 ? (
             <p className="text-gray-500 dark:text-gray-400">Aucun article compté pour le moment</p>
           ) : (
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {currentEntries.map(entry => {
                 const article = articles.find(a => a.id === entry.article_id);
                 const user = users.find(u => u.id === entry.utilisateur_id);
                 const difference = entry.quantite_comptee - entry.quantite_theorique;
-                
+                const avatar = user ? `${user.prenom[0] || ''}${user.nom[0] || ''}`.toUpperCase() : '?';
                 return (
-                  <div key={entry.id} className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 dark:text-white">{article?.nom || 'Article inconnu'}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Théorique: {entry.quantite_theorique} • Compté: {entry.quantite_comptee}
+                  <div key={entry.id} className="flex items-center gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow group">
+                    {/* Avatar utilisateur */}
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-lg font-bold text-blue-700 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-700">
+                        {avatar}
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{user ? user.prenom : 'Utilisateur'}</span>
+                    </div>
+                    {/* Infos article */}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-lg text-gray-900 dark:text-white truncate flex items-center gap-2">
+                        {article?.nom || 'Article inconnu'}
                         {difference !== 0 && (
-                          <span className={`ml-2 ${difference > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                            ({difference > 0 ? '+' : ''}{difference})
+                          <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold tracking-wide ${difference > 0 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
+                            {difference > 0 ? '+' : ''}{difference}
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500">
-                        Par: {user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id} • 
-                        Le: {new Date(entry.created_at).toLocaleDateString('fr-FR')}
-                        {entry.commentaire && ` • ${entry.commentaire}`}
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Théorique: <span className="font-medium">{entry.quantite_theorique}</span> • Compté: <span className="font-medium">{entry.quantite_comptee}</span>
+                      </div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        Par: {user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id} • Le: {new Date(entry.created_at).toLocaleDateString('fr-FR')}
+                        {entry.commentaire && <span> • {entry.commentaire}</span>}
                       </div>
                     </div>
+                    {/* Actions rapides */}
                     {entry.utilisateur_id === currentUser.id && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 ml-2">
                         <button
                           onClick={() => handleEditEntry(entry)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                          className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-full transition-colors"
                           title="Modifier"
                         >
                           <Edit2 size={16} className="text-blue-500 dark:text-blue-400" />
                         </button>
                         <button
                           onClick={() => handleDeleteEntry(entry.id)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                          className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-full transition-colors"
                           title="Supprimer"
                         >
                           <Trash2 size={16} className="text-red-500 dark:text-red-400" />
@@ -700,18 +719,17 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
             </div>
           )}
 
-          {/* Bouton de finalisation en bas */}
+          {/* Bouton de finalisation moderne sticky */}
           {currentEntries.length > 0 && (
-            <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 sticky bottom-0">
+            <div className="mt-8 p-6 bg-gradient-to-r from-green-50/80 dark:from-green-900/30 to-blue-50/80 dark:to-blue-900/20 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 rounded-xl shadow-inner flex flex-col items-center">
               <button
                 onClick={handleFinalize}
-                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-semibold"
+                className="w-full max-w-xs bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-3 text-lg font-bold shadow-lg"
               >
-                <CheckCircle size={20} />
-                Finaliser et enregistrer l'inventaire
+                <CheckCircle size={24} /> Finaliser et enregistrer l'inventaire
               </button>
-              <p className="text-xs text-gray-600 dark:text-gray-400 text-center mt-2">
-                ⚠️ Cette action est irréversible et mettra à jour les stocks
+              <p className="text-xs text-gray-600 dark:text-gray-400 text-center mt-3">
+                ⚠️ Cette action est <span className="font-semibold text-red-600 dark:text-red-400">irréversible</span> et mettra à jour les stocks
               </p>
             </div>
           )}

@@ -15,7 +15,6 @@ import { Historique } from './pages/Historique';
 import { Fournisseurs } from './pages/Fournisseurs';
 import { Entrepots } from './pages/Entrepots';
 import { Utilisateurs } from './pages/Utilisateurs';
-import { Rapports } from './pages/Rapports';
 import { Inventory } from './pages/Inventory';
 import { AdminPortal } from './pages/AdminPortal';
 import { FeedbackProvider } from './components/UXFeedback';
@@ -299,8 +298,6 @@ function App() {
       case 'fournisseurs':
       case 'entrepots':
       case 'utilisateurs':
-      case 'rapports':
-        return hasPermission('manage_users');
       case 'inventory':
         return hasPermission('view_inventory');
       default:
@@ -460,14 +457,6 @@ function App() {
             onUpdateUser={updateUser}
             onDeleteUser={deleteUser}
             onRefreshUsers={refreshUsers}
-          />
-        );
-      case 'rapports':
-        return hasPermission('manage_users') && (
-          <Rapports
-            articles={articles}
-            mouvements={mouvements}
-            articlesWithAlerts={articlesWithAlerts}
           />
         );
       case 'inventory':

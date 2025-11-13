@@ -55,7 +55,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
     }
   };
 
-  const handleForceDelete = async () => {
+  const  handleForceDelete = async () => {
     if (!onDelete) return;
 
     setIsDeleting(true);
@@ -104,7 +104,7 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
       <div className="p-1.5 md:p-3">
         <div className="flex justify-between items-start mb-1 md:mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="text-xs md:text-base font-semibold text-gray-900 dark:text-white md:truncate">{article.nom}</h3>
+            <h3 className="text-xs md:text-base font-semibold text-gray-900 dark:text-white md:truncate" title={article.nom}>{article.nom}</h3>
             <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-400">{article.categorie}</p>
           </div>
           <button
@@ -265,26 +265,30 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
           </div>
         </div>
 
-        {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
-          <div className="flex items-center justify-between text-[10px] md:text-sm bg-blue-50 p-1 md:p-2 rounded">
-            <span className="text-gray-700">Prix:</span>
-            <span className="font-semibold text-blue-700">
-              {article.prix_unitaire.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-            </span>
-          </div>
-        )}
 
-        {canViewPrice && article.prix_unitaire !== undefined && article.prix_unitaire > 0 && (
-          <div className="flex items-center justify-between text-[10px] md:text-sm bg-green-50 p-1 md:p-2 rounded">
-            <span className="text-gray-700">Valeur:</span>
-            <span className="font-semibold text-green-700">
-              {(article.quantite_stock * article.prix_unitaire).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-            </span>
+        {canViewPrice && (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between text-[10px] md:text-sm bg-gray-100 dark:bg-gray-700 p-1 md:p-2 rounded border border-blue-200 dark:border-blue-700">
+              <span className="flex items-center gap-1 text-blue-700 dark:text-blue-300 font-medium">
+                💶 Prix
+              </span>
+              <span className={`font-semibold ${article.prix_unitaire > 0 ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400 dark:text-gray-500'}`}> 
+                {typeof article.prix_unitaire === 'number' ? article.prix_unitaire.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} €
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[10px] md:text-sm bg-gray-100 dark:bg-gray-700 p-1 md:p-2 rounded border border-green-200 dark:border-green-700">
+              <span className="flex items-center gap-1 text-green-700 dark:text-green-300 font-medium">
+                🏷️ Valeur
+              </span>
+              <span className={`font-semibold ${article.quantite_stock * (article.prix_unitaire || 0) > 0 ? 'text-green-700 dark:text-green-300' : 'text-gray-400 dark:text-gray-500'}`}> 
+                {typeof article.prix_unitaire === 'number' ? (article.quantite_stock * article.prix_unitaire).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} €
+              </span>
+            </div>
           </div>
         )}
 
         <div className="flex items-center justify-between text-[9px] md:text-xs text-gray-500 dark:text-gray-400">
-          <span className="truncate">Fournisseur: {article.fournisseur}</span>
+          <span className="truncate"> {article.fournisseur}</span>
           <div className="font-mono bg-gray-100 dark:bg-gray-700 px-1 md:px-2 py-0.5 md:py-1 rounded text-[8px] md:text-xs text-gray-700 dark:text-gray-300">
             {article.code_barres || 'N/A'}
           </div>

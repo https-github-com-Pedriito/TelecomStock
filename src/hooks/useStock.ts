@@ -3,6 +3,8 @@ import { Article, Mouvement, Fournisseur, CreateMouvementData } from '../types';
 import { api } from '../lib/api';
 import { useRealtimeSync } from './useRealtimeSync';
 import type { User } from '../types';
+import { ArticleCard } from '../components/ArticleCard';
+import { Article } from '../entities/Article';
 
 // Type pour le callback de notification
 type StockNotificationCallback = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => void;
@@ -207,6 +209,16 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
           canForceDelete: true,
           data: err.response.data
         };
+      }
+
+      if (err.response?.status ===400) {
+        throw {
+          ...err,
+          message: 'Suppression impossible: cet article est référencé dans d\'autres données.'
+        };
+
+      // Appeler la fonction handleForceDelete de l'UI si besoin
+        return; // Sortir de la fonction après l'appel  
       }
       
       setError(err instanceof Error ? err.message : 'Erreur inconnue');

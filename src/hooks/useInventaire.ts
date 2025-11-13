@@ -134,7 +134,8 @@ export const useInventaire = () => {
   }, [currentInventaire]);
 
   // Finaliser l'inventaire actuel avec réajustement des stocks
-  const finalizeInventaire = useCallback(async (applyAdjustments: boolean = true) => {
+  // Ajout d'un paramètre utilisateurNom pour renseigner l'auteur des mouvements
+  const finalizeInventaire = useCallback(async (applyAdjustments: boolean = true, utilisateurNom?: string) => {
     if (!currentInventaire) {
       throw new Error('Aucun inventaire actuel');
     }
@@ -147,21 +148,19 @@ export const useInventaire = () => {
         // Pour chaque entrée avec une différence, créer un mouvement et mettre à jour le stock
         for (const entry of currentEntries) {
           const difference = entry.quantite_comptee - entry.quantite_theorique;
-          
           if (difference !== 0) {
-            // Créer un mouvement de réajustement d'inventaire
+            // Créer un mouvement de réajustement d'inventaire avec utilisateur
             const mouvementData = {
               article_id: entry.article_id,
               type: difference > 0 ? 'ENTREE' : 'SORTIE',
               quantite: Math.abs(difference),
               description: `Réajustement inventaire: ${currentInventaire.nom}`,
-              commentaire: entry.commentaire || `Différence détectée lors de l'inventaire (Théorique: ${entry.quantite_theorique}, Compté: ${entry.quantite_comptee})`
+              commentaire: entry.commentaire || `Différence détectée lors de l'inventaire (Théorique: ${entry.quantite_theorique}, Compté: ${entry.quantite_comptee})`,
+              utilisateur: utilisateurNom || 'Utilisateur inconnu'
             };
-            
             try {
               // Créer le mouvement via l'API
               await api.createMouvement(mouvementData);
-              
               // Mettre à jour l'article avec la nouvelle quantité
               await api.updateArticle(entry.article_id, {
                 quantite_stock: entry.quantite_comptee

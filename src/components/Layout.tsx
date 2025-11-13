@@ -5,12 +5,10 @@ import {
   Package, 
   ArrowUpDown, 
   ScanLine, 
-  History,
   AlertTriangle,
   LogOut,
   Shield,
   Truck,
-  Users,
   FileText,
   Building2
 } from 'lucide-react';
@@ -66,14 +64,10 @@ export function Layout({
       id: 'scanner' as ViewMode, 
       label: 'Scanner', 
       icon: ScanLine, 
-      permission: 'use_scanner' 
+      permission: 'use_scanner',
+      mobileOnly: true
     },
-    { 
-      id: 'historique' as ViewMode, 
-      label: 'Historique', 
-      icon: History, 
-      permission: 'view_historique' 
-    },
+    // Onglet Historique supprimé
     { 
       id: 'fournisseurs' as ViewMode, 
       label: 'Fournisseurs', 
@@ -84,12 +78,6 @@ export function Layout({
       id: 'entrepots' as ViewMode, 
       label: 'Entrepôts', 
       icon: Building2, 
-      permission: 'manage_users' 
-    },
-    { 
-      id: 'rapports' as ViewMode, 
-      label: 'Rapports', 
-      icon: FileText, 
       permission: 'manage_users' 
     },
     { 
@@ -209,6 +197,23 @@ export function Layout({
           <div className="flex overflow-x-auto min-w-0">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              // Si mobileOnly, masquer sur sm et plus
+              if (item.mobileOnly) {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onViewChange(item.id)}
+                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap sm:hidden ${
+                      currentView === item.id
+                        ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-gray-700'
+                        : 'text-gray-600 dark:text-gray-300 border-transparent hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-300 dark:hover:border-blue-500'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
               return (
                 <button
                   key={item.id}

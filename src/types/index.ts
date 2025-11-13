@@ -134,18 +134,6 @@ export interface AuthState {
 }
 
 
-
-export interface RapportMensuel {
-  mois: string;
-  annee: number;
-  totalEntrees: number;
-  totalSorties: number;
-  articlesAjoutes: number;
-  mouvementsParCategorie: Record<string, { entrees: number; sorties: number }>;
-  topArticles: Array<{ nom: string; quantite: number }>;
-  alertesStock: number;
-}
-
 export interface InventoryItem {
   articleId: string;
   utilisateurRole: 'MANAGER' | 'TECHNICIEN' | string;

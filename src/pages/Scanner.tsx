@@ -51,11 +51,13 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       alert('Article créé avec succès !');
     } else if (data.article_id && data.quantite) {
       // Mouvement de stock
+      // Toujours renseigner le nom complet de l'utilisateur connecté
+      const utilisateurNom = currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur inconnu';
       onAddMouvement({
         article_id: data.article_id,
         quantite: data.quantite,
         type: data.type || 'ENTREE',
-        utilisateur: data.utilisateur || 'Utilisateur actuel',
+        utilisateur: utilisateurNom,
         commentaire: data.commentaire
       });
       alert('Mouvement enregistré avec succès !');

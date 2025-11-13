@@ -228,6 +228,12 @@ class ApiService {
     });
   }
 
+  async handleForceDeleteArticle(id: string) {
+    return this.request(`/articles/${id}/force`, {
+      method: 'DELETE',
+    });
+  }
+    
 
 
   // Mouvements

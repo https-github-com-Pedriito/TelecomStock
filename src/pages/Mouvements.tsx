@@ -313,7 +313,9 @@ export function Mouvements({ mouvements }: MouvementsProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {mouvement.utilisateur}
+                    {mouvement.utilisateur || (
+                      <span className="italic text-gray-400 dark:text-gray-500">Utilisateur inconnu</span>
+                    )}
                   </td>
                 </tr>
               ))}

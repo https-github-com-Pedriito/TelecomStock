@@ -1,21 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Package, 
-  AlertTriangle, 
+import { useState, useEffect } from 'react';
+import Highcharts from 'highcharts';
+import 'highcharts/highcharts-3d';
+import HighchartsReact from 'highcharts-react-official';
+// Modern Area Chart style (shadcn/ui inspired)
+import {
+  TrendingUp,
+  Package,
+  AlertTriangle,
   Activity,
-  Calendar,
-  Filter,
-  Download,
   RefreshCw,
-  Bell,
-  Eye,
-  Settings
+  Radius,
 } from 'lucide-react';
+
+
 import { Article, Mouvement, Inventaire } from '../types';
+import { deprecate } from 'util';
+
+
 
 interface AdminDashboardProps {
+
   articles: Article[];
   mouvements: Mouvement[];
   inventaires: Inventaire[];
@@ -42,20 +46,16 @@ interface StockAlert {
   date: Date;
 }
 
-interface ChartData {
-  labels: string[];
-  entrees: number[];
-  sorties: number[];
-  stock: number[];
-}
+const COLORS = ['#2563eb', '#22c55e', '#f59e42', '#ef4444', '#a855f7', '#eab308', '#14b8a6', '#6366f1'];
 
-export function AdminDashboard({ 
-  articles, 
-  mouvements, 
-  inventaires, 
-  onNavigate 
+export function AdminDashboard({
+  articles,
+  mouvements,
+  inventaires,
+  onNavigate
 }: AdminDashboardProps) {
-  const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month' | 'year'>('week');
+  // HOOKS
+  const [timeframe] = useState<'day' | 'week' | 'month' | 'year'>('week');
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
     totalArticles: 0,
@@ -68,153 +68,208 @@ export function AdminDashboard({
     criticalAlerts: 0
   });
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
-  const [chartData, setChartData] = useState<ChartData>({
-    labels: [],
-    entrees: [],
-    sorties: [],
-    stock: []
-  });
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [pieData, setPieData] = useState<any[]>([]);
 
-  // Calcul des statistiques
-  useEffect(() => {
-    calculateStats();
-    generateAlerts();
-    generateChartData();
-  }, [articles, mouvements, inventaires, timeframe]);
+  // Détection du mode dark (body.classList ou media query)
+  const isDark = typeof window !== 'undefined' && (document.body.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches);
 
+
+  // Options Highcharts pour AreaChart (Entrées/Sorties)
+  const areaChartOptions = {
+    chart: {
+      type: 'area',
+      height: 350,
+      backgroundColor: isDark ? '#1f2937' : 'transparent',
+    },
+    title: { text: undefined },
+    xAxis: {
+      categories: chartData.map(d => d.date),
+      tickmarkPlacement: 'on',
+      title: { enabled: false },
+      gridLineWidth: 0,
+      labels: { style: { color: isDark ? '#d1d5db' : '#374151' } },
+      lineColor: isDark ? '#374151' : '#e5e7eb',
+    },
+    yAxis: {
+      title: { text: 'Quantité', style: { color: isDark ? '#d1d5db' : '#374151' } },
+      min: 0,
+      gridLineWidth: 1,
+      gridLineColor: isDark ? '#374151' : '#e5e7eb',
+      labels: { style: { color: isDark ? '#d1d5db' : '#374151' } },
+    },
+    tooltip: {
+      shared: true,
+      valueSuffix: ' unités',
+      backgroundColor: isDark ? '#111827' : '#fff',
+      style: { color: isDark ? '#f3f4f6' : '#111827' },
+    },
+    legend: {
+      enabled: true,
+      itemStyle: { color: isDark ? '#d1d5db' : '#374151' },
+      itemHoverStyle: { color: isDark ? '#fff' : '#111827' },
+    },
+    plotOptions: {
+      area: {
+        marker: { enabled: false }
+      }
+    },
+    series: [
+      {
+        name: 'Entrées',
+        data: chartData.map(d => d.Entrees),
+        color: '#22c55e',
+        fillOpacity: 0.3,
+      },
+      {
+        name: 'Sorties',
+        data: chartData.map(d => d.Sorties),
+        color: '#ef4444',
+        fillOpacity: 0.3,
+      },
+    ],
+    credits: { enabled: false },
+  };
+
+  // Options Highcharts pour PieChart (Taux de rotation)
+  const pieChartOptions = {
+    chart: {
+      type: 'pie',
+      height: 350,
+      backgroundColor: isDark ? '#1f2937' : 'transparent',
+      options3d: {
+        enabled: true,
+        alpha: 30,
+        beta: 0,
+      }
+    },
+    title: { text: undefined },
+    tooltip: {
+      pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+      backgroundColor: isDark ? '#111827' : '#fff',
+      style: { color: isDark ? '#f3f4f6' : '#111827' },
+    },
+    accessibility: { point: { valueSuffix: '%' } },
+    plotOptions: {
+      pie: {
+        allowPointSelect: true,
+        cursor: 'pointer',
+        depth: 35,
+        dataLabels: {
+          enabled: true,
+          format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+          style: { color: isDark ? '#f3f4f6' : '#111827' }
+        }
+      }
+    },
+    legend: {
+      itemStyle: { color: isDark ? '#d1d5db' : '#374151' },
+      itemHoverStyle: { color: isDark ? '#fff' : '#111827' },
+    },
+    series: [{
+      type: 'pie',
+      name: 'Rotation',
+      colorByPoint: true,
+      data: pieData.map((d, idx) => ({
+        name: d.name,
+        y: d.value,
+        color: COLORS[idx % COLORS.length]
+      }))
+    }],
+    credits: { enabled: false },
+  };
+
+
+  // Calcul des stats du dashboard
   const calculateStats = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    // Articles total et valeur financière
     const totalArticles = articles.length;
-    const totalValue = articles.reduce((sum, article) => {
-      const prix = article.prix_unitaire || 0;
-      return sum + (article.quantite_stock * prix);
+    const totalValue = articles.reduce((sum, a) => {
+      const prix = typeof a.prix_unitaire === 'number' ? a.prix_unitaire : 0;
+      const qte = typeof a.quantite_stock === 'number' ? a.quantite_stock : 0;
+      return sum + prix * qte;
     }, 0);
-
-    // Stock faible (utilise seuil_minimum)
-    const lowStockCount = articles.filter(article => 
-      article.quantite_stock <= article.seuil_minimum
-    ).length;
-
-    // Mouvements du jour
-    const todayMovements = mouvements.filter(mouvement => {
-      const movDate = new Date(mouvement.dateHeure);
-      return movDate >= today;
+    const lowStockCount = articles.filter(a => a.quantite_stock !== undefined && a.quantite_stock <= (a.seuil_minimum || 0)).length;
+    const today = new Date();
+    const todayMovements = mouvements.filter(m => {
+      const d = new Date(m.dateHeure);
+      return d.toDateString() === today.toDateString();
     }).length;
-
-    // Tendances
-    const weekMovements = mouvements.filter(m => new Date(m.dateHeure) >= weekAgo);
-    const monthMovements = mouvements.filter(m => new Date(m.dateHeure) >= monthAgo);
-    
-    const weeklyTrend = weekMovements.length;
-    const monthlyTrend = monthMovements.length;
-
-    // Inventaires actifs
-    const activeInventories = inventaires.filter(inv => 
-      inv.statut === 'EN_COURS'
+    const activeInventories = inventaires.filter(inv => inv.statut === 'EN_COURS').length;
+    const criticalAlerts = articles.filter(article =>
+      article.quantite_stock === 0 ||
+      article.quantite_stock < Math.max(1, (article.seuil_minimum || 0) * 0.5)
     ).length;
-
-    // Alertes critiques
-    const criticalAlerts = articles.filter(article => 
-      article.quantite_stock === 0 || 
-      article.quantite_stock < Math.max(1, article.seuil_minimum * 0.5)
-    ).length;
-
-    setStats({
+    setStats(s => ({
+      ...s,
       totalArticles,
       totalValue,
       lowStockCount,
       todayMovements,
-      weeklyTrend,
-      monthlyTrend,
       activeInventories,
       criticalAlerts
-    });
+    }));
   };
 
+  // Génération des alertes critiques
   const generateAlerts = () => {
-    const newAlerts: StockAlert[] = [];
-
-    articles.forEach(article => {
-      const seuil = article.seuil_minimum;
-      
-      if (article.quantite_stock === 0) {
-        newAlerts.push({
-          id: `no-stock-${article.id}`,
-          type: 'no_stock',
-          article,
-          severity: 'high',
-          message: `Stock épuisé`,
-          date: new Date()
-        });
-      } else if (article.quantite_stock < seuil * 0.5) {
-        newAlerts.push({
-          id: `critical-${article.id}`,
-          type: 'low_stock',
-          article,
-          severity: 'high',
-          message: `Stock critique (${article.quantite_stock} restant)`,
-          date: new Date()
-        });
-      } else if (article.quantite_stock < seuil) {
-        newAlerts.push({
-          id: `low-${article.id}`,
-          type: 'low_stock',
-          article,
-          severity: 'medium',
-          message: `Stock faible (${article.quantite_stock} restant)`,
-          date: new Date()
-        });
-      }
-    });
-
-    setAlerts(newAlerts.slice(0, 10)); // Limiter à 10 alertes
+    const newAlerts: StockAlert[] = articles.filter(a => a.quantite_stock !== undefined && a.quantite_stock <= (a.seuil_minimum || 0)).map(a => ({
+      id: a.id,
+      type: a.quantite_stock === 0 ? 'no_stock' : 'low_stock',
+      article: a,
+      severity: a.quantite_stock === 0 ? 'high' : 'medium',
+      message: a.quantite_stock === 0 ? 'Rupture de stock' : 'Stock faible',
+      date: new Date()
+    }));
+    setAlerts(newAlerts.slice(0, 10));
   };
 
-  const generateChartData = () => {
-    const days = 7;
-    const labels: string[] = [];
-    const entrees: number[] = [];
-    const sorties: number[] = [];
-    const stock: number[] = [];
+  // Pie chart: répartition du stock par catégorie
+  const generatePieData = () => {
+    const catStats: Record<string, number> = {};
+    articles.forEach((a: Article) => {
+      catStats[a.categorie] = (catStats[a.categorie] || 0) + (a.quantite_stock || 0);
+    });
+    setPieData(Object.entries(catStats).map(([name, value]) => ({ name, value })));
+  };
 
+  // Area chart: mouvements sur 30 jours
+  const generateChartData = () => {
+    const days = 30;
+    const data: any[] = [];
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      labels.push(date.toLocaleDateString('fr-FR', { weekday: 'short' }));
-
+      const label = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
       const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-
-      const dayMovements = mouvements.filter(m => {
+      const dayMovements = mouvements.filter((m: Mouvement) => {
         const movDate = new Date(m.dateHeure);
         return movDate >= dayStart && movDate < dayEnd;
       });
-
       const entreesCount = dayMovements
-        .filter(m => m.type === 'ENTREE')
-        .reduce((sum, m) => sum + m.quantite, 0);
-      
+        .filter((m: Mouvement) => m.type === 'ENTREE')
+        .reduce((sum: number, m: Mouvement) => sum + m.quantite, 0);
       const sortiesCount = dayMovements
-        .filter(m => m.type === 'SORTIE')
-        .reduce((sum, m) => sum + m.quantite, 0);
-
-      const stockValue = articles.reduce((sum, article) => 
-        sum + article.quantite_stock, 0
-      );
-
-      entrees.push(entreesCount);
-      sorties.push(sortiesCount);
-      stock.push(stockValue);
+        .filter((m: Mouvement) => m.type === 'SORTIE')
+        .reduce((sum: number, m: Mouvement) => sum + m.quantite, 0);
+      data.push({
+        date: label,
+        Entrees: entreesCount,
+        Sorties: sortiesCount
+      });
     }
-
-    setChartData({ labels, entrees, sorties, stock });
+    setChartData(data);
   };
 
+  // EFFECTS
+  useEffect(() => {
+    calculateStats();
+    generateAlerts();
+    generateChartData();
+    generatePieData();
+  }, [articles, mouvements, inventaires, timeframe]);
+
+  // HANDLERS
   const handleRefresh = async () => {
     setRefreshing(true);
     // Simuler un refresh
@@ -222,347 +277,82 @@ export function AdminDashboard({
     calculateStats();
     generateAlerts();
     generateChartData();
+    generatePieData();
     setRefreshing(false);
   };
 
-  const exportData = () => {
-    const data = {
-      stats,
-      alerts: alerts.slice(0, 5),
-      chartData,
-      generatedAt: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { 
-      type: 'application/json' 
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dashboard-export-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // exportData supprimé car inutilisé
 
+  // RENDER
   return (
     <div className="flex-1 p-4 md:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto overflow-x-hidden w-full">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Dashboard Administrateur
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Vue d'ensemble et contrôle du système
-          </p>
+      {/* VU D'ENSEMBLE */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Vue d'ensemble</h2>
+        <button
+          onClick={handleRefresh}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
+          disabled={refreshing}
+        >
+          <RefreshCw className={refreshing ? 'animate-spin' : ''} size={18} />
+          {refreshing ? 'Rafraîchissement...' : 'Rafraîchir'}
+        </button>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col items-start">
+          <div className="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400"><Package size={20} /> Articles</div>
+          <div className="text-2xl font-bold">{stats.totalArticles}</div>
+          <div className="text-xs text-gray-500">Total articles référencés</div>
         </div>
-        
-        <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-          <button
-            onClick={() => onNavigate?.('alerts')}
-            className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <Bell className="h-5 w-5" />
-            {stats.criticalAlerts > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {stats.criticalAlerts}
-              </span>
-            )}
-          </button>
-          
-          <button
-            onClick={() => onNavigate?.('settings')}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
-          
-          <button
-            onClick={exportData}
-            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-2 transition-colors"
-          >
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exporter</span>
-          </button>
-          
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            <span>Actualiser</span>
-          </button>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col items-start">
+          <div className="flex items-center gap-2 mb-2 text-green-600 dark:text-green-400"><TrendingUp size={20} /> Valeur stock</div>
+          <div className="text-2xl font-bold">{stats.totalValue.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>
+          <div className="text-xs text-gray-500">Valeur financière totale</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col items-start">
+          <div className="flex items-center gap-2 mb-2 text-yellow-600 dark:text-yellow-400"><AlertTriangle size={20} /> Stock faible</div>
+          <div className="text-2xl font-bold">{stats.lowStockCount}</div>
+          <div className="text-xs text-gray-500">Articles sous le seuil</div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex flex-col items-start">
+          <div className="flex items-center gap-2 mb-2 text-red-600 dark:text-red-400"><Activity size={20} /> Mouvements aujourd'hui</div>
+          <div className="text-2xl font-bold">{stats.todayMovements}</div>
+          <div className="text-xs text-gray-500">Entrées/sorties du jour</div>
         </div>
       </div>
 
-      {/* Filtres */}
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="flex items-center space-x-2">
-          <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Période:</span>
-          <select
-            value={timeframe}
-            onChange={(e) => setTimeframe(e.target.value as any)}
-            className="px-3 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-          >
-            <option value="day">Aujourd'hui</option>
-            <option value="week">7 derniers jours</option>
-            <option value="month">30 derniers jours</option>
-            <option value="year">Cette année</option>
-          </select>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            Dernière mise à jour: {new Date().toLocaleTimeString('fr-FR')}
-          </span>
-        </div>
-      </div>
-
-      {/* KPIs Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8 w-full">
-        {/* Total Articles */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
+      {/* GRAPHIQUES ET ANALYSES */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Highcharts Area Chart - Mouvements du mois */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-center justify-center">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Articles</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalArticles}</p>
-            </div>
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-              <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Mouvements en cours</h3>
+              <p className="text-xs text-gray-500">Entrées et sorties par jour</p>
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400">+{stats.todayMovements} mouvements aujourd'hui</span>
-          </div>
+          <HighchartsReact
+            containerProps={{ style: { margin: '0 auto' } }}
+            highcharts={Highcharts}
+            options={areaChartOptions}
+          />
         </div>
 
-        {/* Valeur Stock */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
+        {/* Highcharts Pie Chart - Taux de rotation des produits */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Valeur Stock</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {stats.totalValue.toLocaleString('fr-FR')}€
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <BarChart3 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Taux de rotation des produits</h3>
+              <p className="text-xs text-gray-500">Répartition des mouvements par catégorie</p>
             </div>
           </div>
-          <div className="mt-4 flex items-center">
-            <TrendingUp className="h-4 w-4 text-green-500 dark:text-green-400 mr-1" />
-            <span className="text-sm text-green-600 dark:text-green-400">+{stats.monthlyTrend} ce mois</span>
-          </div>
-        </div>
-
-        {/* Alertes Stock */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Alertes Stock</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.lowStockCount}</p>
-            </div>
-            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-              <AlertTriangle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <span className={`text-sm ${stats.criticalAlerts > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
-              {stats.criticalAlerts} critiques
-            </span>
-          </div>
-        </div>
-
-        {/* Inventaires Actifs */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Inventaires</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeInventories}</p>
-            </div>
-            <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Activity className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center">
-            <span className="text-sm text-gray-600 dark:text-gray-400">en cours</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 w-full">
-        {/* Graphique des mouvements */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Mouvements de Stock
-            </h3>
-            <div className="flex items-center space-x-4 text-sm text-gray-900 dark:text-white">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 dark:bg-green-400 rounded mr-2"></div>
-                <span>Entrées</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-red-500 dark:bg-red-400 rounded mr-2"></div>
-                <span>Sorties</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Graphique simple avec barres CSS */}
-          <div className="space-y-3">
-            {chartData.labels.map((label, index) => (
-              <div key={label} className="flex items-center space-x-3">
-                <div className="w-12 text-xs text-gray-600 dark:text-gray-400">{label}</div>
-                <div className="flex-1 flex items-center space-x-1">
-                  <div className="flex items-end space-x-1 h-8 flex-1">
-                    <div 
-                      className="bg-green-500 dark:bg-green-400 min-w-[2px] rounded-t"
-                      style={{ 
-                        height: `${Math.max(4, (chartData.entrees[index] / Math.max(...chartData.entrees, 1)) * 100)}%`,
-                        width: '12px'
-                      }}
-                    />
-                    <div 
-                      className="bg-red-500 dark:bg-red-400 min-w-[2px] rounded-t"
-                      style={{ 
-                        height: `${Math.max(4, (chartData.sorties[index] / Math.max(...chartData.sorties, 1)) * 100)}%`,
-                        width: '12px'
-                      }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 w-16 text-right">
-                    +{chartData.entrees[index]} -{chartData.sorties[index]}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Alertes */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Alertes Récentes
-            </h3>
-            <button
-              onClick={() => onNavigate?.('alerts')}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium flex items-center"
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              Voir tout
-            </button>
-          </div>
-          
-          <div className="space-y-3">
-            {alerts.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-                <p>Aucune alerte active</p>
-              </div>
-            ) : (
-              alerts.slice(0, 5).map(alert => (
-                <div 
-                  key={alert.id}
-                  className={`p-3 rounded-lg border-l-4 ${
-                    alert.severity === 'high' ? 'bg-red-50 dark:bg-red-900/20 border-red-500' :
-                    alert.severity === 'medium' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500' :
-                    'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-white text-sm">
-                        {alert.article.nom}
-                      </p>
-                      <p className={`text-sm ${
-                        alert.severity === 'high' ? 'text-red-700 dark:text-red-400' :
-                        alert.severity === 'medium' ? 'text-yellow-700 dark:text-yellow-400' :
-                        'text-blue-700 dark:text-blue-400'
-                      }`}>
-                        {alert.message}
-                      </p>
-                    </div>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      alert.severity === 'high' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
-                      alert.severity === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
-                      'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
-                    }`}>
-                      {alert.severity === 'high' ? 'Critique' :
-                       alert.severity === 'medium' ? 'Moyen' : 'Info'}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Articles les plus actifs */}
-      <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Articles les Plus Actifs
-        </h3>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700">
-                <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Article</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Stock</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Mouvements</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Valeur</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              {articles
-                .sort((a, b) => {
-                  const aMovements = mouvements.filter(m => m.article.id === a.id).length;
-                  const bMovements = mouvements.filter(m => m.article.id === b.id).length;
-                  return bMovements - aMovements;
-                })
-                .slice(0, 8)
-                .map(article => {
-                  const articleMovements = mouvements.filter(m => m.article.id === article.id).length;
-                  const value = article.quantite_stock;
-                  const isLowStock = article.quantite_stock <= article.seuil_minimum;
-                  const isOutOfStock = article.quantite_stock === 0;
-                  
-                  return (
-                    <tr key={article.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{article.nom}</p>
-                          <p className="text-gray-500 dark:text-gray-400 text-xs">{article.code_barres}</p>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-white">{article.quantite_stock}</td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-white">{articleMovements}</td>
-                      <td className="py-3 px-4 text-gray-900 dark:text-white">{value.toFixed(2)}€</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          isOutOfStock ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400' :
-                          isLowStock ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' :
-                          'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                        }`}>
-                          {isOutOfStock ? 'Épuisé' :
-                           isLowStock ? 'Stock faible' : 'OK'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+          <HighchartsReact
+            highcharts={Highcharts}
+            options={pieChartOptions}
+          />
         </div>
       </div>
     </div>
   );
 }
+
