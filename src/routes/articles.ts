@@ -87,7 +87,7 @@ router.get('/', authMiddleware, async (req, res) => {
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
  *         description: ID de l'article
  *     responses:
  *       200:
@@ -325,8 +325,6 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       .createQueryBuilder('mouvement')
       .where('mouvement.article_id = :articleId', { articleId: id })
       .getCount();
-
-    console.log(`Nombre de mouvements associés: ${mouvementsCount}`);
 
     if (mouvementsCount > 0 && force !== 'true') {
       // Si il y a des mouvements et pas de force, retourner une erreur avec options
