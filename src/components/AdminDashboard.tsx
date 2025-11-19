@@ -322,7 +322,8 @@ export function AdminDashboard({
       </div>
 
       {/* GRAPHIQUES ET ANALYSES */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      {/* Affichage des graphiques uniquement sur desktop/tablette */}
+      <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Highcharts Area Chart - Mouvements du mois */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-center justify-center">
           <div className="flex items-center justify-between mb-2">

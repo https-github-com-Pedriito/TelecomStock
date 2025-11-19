@@ -42,13 +42,13 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
       {/* Bannière Beta moderne avec effet néon */}
-      <div className="fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50 overflow-hidden">
+      <div className="fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50 overflow-y-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
         <div className="relative max-w-7xl mx-auto py-2.5 px-4 flex items-center justify-center gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 overflow-hidden">
             <span className="relative inline-flex items-center justify-center">
               <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping"></span>
-              <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs sm:text-sm tracking-widest text-white shadow-lg shadow-purple-500/50">
+              <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs sm:text-sm tracking-widest text-white shadow-lg shadow-purple-500/50 ">
                 BETA
               </span>
             </span>
@@ -59,7 +59,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
               <span className="text-xs text-white/60">•</span>
               <span className="text-xs text-white/60">Vos retours comptent</span>
             </div>
-            <span className="sm:hidden text-xs text-white/70 font-medium">
+            <span className="sm:hidden text-xs text-white/70 font-medium overflow-hidden">
               Test en cours
             </span>
           </div>

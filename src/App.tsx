@@ -539,9 +539,8 @@ function App() {
           </button>
           
           {/* Badge BETA visible sur mobile */}
-          <div className="relative inline-flex items-center justify-center mr-3 flex-shrink-0 pointer-events-none">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping pointer-events-none"></span>
-            <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50 pointer-events-none">
+          <div className="relative inline-flex items-center justify-center mr-3 flex-shrink-0 pointer-events-none ">
+            <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50 pointer-events-none overflow-hidden">
               BETA
             </span>
           </div>

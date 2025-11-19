@@ -36,6 +36,8 @@ export function MobileBottomNav({
   onQuickAction,
   className = ''
 }: MobileBottomNavProps) {
+  // Détection du mode dark
+  const isDark = typeof window !== 'undefined' && (document.body.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   // Mémoriser les items pour éviter de recalculer à chaque render
   const visibleNavItems = React.useMemo(() => {
@@ -104,11 +106,7 @@ export function MobileBottomNav({
           icon: ClipboardList,
           label: 'Inventaire'
         },
-        {
-          id: 'adminPortal' as ViewMode,
-          icon: Users,
-          label: 'Utilisateurs'
-        }
+        // Onglet 'Utilisateurs' supprimé pour la vue mobile
       ];
     }
     
@@ -137,13 +135,12 @@ export function MobileBottomNav({
   }, [currentView]);
 
   return (
-    <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg ${className}`}>
+    <nav className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-50 shadow-lg ${className}`}>
       <div className="flex items-stretch justify-around h-16 px-2 max-w-screen-sm mx-auto">
         {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.id);
           const isScanner = item.id === 'scanner';
-          
           return (
             <button
               key={item.id}
@@ -153,33 +150,32 @@ export function MobileBottomNav({
                 transition-colors duration-150 active:scale-95 relative
                 ${isScanner
                   ? active
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-blue-500 text-white shadow-sm'
+                    ? 'bg-blue-600 text-white shadow-md dark:bg-blue-800 dark:text-white'
+                    : 'bg-blue-500 text-white shadow-sm dark:bg-blue-700 dark:text-white'
                   : active 
-                    ? 'bg-blue-50 text-blue-600' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300' 
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
                 }
               `}
             >
               <Icon 
                 size={isScanner ? 24 : 22}
                 strokeWidth={isScanner ? 2.5 : 2}
+                className={active ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-300'}
               />
               <span className="text-[10px] font-medium leading-none">
                 {item.label}
               </span>
-              
               {/* Indicateur actif */}
               {active && !isScanner && (
-                <div className="absolute bottom-1 w-1 h-1 bg-blue-600 rounded-full"></div>
+                <div className="absolute bottom-1 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
               )}
             </button>
           );
         })}
       </div>
-      
       {/* Safe area pour iPhone */}
-      <div className="h-[env(safe-area-inset-bottom)] bg-white"></div>
+      <div className="h-[env(safe-area-inset-bottom)] bg-white dark:bg-gray-900"></div>
     </nav>
   );
 }
@@ -197,6 +193,4 @@ export function useIsMobile() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  return isMobile;
 }
