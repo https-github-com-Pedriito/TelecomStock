@@ -291,7 +291,7 @@ export function AdminDashboard({
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Vue d'ensemble</h2>
         <button
           onClick={handleRefresh}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50"
           disabled={refreshing}
         >
           <RefreshCw className={refreshing ? 'animate-spin' : ''} size={18} />

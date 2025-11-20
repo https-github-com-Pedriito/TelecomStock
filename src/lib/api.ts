@@ -5,20 +5,12 @@ class ApiService {
   private token: string | null;
 
   constructor() {
-    // Debug : voir toutes les variables d'environnement
-    console.log('[DEBUG] All env vars:', import.meta.env);
-    console.log('[DEBUG] VITE_API_URL:', import.meta.env.VITE_API_URL);
-    console.log('[DEBUG] Mode:', import.meta.env.MODE);
-    
     // Utiliser la variable d'environnement avec fallback temporaire
-    this.baseUrl = import.meta.env.VITE_API_URL || 'https://decimale-api-production.up.railway.app';
-    
+    this.baseUrl = import.meta.env.VITE_API_URL;
+
     if (!import.meta.env.VITE_API_URL) {
       console.warn('⚠️ VITE_API_URL non trouvé dans .env, utilisation du fallback');
     }
-    
-    console.log('[DEBUG] Final baseUrl:', this.baseUrl);
-    
     this.token = localStorage.getItem('auth_token');
   }
 
@@ -29,15 +21,6 @@ class ApiService {
 
   private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     try {
-      console.log('=== API Request Start ===');
-      console.log('User Agent:', navigator.userAgent);
-      console.log('Window Location:', {
-        protocol: window.location.protocol,
-        host: window.location.host,
-        hostname: window.location.hostname,
-        port: window.location.port
-      });
-      
       const headers = {
         'Content-Type': 'application/json',
         ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
@@ -45,7 +28,6 @@ class ApiService {
       };
 
       const url = `${this.baseUrl}${endpoint}`;
-      console.log('[DEBUG] Fetching:', url); // Pour le débogage
 
       const fetchOptions = {
         ...options,
@@ -54,11 +36,7 @@ class ApiService {
         credentials: 'include' as RequestCredentials
       };
 
-      console.log('[DEBUG] Fetch options:', fetchOptions);
-
       const response = await fetch(url, fetchOptions);
-
-      console.log('[DEBUG] Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -68,14 +46,14 @@ class ApiService {
         } catch {
           errorData = { message: errorText || `Erreur HTTP ${response.status}` };
         }
-        
+
         console.error('[DEBUG] API Error:', {
           status: response.status,
           statusText: response.statusText,
           data: errorData,
           url
         });
-        
+
         // Créer une erreur avec toutes les informations
         const error = new Error(errorData.message || 'Une erreur est survenue');
         (error as any).response = {
@@ -100,7 +78,7 @@ class ApiService {
       // Essayer de parser le JSON
       try {
         const jsonData = JSON.parse(text);
-        console.log('[DEBUG] Response data:', jsonData);
+        //console.log('[DEBUG] Response data:', jsonData);
         return jsonData;
       } catch (error) {
         console.warn('Failed to parse response as JSON:', text);
@@ -115,17 +93,17 @@ class ApiService {
         errorType: error instanceof TypeError ? 'Network Error (CORS/SSL?)' : 'Other Error',
         stack: error instanceof Error ? error.stack : undefined
       });
-      
+
       // Si c'est une erreur réseau (TypeError), donner plus de détails
       if (error instanceof TypeError) {
         const networkError = new Error(
-          `Impossible de joindre l'API à ${this.baseUrl}${endpoint}. ` +
-          `Vérifiez : 1) La connexion réseau, 2) Les certificats SSL, 3) La configuration CORS`
+          `Impossible de joindre l'API, ` +
+          `Vérifiez La connexion réseau ou les certificats`
         );
         (networkError as any).originalError = error;
         throw networkError;
       }
-      
+
       throw error;
     }
   }
@@ -233,8 +211,6 @@ class ApiService {
       method: 'DELETE',
     });
   }
-    
-
 
   // Mouvements
   async getMouvements() {

@@ -82,7 +82,6 @@ export function useAuth() {
         });
 
         const profile = await Promise.race([profilePromise, timeoutPromise]);
-        console.log('checkAuth - Profil récupéré:', profile);
         return profile;
       } catch (error: any) {
         console.error('Error checking auth:', error);

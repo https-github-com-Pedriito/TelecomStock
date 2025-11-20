@@ -120,18 +120,18 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
               className="p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
               title="Modifier"
             >
-              <Edit2 size={10} className="md:w-4 md:h-4" />
+              <Edit2 size={10} className="md:w-4 md:h-4 text-yellow-500 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900 rounded-lg transition-colors" />
             </button>
           )}
-          {onDelete && canDelete && (
+            {onDelete && canDelete && (
             <button
               onClick={handleDelete}
-              className="p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 rounded transition-colors"
+              className="p-0.5 md:p-1.5 text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-700 rounded transition-colors"
               title="Supprimer"
             >
               <Trash2 size={10} className="md:w-4 md:h-4" />
             </button>
-          )}
+            )}
         </div>
       </div>
 

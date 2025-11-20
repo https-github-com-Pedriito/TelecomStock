@@ -18,12 +18,8 @@ interface ArticlesProps {
 
 export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
   const { user } = useAuth();
-  
-  // Debug: Log user info
-  console.log('Articles - User:', user);
-  console.log('Articles - User role:', user?.role);
-  console.log('Articles - canDelete should be:', user?.role?.toLowerCase() === 'admin');
-  
+
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingArticle, setEditingArticle] = useState<Article | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,30 +30,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
   const [localisationsFromDB, setLocalisationsFromDB] = useState<Localisation[]>([]);
 
   const canManageArticles = hasPermission('manage_articles');
-  
-  // Debug: Log du rôle utilisateur
-  React.useEffect(() => {
-    console.log('👤 User role:', user?.role);
-    console.log('👤 Is admin:', user?.role === 'admin');
-    console.log('👤 User complet:', user);
-  }, [user]);
-  
-  // Debug: Log des articles reçus
-  React.useEffect(() => {
-    console.log('🏪 Page Articles - Nombre d\'articles reçus:', articles.length);
-    if (articles.length > 0) {
-      console.log('🏪 Premier article:', articles[0]);
-    }
-  }, [articles]);
-  
-  // Commenté pour éviter le double rafraîchissement
-  // Les articles sont déjà rafraîchis par le système d'onglets dans App.tsx
-  // useEffect(() => {
-  //   if (onRefreshArticles) {
-  //     onRefreshArticles();
-  //   }
-  // }, []);
-  
+
   // Récupération des paramètres d'URL
   const urlParams = new URLSearchParams(window.location.search);
   const shouldCreateArticle = urlParams.get('create') === 'true';
@@ -76,7 +49,6 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     if (articles.length > 0 && !barcodesLoaded) {
       // Petite temporisation pour laisser le temps aux composants de se monter
       const timer = setTimeout(() => {
-        console.log(`✅ Codes-barres prêts pour ${articles.length} articles`);
         setBarcodesLoaded(true);
       }, 500);
       return () => clearTimeout(timer);
@@ -99,16 +71,16 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
   const categories = Array.from(new Set(articles.map(a => a.categorie))).sort();
   const localisations = Array.from(new Set(articles.map(a => a.localisation))).sort();
-  
+
   // Utiliser les localisations de l'API si disponibles, sinon celles des articles existants
-  const availableLocalisations = localisationsFromDB.length > 0 
+  const availableLocalisations = localisationsFromDB.length > 0
     ? localisationsFromDB.map(loc => loc.nom).sort()
     : localisations;
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.code_barres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         article.fournisseur?.toLowerCase().includes(searchTerm.toLowerCase());
+      article.code_barres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      article.fournisseur?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !filterCategory || article.categorie === filterCategory;
     const matchesLocalisation = !filterLocalisation || article.localisation === filterLocalisation;
     return matchesSearch && matchesCategory && matchesLocalisation;
@@ -134,42 +106,23 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       if (typeof newStock === 'number' && typeof oldStock === 'number' && newStock !== oldStock) {
         const type = newStock > oldStock ? 'ENTREE' : 'SORTIE';
         const quantite = Math.abs(newStock - oldStock);
-        
+
         // Gestion robuste du nom d'utilisateur
         let utilisateurNom = 'Utilisateur inconnu';
-        
+
         if (user && user.prenom && user.nom) {
           utilisateurNom = `${user.prenom.trim()} ${user.nom.trim()}`.trim();
         } else if (user && user.email) {
           utilisateurNom = user.email;
         }
         // Sinon, l'API utilisera les informations du token JWT
-        
-        console.log('🔍 Debug mouvement frontend:', {
-          user: user,
-          userExists: !!user,
-          prenom: user?.prenom,
-          nom: user?.nom,
-          email: user?.email,
-          utilisateurNom: utilisateurNom,
-          type: type,
-          quantite: quantite
-        });
-        
+
         api.createMouvement({
           article_id: editingArticle.id,
           quantite,
           type,
           utilisateur: utilisateurNom,
           commentaire: `Modification du stock via fiche article`
-        });
-      } else {
-        console.log('⚠️  Mouvement non créé:', {
-          newStock: newStock,
-          oldStock: oldStock,
-          stockChanged: newStock !== oldStock,
-          userExists: !!user,
-          user: user
         });
       }
     } else {

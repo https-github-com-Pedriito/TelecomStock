@@ -106,7 +106,11 @@ export function MobileBottomNav({
           icon: ClipboardList,
           label: 'Inventaire'
         },
-        // Onglet 'Utilisateurs' supprimé pour la vue mobile
+        {
+          id: 'utilisateurs' as ViewMode,
+          icon: Users,
+          label: 'Utilisateurs'
+        }
       ];
     }
     

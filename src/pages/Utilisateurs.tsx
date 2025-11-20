@@ -126,125 +126,104 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0 bg-white dark:bg-gray-900 min-h-screen">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Utilisateurs</h1>
-          <p className="text-gray-600">{filteredUsers.length} utilisateur{filteredUsers.length > 1 ? 's' : ''}</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">Utilisateurs</h1>
+          <p className="text-gray-600 dark:text-gray-300 text-sm">{filteredUsers.length} utilisateur{filteredUsers.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => {
             setEditingUser(undefined);
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm sm:text-base transition-colors"
         >
-          <Plus size={18} />
-          Nouvel utilisateur
+          <Plus size={16} />
+          <span className="hidden sm:inline">Nouvel utilisateur</span>
+          <span className="sm:hidden">Ajouter</span>
         </button>
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2 sm:p-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" size={16} />
           <input
             type="text"
-            placeholder="Rechercher par nom, email ou rôle..."
+            placeholder="Rechercher..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
 
-      {/* Users Table */}
+
+      {/* Users Table - Mobile optimisé */}
       {filteredUsers.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">
+        <div className="text-center py-8 sm:py-12">
+          <p className="text-gray-500 mb-4 text-sm">
             {users.length === 0 ? 'Aucun utilisateur enregistré' : 'Aucun utilisateur trouvé'}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="text-left py-3 px-4">Utilisateur</th>
-                  <th className="text-left py-3 px-4">Rôle</th>
-                  <th className="text-left py-3 px-4">Statut</th>
-                  <th className="text-left py-3 px-4">Créé le</th>
-                  <th className="text-left py-3 px-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map(user => (
-                  <tr key={user.id} className="border-b hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-blue-100 p-2 rounded-full">
-                          <Users size={16} className="text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{user.nom}</p>
-                          <p className="text-sm text-gray-600">{user.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Shield size={14} />
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
-                          {getRoleLabel(user.role)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => toggleUserActive(user)}
-                        disabled={user.id === currentUser.id}
-                        className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          user.is_active
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                            : 'bg-red-100 text-red-800 hover:bg-red-200'
-                        } ${user.id === currentUser.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                      >
-                        {user.is_active ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                        {user.is_active ? 'Actif' : 'Inactif'}
-                      </button>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: fr })}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Modifier"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={user.id === currentUser.id}
-                          className={`p-2 rounded-lg transition-colors ${
-                            user.id === currentUser.id
-                              ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
-                          }`}
-                          title={user.id === currentUser.id ? 'Impossible de supprimer votre propre compte' : 'Supprimer'}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+            {filteredUsers.map(user => (
+              <li key={user.id} className="flex flex-col sm:flex-row sm:items-center py-2 px-2 sm:px-4 gap-2 sm:gap-0 bg-white dark:bg-gray-900">
+                <div className="flex items-center gap-2 flex-1">
+                  <div className="bg-blue-100 dark:bg-blue-950 p-1 rounded-full">
+                    <Users size={18} className="text-blue-600 dark:text-blue-300" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-900 dark:text-white text-xs sm:text-base">{user.nom}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{user.email}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Shield size={12} className="text-gray-500 dark:text-gray-300" />
+                  <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)} dark:bg-opacity-40 dark:text-opacity-90`}>{getRoleLabel(user.role)}</span>
+                </div>
+                <div>
+                   <span
+                  className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap justify-center
+                    ${user.is_active
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+                    } ${user.id === currentUser.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+                >
+                  {user.is_active ? <CheckCircle size={10} className="text-green-600 dark:text-green-300" /> : <XCircle size={10} className="text-red-600 dark:text-red-300" />}
+                  {user.is_active ? 'Actif' : 'Inactif'}
+                </span>
+                </div>
+               
+                <span className="text-xs text-gray-600 dark:text-gray-400 min-w-[60px] text-center">{format(new Date(user.created_at), 'dd/MM/yyyy', { locale: fr })}</span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleEditUser(user)}
+                    className="p-1 text-yellow-500 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900 rounded-lg transition-colors"
+                    title="Modifier"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user.id)}
+                    disabled={user.id === currentUser.id}
+                    className={`p-1 rounded-lg transition-colors ${
+                      user.id === currentUser.id
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900'
+                    }`}
+                    title={user.id === currentUser.id ? 'Impossible de supprimer votre propre compte' : 'Supprimer'}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

@@ -95,70 +95,70 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <Users size={20} className="text-blue-600" />
-            <h2 className="text-xl font-semibold">
+            <Users size={20} className="text-blue-600 dark:text-blue-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               {user ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
-            <X size={20} />
+            <X size={20} className="text-gray-700 dark:text-gray-300" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nom complet *
             </label>
             <input
               type="text"
               value={formData.nom}
               onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Prénom *
             </label>
             <input
               type="text"
               value={formData.prenom}
               onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Email *
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Rôle *
             </label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'manager' | 'technicien' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               required
             >
               <option value="technicien">Technicien</option>
@@ -173,24 +173,24 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
               id="is_active"
               checked={formData.is_active}
               onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-700 rounded focus:ring-blue-500 bg-white dark:bg-gray-900"
             />
-            <label htmlFor="is_active" className="text-sm text-gray-700">
+            <label htmlFor="is_active" className="text-sm text-gray-700 dark:text-gray-300">
               Compte actif
             </label>
           </div>
 
           {/* Section mot de passe */}
-          <div className="border-t pt-4">
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 {user ? 'Modifier le mot de passe' : 'Mot de passe'}
               </h3>
               {user && (
                 <button
                   type="button"
                   onClick={() => setShowPasswordFields(!showPasswordFields)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
                 >
                   {showPasswordFields ? 'Annuler' : 'Changer le mot de passe'}
                 </button>
@@ -200,7 +200,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
             {(!user || showPasswordFields) && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     {user ? 'Nouveau mot de passe' : 'Mot de passe'} {!user && '*'}
                   </label>
                   <input
@@ -214,20 +214,20 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
                       }
                     }}
                     onBlur={validatePasswords}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.password ? 'border-red-300' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
+                      errors.password ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-700'
                     }`}
                     placeholder={user ? 'Laisser vide pour ne pas changer' : ''}
                     required={!user}
                     minLength={6}
                   />
                   {errors.password && (
-                    <p className="text-red-600 text-sm mt-1">{errors.password}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Confirmer le mot de passe {!user && '*'}
                   </label>
                   <input
@@ -241,34 +241,34 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
                       }
                     }}
                     onBlur={validatePasswords}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
+                      errors.confirmPassword ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-700'
                     }`}
                     placeholder={user ? 'Confirmer le nouveau mot de passe' : 'Confirmer le mot de passe'}
                     required={!user || formData.password !== ''}
                     minLength={6}
                   />
                   {errors.confirmPassword && (
-                    <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
               </div>
             )}
 
             {user && !showPasswordFields && (
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="text-sm text-gray-600">
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Le mot de passe actuel sera conservé
                 </p>
               </div>
             )}
 
             {!user && (
-              <div className="bg-blue-50 p-3 rounded-lg mt-3">
-                <p className="text-sm text-blue-800">
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg mt-3">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   <strong>Exigences :</strong> Au moins 6 caractères
                 </p>
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   L'utilisateur pourra le changer lors de sa première connexion
                 </p>
               </div>
@@ -279,13 +279,13 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
             >
               Annuler
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg transition-colors"
             >
               {user ? 'Modifier' : 'Créer'}
             </button>

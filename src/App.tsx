@@ -95,9 +95,7 @@ function App() {
     try {
       setErrorLocalisations(null);
       setLoadingLocalisations(true);
-      console.log('Chargement des localisations...');
       const response = await api.getLocalisations();
-      console.log('Localisations reçues:', response);
       setLocalisations(response as Localisation[]);
     } catch (error) {
       console.error('Erreur lors du chargement des localisations:', error);
@@ -252,15 +250,6 @@ function App() {
 
   const handleLogin = async (email: string, password: string) => {
     console.log('=== DÉBUT DE LA TENTATIVE DE CONNEXION ===');
-    console.log('App: handleLogin called with email:', email);
-    console.log('App: User Agent:', navigator.userAgent);
-    console.log('App: Window Location:', {
-      protocol: window.location.protocol,
-      host: window.location.host,
-      hostname: window.location.hostname,
-      port: window.location.port
-    });
-    
     try {
       setLoginError('');
       console.log('App: Attempting to sign in...');
