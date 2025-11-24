@@ -72,112 +72,136 @@ export function AdminDashboard({
   const [pieData, setPieData] = useState<any[]>([]);
 
   // Détection du mode dark (body.classList ou media query)
-  const isDark = typeof window !== 'undefined' && (document.body.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const [isDark, setIsDark] = useState(() => typeof window !== 'undefined' && (document.body.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches));
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      const updateTheme = () => {
+        setIsDark(document.body.classList.contains('dark') || mq.matches);
+      };
+      mq.addEventListener('change', updateTheme);
+      // Pour les switch tailwind
+      const observer = new MutationObserver(updateTheme);
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+      updateTheme();
+      return () => {
+        mq.removeEventListener('change', updateTheme);
+        observer.disconnect();
+      };
+    }
+  }, []);
+
 
 
   // Options Highcharts pour AreaChart (Entrées/Sorties)
-  const areaChartOptions = {
-    chart: {
-      type: 'area',
-      height: 350,
-      backgroundColor: isDark ? '#1f2937' : 'transparent',
-    },
-    title: { text: undefined },
-    xAxis: {
-      categories: chartData.map(d => d.date),
-      tickmarkPlacement: 'on',
-      title: { enabled: false },
-      gridLineWidth: 0,
-      labels: { style: { color: isDark ? '#d1d5db' : '#374151' } },
-      lineColor: isDark ? '#374151' : '#e5e7eb',
-    },
-    yAxis: {
-      title: { text: 'Quantité', style: { color: isDark ? '#d1d5db' : '#374151' } },
-      min: 0,
-      gridLineWidth: 1,
-      gridLineColor: isDark ? '#374151' : '#e5e7eb',
-      labels: { style: { color: isDark ? '#d1d5db' : '#374151' } },
-    },
-    tooltip: {
-      shared: true,
-      valueSuffix: ' unités',
-      backgroundColor: isDark ? '#111827' : '#fff',
-      style: { color: isDark ? '#f3f4f6' : '#111827' },
-    },
-    legend: {
-      enabled: true,
-      itemStyle: { color: isDark ? '#d1d5db' : '#374151' },
-      itemHoverStyle: { color: isDark ? '#fff' : '#111827' },
-    },
-    plotOptions: {
-      area: {
-        marker: { enabled: false }
-      }
-    },
-    series: [
-      {
-        name: 'Entrées',
-        data: chartData.map(d => d.Entrees),
-        color: '#22c55e',
-        fillOpacity: 0.3,
-      },
-      {
-        name: 'Sorties',
-        data: chartData.map(d => d.Sorties),
-        color: '#ef4444',
-        fillOpacity: 0.3,
-      },
-    ],
-    credits: { enabled: false },
-  };
+  const [areaChartOptions, setAreaChartOptions] = useState({});
+  const [pieChartOptions, setPieChartOptions] = useState({});
 
-  // Options Highcharts pour PieChart (Taux de rotation)
-  const pieChartOptions = {
-    chart: {
-      type: 'pie',
-      height: 350,
-      backgroundColor: isDark ? '#1f2937' : 'transparent',
-      options3d: {
+  useEffect(() => {
+    const legendColor = '#374151';
+    setAreaChartOptions({
+      chart: {
+        type: 'area',
+        height: 350,
+        backgroundColor: 'transparent',
+      },
+      title: { text: undefined, style: { color: legendColor } },
+      xAxis: {
+        categories: chartData.map(d => d.date),
+        tickmarkPlacement: 'on',
+        title: { enabled: false },
+        gridLineWidth: 0,
+        labels: { style: { color: legendColor } },
+        lineColor: legendColor,
+      },
+      yAxis: {
+        title: { text: 'Quantité', style: { color: legendColor } },
+        min: 0,
+        gridLineWidth: 1,
+        gridLineColor: legendColor,
+        labels: { style: { color: legendColor } },
+      },
+      tooltip: {
+        shared: true,
+        valueSuffix: ' unités',
+        backgroundColor: '#fff',
+        style: { color: legendColor },
+      },
+      legend: {
         enabled: true,
-        alpha: 30,
-        beta: 0,
-      }
-    },
-    title: { text: undefined },
-    tooltip: {
-      pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
-      backgroundColor: isDark ? '#111827' : '#fff',
-      style: { color: isDark ? '#f3f4f6' : '#111827' },
-    },
-    accessibility: { point: { valueSuffix: '%' } },
-    plotOptions: {
-      pie: {
-        allowPointSelect: true,
-        cursor: 'pointer',
-        depth: 35,
-        dataLabels: {
-          enabled: true,
-          format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-          style: { color: isDark ? '#f3f4f6' : '#111827' }
+        itemStyle: { color: legendColor },
+        itemHoverStyle: { color: '#111827' },
+      },
+      plotOptions: {
+        area: {
+          marker: { enabled: false }
         }
-      }
-    },
-    legend: {
-      itemStyle: { color: isDark ? '#d1d5db' : '#374151' },
-      itemHoverStyle: { color: isDark ? '#fff' : '#111827' },
-    },
-    series: [{
-      type: 'pie',
-      name: 'Rotation',
-      colorByPoint: true,
-      data: pieData.map((d, idx) => ({
-        name: d.name,
-        y: d.value,
-        color: COLORS[idx % COLORS.length]
-      }))
-    }],
-    credits: { enabled: false },
-  };
+      },
+      series: [
+        {
+          name: 'Entrées',
+          data: chartData.map(d => d.Entrees),
+          color: '#22c55e',
+          fillOpacity: 0.3,
+        },
+        {
+          name: 'Sorties',
+          data: chartData.map(d => d.Sorties),
+          color: '#ef4444',
+          fillOpacity: 0.3,
+        },
+      ],
+      credits: { enabled: false },
+    });
+
+    setPieChartOptions({
+      chart: {
+        type: 'pie',
+        height: 350,
+        backgroundColor: 'transparent',
+        options3d: {
+          enabled: true,
+          alpha: 30,
+          beta: 0,
+        }
+      },
+      title: { text: undefined, style: { color: legendColor } },
+      tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>',
+        backgroundColor: '#fff',
+        style: { color: legendColor },
+      },
+      accessibility: { point: { valueSuffix: '%' } },
+      plotOptions: {
+        pie: {
+          allowPointSelect: true,
+          cursor: 'pointer',
+          depth: 35,
+          dataLabels: {
+            enabled: true,
+            format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+            style: { color: legendColor }
+          }
+        }
+      },
+      legend: {
+        itemStyle: { color: legendColor },
+        itemHoverStyle: { color: '#111827' },
+      },
+      series: [{
+        type: 'pie',
+        name: 'Rotation',
+        colorByPoint: true,
+        data: pieData.map((d, idx) => ({
+          name: d.name,
+          y: d.value,
+          color: COLORS[idx % COLORS.length]
+        }))
+      }],
+      credits: { enabled: false },
+    });
+  }, [chartData, pieData]);
 
 
   // Calcul des stats du dashboard
@@ -333,6 +357,7 @@ export function AdminDashboard({
             </div>
           </div>
           <HighchartsReact
+            key={isDark ? 'dark' : 'light'}
             containerProps={{ style: { margin: '0 auto' } }}
             highcharts={Highcharts}
             options={areaChartOptions}
@@ -348,6 +373,7 @@ export function AdminDashboard({
             </div>
           </div>
           <HighchartsReact
+            key={isDark ? 'dark' : 'light'}
             highcharts={Highcharts}
             options={pieChartOptions}
           />
