@@ -87,10 +87,16 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
   };
 
 
+
   // Pour mobile: input dédié à la capture photo
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const handleCameraClick = () => {
     cameraInputRef.current?.click();
+  };
+
+  // Correction : handleClick doit être défini ici
+  const handleClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
