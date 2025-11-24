@@ -86,8 +86,11 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
     }
   };
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
+
+  // Pour mobile: input dédié à la capture photo
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const handleCameraClick = () => {
+    cameraInputRef.current?.click();
   };
 
   return (
@@ -112,54 +115,77 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
           </button>
         </div>
       ) : (
-        <div
-          onClick={handleClick}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={`
-            relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-            transition-all duration-200
-            ${isDragging 
-              ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-            }
-            ${isUploading ? 'opacity-50 cursor-wait' : ''}
-          `}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-            disabled={isUploading}
-          />
+        <>
+          <div
+            onClick={handleClick}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            className={`
+              relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+              transition-all duration-200
+              ${isDragging 
+                ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+              }
+              ${isUploading ? 'opacity-50 cursor-wait' : ''}
+            `}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isUploading}
+            />
 
-          {isUploading ? (
-            <div className="flex flex-col items-center gap-2">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Upload en cours...</p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              {isDragging ? (
-                <Upload className="h-8 w-8 text-blue-500 dark:text-blue-400" />
-              ) : (
-                <ImageIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
-              )}
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {isDragging 
-                  ? 'Déposez l\'image ici' 
-                  : 'Glissez-déposez une image ou cliquez pour sélectionner'
-                }
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                PNG, JPG, GIF jusqu'à 5MB
-              </p>
-            </div>
-          )}
-        </div>
+            {isUploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Upload en cours...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                {isDragging ? (
+                  <Upload className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                ) : (
+                  <ImageIcon className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+                )}
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {isDragging 
+                    ? 'Déposez l\'image ici' 
+                    : 'Glissez-déposez une image ou cliquez pour sélectionner'
+                  }
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  PNG, JPG, GIF jusqu'à 5MB
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Bouton prendre une photo sur mobile uniquement */}
+          <div className="mt-2 flex justify-center">
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileSelect}
+              className="hidden"
+              disabled={isUploading}
+            />
+            <button
+              type="button"
+              onClick={handleCameraClick}
+              className="px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors block sm:hidden"
+              style={{ display: 'block' }}
+            >
+              Prendre une photo
+            </button>
+          </div>
+        </>
       )}
 
       {error && (
