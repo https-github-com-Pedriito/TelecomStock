@@ -197,10 +197,6 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
       {error && (
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
-
-      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-        💡 Astuce: Configurez votre clé ImgBB dans le fichier .env (VITE_IMGBB_API_KEY)
-      </p>
     </div>
   );
 }
