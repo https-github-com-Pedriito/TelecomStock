@@ -1,4 +1,5 @@
 import React,{ useState, useEffect, useCallback } from 'react';
+import { initAnalytics, trackPageView } from './lib/analytics';
 import { ViewMode, Article, Mouvement, User, Fournisseur, Localisation, LocalisationInput, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
 import { useAuth } from './hooks/useAuth';
@@ -22,6 +23,16 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
+
+  // Initialiser Google Analytics une seule fois
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  // Tracker chaque changement de page
+  useEffect(() => {
+    trackPageView(`/${currentView}`);
+  }, [currentView]);
   const [loginError, setLoginError] = useState('');
   const [useNewUX] = useState(true); // Toggle pour la nouvelle UX
   

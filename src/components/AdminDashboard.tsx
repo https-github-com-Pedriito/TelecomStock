@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import 'highcharts/highcharts-3d';
+import 'highcharts/modules/accessibility';
 import HighchartsReact from 'highcharts-react-official';
 // Modern Area Chart style (shadcn/ui inspired)
 import {
@@ -9,12 +10,10 @@ import {
   AlertTriangle,
   Activity,
   RefreshCw,
-  Radius,
 } from 'lucide-react';
 
 
 import { Article, Mouvement, Inventaire } from '../types';
-import { deprecate } from 'util';
 
 
 
