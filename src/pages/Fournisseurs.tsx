@@ -11,9 +11,10 @@ interface FournisseursProps {
   onUpdateFournisseur: (id: string, updates: Partial<Fournisseur>) => Promise<void>;
   onDeleteFournisseur: (id: string) => Promise<void>;
   onRefreshFournisseurs?: () => Promise<void>;
+  addNotification?: (notif: { type: 'success' | 'warning' | 'info' | 'error'; title: string; message: string; duration?: number }) => void;
 }
 
-export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisseur, onDeleteFournisseur, onRefreshFournisseurs }: FournisseursProps) {
+export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisseur, onDeleteFournisseur, onRefreshFournisseurs, addNotification }: FournisseursProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,14 +34,37 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
       setLoading(true);
       if (editingFournisseur) {
         await onUpdateFournisseur(editingFournisseur.id, fournisseurData);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Fournisseur modifié',
+            message: `Le fournisseur « ${fournisseurData.nom} » a été modifié avec succès.`,
+            duration: 5000,
+          });
+        }
       } else {
         await onAddFournisseur(fournisseurData);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Fournisseur créé',
+            message: `Le fournisseur « ${fournisseurData.nom} » a été créé avec succès.`,
+            duration: 5000,
+          });
+        }
       }
       setEditingFournisseur(undefined);
       setIsModalOpen(false);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du fournisseur:', error);
-      alert('Une erreur est survenue lors de la sauvegarde du fournisseur');
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: 'Erreur sauvegarde fournisseur',
+          message: 'Une erreur est survenue lors de la sauvegarde du fournisseur',
+          duration: 5000,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -56,9 +80,24 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
       try {
         setLoading(true);
         await onDeleteFournisseur(id);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Fournisseur supprimé',
+            message: `Le fournisseur a été supprimé avec succès.`,
+            duration: 5000,
+          });
+        }
       } catch (error) {
         console.error('Erreur lors de la suppression du fournisseur:', error);
-        alert('Une erreur est survenue lors de la suppression du fournisseur');
+        if (addNotification) {
+          addNotification({
+            type: 'error',
+            title: 'Erreur suppression fournisseur',
+            message: 'Une erreur est survenue lors de la suppression du fournisseur',
+            duration: 5000,
+          });
+        }
       } finally {
         setLoading(false);
       }

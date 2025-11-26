@@ -1,5 +1,5 @@
 import React,{ useState, useEffect, useCallback } from 'react';
-import { initAnalytics, trackPageView } from './lib/analytics';
+import { initAnalytics, trackPageView, trackAddArticle } from './lib/analytics';
 import { ViewMode, Article, Mouvement, User, Fournisseur, Localisation, LocalisationInput, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
 import { useAuth } from './hooks/useAuth';
@@ -39,8 +39,8 @@ function App() {
   // Mode sombre
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   
-  // Système de notifications
-  const { showStockNotification, NotificationContainer } = useNotifications();
+  // Système de notifications centralisé
+  const { showStockNotification, addNotification, NotificationContainer } = useNotifications();
 
   const {
     user,
@@ -317,6 +317,10 @@ function App() {
   }, [currentView, isAuthenticated, hasPermission]);
 
   const handleAddArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>): Article => {
+    // Track article addition in Google Analytics
+    const articleName = articleData.nom || 'Article inconnu';
+    const articleCategory = articleData.categorie || 'Article';
+    trackAddArticle(articleName, articleCategory);
     // Return a temporary article object while the real one is being created
     const tempArticle: Article = {
       id: 'temp_' + new Date().getTime(),
@@ -401,6 +405,7 @@ function App() {
             onAddArticle={handleAddArticle}
             onUpdateArticle={updateArticle}
             onDeleteArticle={deleteArticle}
+            addNotification={addNotification}
           />
         );
       case 'mouvements':
@@ -593,7 +598,7 @@ function App() {
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
       >
-        {renderCurrentView()}
+        {renderCurrentView({ addNotification })}
       </Layout>
       <NotificationContainer />
     </FeedbackProvider>

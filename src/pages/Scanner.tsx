@@ -9,11 +9,14 @@ interface ScannerProps {
   getArticleByCodeBarres: (codeBarres: string) => Article | undefined;
   onAddMouvement: (mouvement: CreateMouvementData) => void;
   onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
+  addNotification?: (notif: { type: string; title: string; message: string; duration?: number }) => void;
   fournisseurs: Array<{ id: string; nom: string; }>;
   currentUser: { id: string; nom: string; prenom: string; };
 }
 
 export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [], currentUser }: ScannerProps) {
+    const [loading, setLoading] = useState(false);
+    // Use addNotification from props
   const [showScanner, setShowScanner] = useState(false);
   const [showMouvementModal, setShowMouvementModal] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
@@ -42,16 +45,25 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
 
   const handleSave = (data: any) => {
     if (data.nom) {
-      // Création d'un nouvel article
-      const nouvelArticle = onAddArticle({
-        ...data,
-        code_barres: selectedArticle?.code_barres || ''
-      });
-      setSelectedArticle(nouvelArticle);
-      alert('Article créé avec succès !');
+      setLoading(true);
+      try {
+        const nouvelArticle = onAddArticle({
+          ...data,
+          code_barres: selectedArticle?.code_barres || ''
+        });
+        setSelectedArticle(nouvelArticle);
+        if (typeof arguments[0].addNotification === 'function') {
+          arguments[0].addNotification({
+            type: 'success',
+            title: 'Article créé',
+            message: `L'article "${nouvelArticle.nom}" a été ajouté avec succès.`,
+            duration: 5000,
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
     } else if (data.article_id && data.quantite) {
-      // Mouvement de stock
-      // Toujours renseigner le nom complet de l'utilisateur connecté
       const utilisateurNom = currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur inconnu';
       onAddMouvement({
         article_id: data.article_id,
@@ -60,7 +72,14 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
         utilisateur: utilisateurNom,
         commentaire: data.commentaire
       });
-      alert('Mouvement enregistré avec succès !');
+      if (typeof arguments[0].addNotification === 'function') {
+        arguments[0].addNotification({
+          type: 'success',
+          title: 'Mouvement enregistré',
+          message: 'Mouvement enregistré avec succès !',
+          duration: 4000,
+        });
+      }
     }
     setSelectedArticle(undefined);
     setShowMouvementModal(false);
@@ -82,7 +101,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <button
           onClick={() => startScanForType('ENTREE')}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-green-500 text-left group border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-green-500 text-left group border-gray-200 dark:border-gray-700"
         >
           <div className="flex items-center gap-4">
             <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full group-hover:bg-green-200 dark:group-hover:bg-green-900/50 transition-colors">
@@ -101,7 +120,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
 
         <button
           onClick={() => startScanForType('SORTIE')}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-orange-500 text-left group border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 hover:shadow-lg transition-shadow border-l-4 border-orange-500 text-left group border-gray-200 dark:border-gray-700"
         >
           <div className="flex items-center gap-4">
             <div className="bg-orange-100 dark:bg-orange-900/30 p-4 rounded-full group-hover:bg-orange-200 dark:group-hover:bg-orange-900/50 transition-colors">

@@ -14,9 +14,10 @@ interface ArticlesProps {
   onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
   onUpdateArticle: (id: string, updates: Partial<Article>) => void;
   onDeleteArticle: (id: string) => void;
+  addNotification?: (notif: { type: 'success' | 'warning' | 'info'; title: string; message: string; duration?: number }) => void;
 }
 
-export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle }: ArticlesProps) {
+export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle, addNotification }: ArticlesProps) {
   const { user } = useAuth();
 
 
@@ -93,7 +94,17 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
   const handleDeleteArticle = async (id: string) => {
     // Ne pas afficher de confirmation ici - elle est gérée dans ArticleCard
-    return await onDeleteArticle(id);
+    const deletedArticle = articles.find(a => a.id === id);
+    const result = await onDeleteArticle(id);
+    if (addNotification) {
+      addNotification({
+        type: 'success',
+        title: 'Article supprimé',
+        message: deletedArticle ? `L'article "${deletedArticle.nom}" a été supprimé.` : 'Article supprimé.',
+        duration: 5000,
+      });
+    }
+    return result;
   };
 
   const handleSaveArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
@@ -294,6 +305,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
           onSave={handleSaveArticle}
           article={editingArticle}
           fournisseurs={fournisseurs}
+          addNotification={addNotification}
         />
       )}
 

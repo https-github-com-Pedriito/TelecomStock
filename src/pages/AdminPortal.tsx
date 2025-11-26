@@ -26,6 +26,7 @@ interface AdminPortalProps {
   onUpdateUser?: (id: string, data: Partial<User>) => Promise<void>;
   onDeleteUser?: (id: string) => Promise<void>;
   onAddUser?: (userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) => Promise<User>;
+  addNotification?: (notif: { type: string; title: string; message: string; duration?: number }) => void;
   initialView?: AdminView;
   onNavigateToInventory?: () => void;
   onNavigateToArticles?: () => void;
@@ -43,7 +44,8 @@ export function AdminPortal({
   onDeleteUser,
   onAddUser,
   onNavigateToInventory,
-  onNavigateToArticles
+  onNavigateToArticles,
+  addNotification
 }: AdminPortalProps) {
   const [currentView, setCurrentView] = useState<AdminView>(initialView);
   const [isCollapsed, setIsCollapsed] = useState(true); // Sidebar rétractée par défaut
@@ -355,9 +357,24 @@ export function AdminPortal({
                         
                         {user.id !== currentUser.id && onDeleteUser && (
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (window.confirm(`Êtes-vous sûr de vouloir supprimer ${user.prenom} ${user.nom} ?`)) {
-                                onDeleteUser(user.id);
+                                try {
+                                  await onDeleteUser(user.id);
+                                  addNotification && addNotification({
+                                    type: 'success',
+                                    title: 'Utilisateur supprimé',
+                                    message: `L'utilisateur a été supprimé avec succès.`,
+                                    duration: 4000
+                                  });
+                                } catch (error) {
+                                  addNotification && addNotification({
+                                    type: 'error',
+                                    title: 'Erreur',
+                                    message: `Erreur lors de la suppression de l'utilisateur`,
+                                    duration: 5000
+                                  });
+                                }
                               }
                             }}
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -389,18 +406,34 @@ export function AdminPortal({
                 onSave={async (userData) => {
                   try {
                     if (selectedUser && onUpdateUser) {
-                      // Mode édition
                       await onUpdateUser(selectedUser.id, userData);
+                      addNotification && addNotification({
+                        type: 'success',
+                        title: 'Utilisateur modifié',
+                        message: `L'utilisateur a été modifié avec succès.`,
+                        duration: 4000
+                      });
                     } else if (onAddUser) {
-                      // Mode création
                       await onAddUser(userData);
+                      addNotification && addNotification({
+                        type: 'success',
+                        title: 'Utilisateur créé',
+                        message: `L'utilisateur a été créé avec succès.`,
+                        duration: 4000
+                      });
                     }
                   } catch (error) {
                     console.error('Erreur lors de la sauvegarde:', error);
-                    alert('Erreur lors de la sauvegarde de l\'utilisateur');
+                    addNotification && addNotification({
+                      type: 'error',
+                      title: 'Erreur',
+                      message: `Erreur lors de la sauvegarde de l'utilisateur`,
+                      duration: 5000
+                    });
                   }
                 }}
                 user={selectedUser}
+                addNotification={addNotification}
               />
             </div>
           </div>

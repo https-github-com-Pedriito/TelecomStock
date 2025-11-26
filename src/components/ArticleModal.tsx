@@ -7,10 +7,10 @@ import { ImageUpload } from './ImageUpload';
 interface ArticleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // Now include codeBarres in the payload so the hook can use it as the article id when present.
   onSave: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => void;
   article?: Article;
   fournisseurs?: Array<{ id: string; nom: string }>;
+  addNotification?: (notification: { type: 'success' | 'warning' | 'info'; title: string; message: string }) => void;
 }
 
 const categories = [
@@ -45,7 +45,7 @@ const localisations = [
   'Zone de réparation',
 ];
 
-export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = [] }: ArticleModalProps) {
+export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = [], addNotification }: ArticleModalProps) {
   const [localisationsFromDB, setLocalisationsFromDB] = useState<Localisation[]>([]);
   const [loadingLocalisations, setLoadingLocalisations] = useState(false);
   const [formData, setFormData] = useState({
@@ -126,7 +126,6 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Données du formulaire avant envoi:', formData);
-    
     const articleData = {
       nom: formData.nom,
       categorie: formData.categorie,
@@ -138,10 +137,26 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
       code_barres: formData.code_barres,
       image_url: formData.image_url || undefined,
     };
-    
     console.log('Données envoyées à l\'API:', articleData);
-    onSave(articleData);
-    onClose();
+    try {
+      onSave(articleData);
+      if (addNotification) {
+        addNotification({
+          type: 'success',
+          title: 'Article créé',
+          message: `L'article "${articleData.nom}" a été ajouté avec succès.`
+        });
+      }
+      onClose();
+    } catch (error) {
+      if (addNotification) {
+        addNotification({
+          type: 'warning',
+          title: 'Erreur',
+          message: `La création de l'article a échoué.`
+        });
+      }
+    }
   };
 
   if (!isOpen) return null;

@@ -56,30 +56,36 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
   return (
     <div
       className={`
-        fixed top-4 right-4 z-50 max-w-sm w-full transition-all duration-300 transform
-        ${isLeaving ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'}
+        fixed z-50 transition-all duration-300 transform flex justify-center w-full
+        top-4 left-0
+        ${isLeaving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
+        px-2
       `}
     >
-      <div className={`border rounded-lg shadow-lg p-4 ${getBgColor()}`}>
-        <div className="flex items-start space-x-3">
-          <div className="flex-shrink-0">
-            {getIcon()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900">
-              {title}
-            </p>
-            <p className="text-sm text-gray-600 mt-1">
-              {message}
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+      <div
+        className={`border rounded-lg shadow-lg p-3 bg-white ${getBgColor()} flex items-start space-x-3`}
+        style={{
+          width: '320px',
+          maxWidth: '90vw',
+        }}
+      >
+        <div className="flex-shrink-0">
+          {getIcon()}
         </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900">
+            {title}
+          </p>
+          <p className="text-sm text-gray-600 mt-1">
+            {message}
+          </p>
+        </div>
+        <button
+          onClick={handleClose}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

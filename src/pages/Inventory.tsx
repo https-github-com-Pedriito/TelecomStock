@@ -12,6 +12,7 @@ interface InventoryProps {
   currentUser: any;
   users: any[];
   getArticleByCodeBarres: (code: string) => any;
+  addNotification?: (notif: { type: string; title: string; message: string; duration?: number }) => void;
 }
 
 export function Inventory({ articles, currentUser, users, getArticleByCodeBarres }: InventoryProps) {
@@ -27,6 +28,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     finalizeInventaire,
     clearError
   } = useInventaire();
+  const { addNotification } = arguments[0];
 
   const [showScanner, setShowScanner] = useState(false);
   const [selectedArticleId, setSelectedArticleId] = useState<string>('');
@@ -111,50 +113,65 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       setShowCreateForm(false);
       setNewInventaireName('');
       setNewInventaireDescription('');
+      addNotification && addNotification({
+        type: 'success',
+        title: 'Inventaire créé',
+        message: 'Inventaire créé avec succès.',
+        duration: 4000
+      });
     } catch (err) {
       console.error('Erreur création inventaire:', err);
+      addNotification && addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Erreur lors de la création de l\'inventaire.',
+        duration: 5000
+      });
     }
   };
 
   const submitCount = async () => {
     if (!selectedArticleId) {
-      toast.error('Sélectionnez un article', {
-        position: "top-right",
-        autoClose: 3000,
+      addNotification && addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Sélectionnez un article',
+        duration: 3000
       });
       return;
     }
-    
     if (!currentInventaire) {
-      toast.error('Créez d\'abord un inventaire', {
-        position: "top-right",
-        autoClose: 3000,
+      addNotification && addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Créez d\'abord un inventaire',
+        duration: 3000
       });
       return;
     }
-    
     try {
       await addEntry({
         article_id: selectedArticleId,
         quantite_comptee: quantite,
         commentaire: commentaire || undefined
       });
-      
-      // Réinitialiser le formulaire
       setSelectedArticleId('');
       setQuantite(0);
       setCommentaire('');
       setEditingEntry(null);
-      
-      toast.success('Comptage enregistré avec succès', {
-        position: "top-right",
-        autoClose: 2000,
+      addNotification && addNotification({
+        type: 'success',
+        title: 'Comptage enregistré',
+        message: 'Comptage enregistré avec succès',
+        duration: 2000
       });
     } catch (err) {
       console.error('Erreur lors de l\'enregistrement:', err);
-      toast.error('Erreur lors de l\'enregistrement du comptage', {
-        position: "top-right",
-        autoClose: 5000,
+      addNotification && addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Erreur lors de l\'enregistrement du comptage',
+        duration: 5000
       });
     }
   };
@@ -188,16 +205,15 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     
     try {
       await deleteEntry(entryId);
-      toast.success('Entrée supprimée avec succès', {
-        position: "top-right",
-        autoClose: 2000,
+      addNotification && addNotification({
+        type: 'success',
+        title: 'Entrée supprimée',
+        message: 'Entrée supprimée avec succès',
+        duration: 2000
       });
     } catch (err: any) {
       console.error('Erreur lors de la suppression:', err);
-      
-      // Gestion spécifique des erreurs API
       let errorMessage = 'Erreur lors de la suppression de l\'entrée';
-      
       if (err.response?.status === 404) {
         errorMessage = 'Vous ne pouvez supprimer que vos propres entrées';
       } else if (err.response?.status === 401) {
@@ -205,10 +221,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
+      addNotification && addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: errorMessage,
+        duration: 4000
       });
     }
   };
@@ -292,20 +309,28 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     let applyAdjustments = articlesWithDifferences > 0;
     
     try {
-      // Toujours renseigner le nom complet de l'utilisateur
       const utilisateurNom = currentUser ? `${currentUser.prenom} ${currentUser.nom}` : 'Utilisateur inconnu';
       await finalizeInventaire(applyAdjustments, utilisateurNom);
-      // Télécharger le rapport final
       if (currentEntries.length > 0) {
         downloadExcel(currentEntries);
       }
       const successMessage = applyAdjustments && articlesWithDifferences > 0
         ? `Inventaire finalisé avec succès !\n${articlesWithDifferences} article(s) ont été réajustés.`
         : 'Inventaire finalisé avec succès !';
-      alert(successMessage);
+      addNotification && addNotification({
+        type: 'success',
+        title: 'Inventaire finalisé',
+        message: successMessage,
+        duration: 4000
+      });
     } catch (err) {
       console.error('Erreur lors de la finalisation:', err);
-      alert('Erreur lors de la finalisation de l\'inventaire');
+      addNotification && addNotification({
+        type: 'error',
+        title: 'Erreur',
+        message: 'Erreur lors de la finalisation de l\'inventaire',
+        duration: 5000
+      });
     }
   };
 
@@ -754,8 +779,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         />
       )}
       
-      {/* Toast notifications */}
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      {/* Toast notifications removed, now handled globally */}
     </div>
   );
 }

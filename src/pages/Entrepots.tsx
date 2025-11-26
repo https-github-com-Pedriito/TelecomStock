@@ -28,6 +28,7 @@ interface EntrepotsProps {
   onUpdateLocalisation: (id: string, localisation: Partial<LocalisationInput>) => Promise<Localisation>;
   onDeleteLocalisation: (id: string) => Promise<void>;
   onRefreshLocalisations?: () => Promise<void>;
+  addNotification?: (notif: { type: 'success' | 'warning' | 'info' | 'error'; title: string; message: string; duration?: number }) => void;
 }
 
 const typeLabels: Record<NonNullable<Localisation['type']>, string> = {
@@ -37,7 +38,6 @@ const typeLabels: Record<NonNullable<Localisation['type']>, string> = {
   TECHNIQUE: 'Zone technique',
   AUTRE: 'Autre',
 };
-
 export function Entrepots({
   localisations,
   loading,
@@ -46,6 +46,7 @@ export function Entrepots({
   onUpdateLocalisation,
   onDeleteLocalisation,
   onRefreshLocalisations,
+  addNotification,
 }: EntrepotsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLocalisation, setEditingLocalisation] = useState<Localisation | undefined>();
@@ -103,13 +104,39 @@ export function Entrepots({
       setIsSaving(true);
       if (editingLocalisation) {
         await onUpdateLocalisation(editingLocalisation.id, data);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Lieu modifié',
+            message: `Le lieu « ${data.nom} » a été modifié avec succès.`,
+            duration: 5000,
+          });
+        }
       } else {
         await onAddLocalisation(data);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Lieu créé',
+            message: `Le lieu « ${data.nom} » a été créé avec succès.`,
+            duration: 5000,
+          });
+        }
       }
       if (onRefreshLocalisations) {
         await onRefreshLocalisations();
       }
       closeModal();
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du lieu:', error);
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: 'Erreur sauvegarde lieu',
+          message: 'Impossible de sauvegarder ce lieu de stockage.',
+          duration: 5000,
+        });
+      }
     } finally {
       setIsSaving(false);
     }
@@ -156,9 +183,24 @@ export function Entrepots({
       if (onRefreshLocalisations) {
         await onRefreshLocalisations();
       }
+      if (addNotification) {
+        addNotification({
+          type: 'success',
+          title: 'Lieu supprimé',
+          message: `Le lieu « ${localisation.nom} » a été supprimé avec succès.`,
+          duration: 5000,
+        });
+      }
     } catch (error) {
       console.error('Erreur lors de la suppression du lieu:', error);
-      alert('Impossible de supprimer ce lieu de stockage. Il est peut-être utilisé par des articles.');
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: 'Erreur suppression lieu',
+          message: 'Impossible de supprimer ce lieu de stockage. Il est peut-être utilisé par des articles.',
+          duration: 5000,
+        });
+      }
     } finally {
       setActionLoadingId(null);
     }

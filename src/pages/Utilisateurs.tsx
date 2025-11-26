@@ -11,24 +11,15 @@ interface UtilisateursProps {
   onAddUser: (user: Omit<User, 'id' | 'created_at' | 'updated_at'>) => Promise<User>;
   onUpdateUser: (id: string, updates: Partial<User>) => Promise<void>;
   onDeleteUser: (id: string) => Promise<void>;
-  onRefreshUsers?: () => Promise<void>; 
+  onRefreshUsers?: () => Promise<void>;
+  addNotification?: (notif: { type: 'success' | 'warning' | 'info' | 'error'; title: string; message: string; duration?: number }) => void;
 }
 
-export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDeleteUser, onRefreshUsers }: UtilisateursProps) {
+export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDeleteUser, onRefreshUsers, addNotification }: UtilisateursProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
-  const [notification, setNotification] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
-
-  // Fonction pour afficher une notification
-  const showNotification = (type: 'success' | 'error', message: string) => {
-    setNotification({ type, message });
-    // Masquer automatiquement après 5 secondes
-    setTimeout(() => setNotification(null), 5000);
-  };
+  // Utiliser la notification globale
 
   // Recharger les utilisateurs à chaque visite de la page
   useEffect(() => {
@@ -48,21 +39,40 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
       if (editingUser) {
         await onUpdateUser(editingUser.id, userData);
         const hasPasswordChange = 'password' in userData && userData.password;
-        if (hasPasswordChange) {
-          showNotification('success', `Utilisateur ${userData.prenom} ${userData.nom} modifié avec succès. Le mot de passe a été mis à jour.`);
-        } else {
-          showNotification('success', `Utilisateur ${userData.prenom} ${userData.nom} modifié avec succès.`);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Utilisateur modifié',
+            message: hasPasswordChange
+              ? `Utilisateur ${userData.prenom} ${userData.nom} modifié avec succès. Le mot de passe a été mis à jour.`
+              : `Utilisateur ${userData.prenom} ${userData.nom} modifié avec succès.`,
+            duration: 5000,
+          });
         }
       } else {
         await onAddUser(userData);
-        showNotification('success', `Utilisateur ${userData.prenom} ${userData.nom} créé avec succès.`);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Utilisateur créé',
+            message: `Utilisateur ${userData.prenom} ${userData.nom} créé avec succès.`,
+            duration: 5000,
+          });
+        }
       }
       setEditingUser(undefined);
       setIsModalOpen(false);
     } catch (error) {
       const operation = editingUser ? 'modification' : 'création';
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
-      showNotification('error', `Erreur lors de la ${operation} de l'utilisateur : ${errorMessage}`);
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: `Erreur ${operation} utilisateur`,
+          message: `Erreur lors de la ${operation} de l'utilisateur : ${errorMessage}`,
+          duration: 5000,
+        });
+      }
       console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
     }
   };
@@ -74,7 +84,14 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
 
   const handleDeleteUser = async (id: string) => {
     if (id === currentUser.id) {
-      showNotification('error', 'Vous ne pouvez pas supprimer votre propre compte');
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: 'Suppression impossible',
+          message: 'Vous ne pouvez pas supprimer votre propre compte',
+          duration: 5000,
+        });
+      }
       return;
     }
     
@@ -82,10 +99,24 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${userToDelete?.prenom} ${userToDelete?.nom} ?`)) {
       try {
         await onDeleteUser(id);
-        showNotification('success', `Utilisateur ${userToDelete?.prenom} ${userToDelete?.nom} supprimé avec succès.`);
+        if (addNotification) {
+          addNotification({
+            type: 'success',
+            title: 'Utilisateur supprimé',
+            message: `Utilisateur ${userToDelete?.prenom} ${userToDelete?.nom} supprimé avec succès.`,
+            duration: 5000,
+          });
+        }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
-        showNotification('error', `Erreur lors de la suppression de l'utilisateur : ${errorMessage}`);
+        if (addNotification) {
+          addNotification({
+            type: 'error',
+            title: 'Erreur suppression utilisateur',
+            message: `Erreur lors de la suppression de l'utilisateur : ${errorMessage}`,
+            duration: 5000,
+          });
+        }
         console.error('Erreur lors de la suppression de l\'utilisateur:', error);
       }
     }
@@ -93,16 +124,37 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
 
     const toggleUserActive = async (user: User) => {
     if (user.id === currentUser.id) {
-      showNotification('error', 'Vous ne pouvez pas désactiver votre propre compte');
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: 'Action impossible',
+          message: 'Vous ne pouvez pas désactiver votre propre compte',
+          duration: 5000,
+        });
+      }
       return;
     }
     try {
       await onUpdateUser(user.id, { is_active: !user.is_active });
       const action = user.is_active ? 'désactivé' : 'activé';
-      showNotification('success', `Utilisateur ${user.prenom} ${user.nom} ${action} avec succès.`);
+      if (addNotification) {
+        addNotification({
+          type: 'success',
+          title: `Utilisateur ${action}`,
+          message: `Utilisateur ${user.prenom} ${user.nom} ${action} avec succès.`,
+          duration: 5000,
+        });
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
-      showNotification('error', `Erreur lors de la modification du statut de l'utilisateur : ${errorMessage}`);
+      if (addNotification) {
+        addNotification({
+          type: 'error',
+          title: 'Erreur modification statut',
+          message: `Erreur lors de la modification du statut de l'utilisateur : ${errorMessage}`,
+          duration: 5000,
+        });
+      }
       console.error('Erreur lors du changement de statut:', error);
     }
   };
