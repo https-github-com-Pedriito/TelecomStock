@@ -7,6 +7,8 @@ import { Inventaire } from './entities/Inventaire';
 import { InventaireEntry } from './entities/InventaireEntry';
 import { Localisation } from './entities/Localisation';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
@@ -17,7 +19,7 @@ export const AppDataSource = new DataSource({
   synchronize: true, // ⚠️ ATTENTION: true pour créer les tables automatiquement (dev only)
   logging: true,
   entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation],
-  migrations: ['src/migration/*.ts'],
+  migrations: isProduction ? ['dist/migration/*.js'] : ['src/migration/*.ts'],
   subscribers: [],
   // SSL configuration for Neon and other cloud PostgreSQL providers
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
