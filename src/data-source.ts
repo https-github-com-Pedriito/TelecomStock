@@ -19,7 +19,7 @@ export const AppDataSource = new DataSource({
   synchronize: true, // ⚠️ ATTENTION: true pour créer les tables automatiquement (dev only)
   logging: true,
   entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation],
-  migrations: isProduction ? ['dist/migration/*.js'] : ['src/migration/*.ts'],
+  migrations: [], // Pas de migrations - synchronize gère les tables
   subscribers: [],
   // SSL configuration for Neon and other cloud PostgreSQL providers
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
