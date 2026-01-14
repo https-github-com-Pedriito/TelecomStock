@@ -97,7 +97,7 @@ class ApiService {
       // Si c'est une erreur réseau (TypeError), donner plus de détails
       if (error instanceof TypeError) {
         const networkError = new Error(
-          `Impossible de joindre l'API, ` +
+          `Veuillez contacter l'administrateur, Les serveurs sont injoignables ` +
           `Vérifiez La connexion réseau ou les certificats`
         );
         (networkError as any).originalError = error;
