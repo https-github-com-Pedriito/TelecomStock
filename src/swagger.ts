@@ -15,7 +15,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'https://decimale-api-production.up.railway.app',
+        url: 'https://backendtelcomstock.vercel.app',
         description: 'Serveur de développement HTTP',
       },
     ],
