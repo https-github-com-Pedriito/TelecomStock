@@ -174,10 +174,19 @@ class ApiService {
   }
 
   async createUser(data: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
-    // Utiliser l'endpoint d'inscription pour créer un nouvel utilisateur
-    return this.request('/auth/register', {
+    // Mapper les champs selon le modèle backend User
+    const apiData = {
+      email: data.email,
+      password: (data as any).password, // Le password est passé mais pas dans le type User
+      nom: data.nom,
+      prenom: data.prenom,
+      role: data.role.toUpperCase(), // ADMIN, MANAGER, TECHNICIEN
+      is_active: data.is_active !== undefined ? data.is_active : true
+    };
+    
+    return this.request('/users', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(apiData),
     });
   }
 
