@@ -20,9 +20,11 @@ import { Inventory } from './pages/Inventory';
 import { AdminPortal } from './pages/AdminPortal';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
+import { UserProfileModal } from './components/UserProfileModal';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // Initialiser Google Analytics une seule fois
   useEffect(() => {
@@ -297,9 +299,10 @@ function App() {
         return hasPermission('view_historique');
       case 'fournisseurs':
       case 'entrepots':
-      case 'utilisateurs':
       case 'inventory':
         return hasPermission('view_inventory');
+      case 'utilisateurs':
+        return hasPermission('manage_users');
       default:
         return false;
     }
@@ -372,29 +375,40 @@ function App() {
     }
   };
 
+  const handleChangePassword = async (oldPassword: string, newPassword: string) => {
+    try {
+      await api.changePassword(oldPassword, newPassword);
+      addNotification({
+        type: 'success',
+        title: 'Mot de passe modifié',
+        message: 'Votre mot de passe a été modifié avec succès',
+        duration: 4000
+      });
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      // Propager l'erreur avec un message plus clair
+      if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Mot de passe actuel incorrect');
+      } else if (error.message?.includes('400')) {
+        throw new Error('Le nouveau mot de passe ne respecte pas les critères requis');
+      } else {
+        throw new Error(error.message || 'Erreur lors de la modification du mot de passe');
+      }
+    }
+  };
+
   const renderCurrentView = () => {
     const articlesWithAlerts = getArticlesWithAlerts();
 
     switch (currentView) {
       case 'dashboard':
         return hasPermission('view_dashboard') && (
-          useNewUX && user?.role?.toLowerCase() === 'admin' ? (
-            <AdminPortal
-              articles={articles}
-              mouvements={mouvements}
-              users={usersForComponents}
-              currentUser={currentUserForComponents!}
-              onUpdateUser={updateUser}
-              onDeleteUser={deleteUser}
-            />
-          ) : (
-            <Dashboard
-              articles={articles}
-              mouvements={mouvements}
-              articlesWithAlerts={articlesWithAlerts}
-              onRefreshData={refreshAllData}
-            />
-          )
+          <Dashboard
+            articles={articles}
+            mouvements={mouvements}
+            articlesWithAlerts={articlesWithAlerts}
+            onRefreshData={refreshAllData}
+          />
         );
       case 'articles':
         return hasPermission('view_articles') && (
@@ -462,6 +476,7 @@ function App() {
             onUpdateUser={updateUser}
             onDeleteUser={deleteUser}
             onRefreshUsers={refreshUsers}
+            addNotification={addNotification}
           />
         );
       case 'inventory':
@@ -511,11 +526,16 @@ function App() {
         {/* Header mobile fixe avec déconnexion */}
         <div className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-50 overflow-hidden">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            {/* Pastille utilisateur cliquable */}
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-105 transition-transform shadow-lg"
+              title="Mon profil"
+            >
               <span className="text-white font-bold text-sm">
                 {currentUserForComponents.prenom.charAt(0)}{currentUserForComponents.nom.charAt(0)}
               </span>
-            </div>
+            </button>
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                 {currentUserForComponents.prenom} {currentUserForComponents.nom}
@@ -579,8 +599,14 @@ function App() {
             alertsCount={getArticlesWithAlerts().length}
           />
         </div>
-        
-        <NotificationContainer />
+                {/* Modale profil utilisateur */}
+        <UserProfileModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          currentUser={currentUserForComponents}
+          onChangePassword={handleChangePassword}
+        />
+                <NotificationContainer />
       </FeedbackProvider>
     );
   }
@@ -594,6 +620,7 @@ function App() {
         alertsCount={getArticlesWithAlerts().length}
         currentUser={currentUserForComponents}
         onLogout={signOut}
+        onChangePassword={handleChangePassword}
         hasPermission={hasPermission}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}

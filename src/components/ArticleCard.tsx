@@ -5,28 +5,28 @@ import { BarcodeGenerator } from './BarcodeGenerator';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { Article, Mouvement } from '../types';
 import { api } from '../lib/api';
-import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer, Download } from 'lucide-react';
+import { Package, MapPin, AlertTriangle, Edit2, Trash2, Printer, Download, Euro, TrendingUp, Barcode } from 'lucide-react';
 interface ArticleCardProps {
   article: Article;
   onEdit?: (article: Article) => void;
   onDelete?: (id: string, force?: boolean) => Promise<void>;
   onPrintLabel: (article: Article) => void;
-  canDelete?: boolean; // Nouvelle prop pour contrôler la visibilité du bouton supprimer
-  canViewPrice?: boolean; // Nouvelle prop pour contrôler l'affichage des prix
+  canDelete?: boolean;
+  canViewPrice?: boolean;
 }
 
 export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete = false, canViewPrice = true }: ArticleCardProps) {
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
-  // Afficher les codes-barres pour tous
+  const isOutOfStock = article.quantite_stock === 0;
   const canShowBarcode = true;
   
-  // État pour le modal de confirmation
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInfo, setDeleteInfo] = useState<{
     hasMovements: boolean;
     movementCount: number;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showBarcode, setShowBarcode] = useState(false);
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -39,13 +39,12 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
       });
     } catch (error: any) {
       if (error.canForceDelete) {
-        // Afficher le modal de confirmation avec les détails
         setDeleteInfo({
           hasMovements: true,
           movementCount: parseInt(error.data.details.match(/\d+/)?.[0] || '0')
         });
         setShowDeleteModal(true);
-        return; // Important: arrêter ici pour ne pas propager l'erreur
+        return;
       } else {
         toast.error('Erreur lors de la suppression de l\'article', {
           position: "top-right",
@@ -55,29 +54,18 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
     }
   };
 
-  const  handleForceDelete = async () => {
+  const handleForceDelete = async () => {
     if (!onDelete) return;
 
     setIsDeleting(true);
     try {
-      console.log('Début de la suppression forcée pour l\'article:', article.id);
-      
-      // 1. Récupérer tous les mouvements
       const mouvements: Mouvement[] = await api.getMouvements();
-      console.log('Mouvements récupérés:', mouvements.length);
-      
-      // 2. Filtrer les mouvements associés à cet article
       const mouvementsArticle = mouvements.filter((m: Mouvement) => m.article.id === article.id);
-      console.log('Mouvements associés à l\'article:', mouvementsArticle.length);
       
-      // 3. Supprimer chaque mouvement un par un
       for (const mouvement of mouvementsArticle) {
-        console.log('Suppression du mouvement:', mouvement.id);
         await api.deleteMouvement(mouvement.id);
       }
       
-      // 4. Supprimer l'article
-      console.log('Suppression de l\'article:', article.id);
       await onDelete(article.id, true);
       
       toast.success(`Article supprimé avec succès`, {
@@ -85,7 +73,6 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
         autoClose: 3000,
       });
     } catch (error: any) {
-      console.error('Erreur lors de la suppression forcée:', error.message);
       toast.error(`Erreur lors de la suppression`, {
         position: "top-right",
         autoClose: 5000,
@@ -97,205 +84,250 @@ export function ArticleCard({ article, onEdit, onDelete, onPrintLabel, canDelete
     }
   };
 
+  const stockPercentage = ((article.quantite_stock / Math.max(article.seuil_minimum * 2, 10)) * 100);
+  const totalValue = (Number(article.quantite_stock) || 0) * (Number(article.prix_unitaire) || 0);
+
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md ${
-      isLowStock ? 'border-l-2 border-orange-500' : ''
+    <div className={`group relative bg-white dark:bg-gray-800 rounded-lg md:rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border ${
+      isOutOfStock 
+        ? 'border-red-200 dark:border-red-800' 
+        : isLowStock 
+          ? 'border-orange-200 dark:border-orange-800' 
+          : 'border-gray-200 dark:border-gray-700'
     }`}>
-      <div className="p-1.5 md:p-3">
-        <div className="flex justify-between items-start mb-1 md:mb-2">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-xs md:text-base font-semibold text-gray-900 dark:text-white md:truncate" title={article.nom}>{article.nom}</h3>
-            <p className="text-[10px] md:text-sm text-gray-500 dark:text-gray-400">{article.categorie}</p>
-          </div>
-          <button
-            onClick={() => onPrintLabel(article)}
-            className="hidden md:block p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
-            title="Imprimer étiquette"
-          >
-            <Printer size={10} className="md:w-4 md:h-4" />
-          </button>
-          {onEdit && (
-            <button
-              onClick={() => onEdit(article)}
-              className="p-0.5 md:p-1.5 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded transition-colors"
-              title="Modifier"
-            >
-              <Edit2 size={10} className="md:w-4 md:h-4 text-yellow-500 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900 rounded-lg transition-colors" />
-            </button>
-          )}
-            {onDelete && canDelete && (
-            <button
-              onClick={handleDelete}
-              className="p-0.5 md:p-1.5 text-red-600 dark:text-red-400 hover:text-white hover:bg-red-600 dark:hover:bg-red-700 rounded transition-colors"
-              title="Supprimer"
-            >
-              <Trash2 size={10} className="md:w-4 md:h-4" />
-            </button>
-            )}
+      {/* Badge de statut */}
+      {(isOutOfStock || isLowStock) && (
+        <div className={`absolute top-2 right-2 md:top-3 md:right-3 z-10 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-[10px] md:text-xs font-semibold flex items-center gap-0.5 md:gap-1 ${
+          isOutOfStock
+            ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
+            : 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
+        }`}>
+          <AlertTriangle className="w-2.5 h-2.5 md:w-3 md:h-3" />
+          <span className="hidden md:inline">{isOutOfStock ? 'Rupture' : 'Stock bas'}</span>
         </div>
+      )}
+
+      {/* Image de l'article */}
+      <div className="relative aspect-square md:h-40 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-2 md:p-4">
+        {article.image_url ? (
+          <img
+            src={article.image_url}
+            alt={article.nom}
+            className="w-full h-full object-cover rounded-full transition-transform duration-300 group-hover:scale-110"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f3f4f6" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="14" fill="%239ca3af"%3EImage%3C/text%3E%3C/svg%3E';
+            }}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-600">
+            <Package className="w-10 h-10 md:w-16 md:h-16 mb-1 md:mb-2" />
+            <span className="text-xs md:text-sm font-medium">Aucune image</span>
+          </div>
+        )}
       </div>
 
-  <div className="space-y-1 px-1.5 pb-1.5">
-        {/* Image ronde - visible sur mobile et desktop */}
-        {article.image_url && (
-          <div className="flex items-center justify-center py-1 md:hidden">
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center p-0.5">
-              <img
-                src={article.image_url}
-                alt={article.nom}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
+      {/* Contenu principal */}
+      <div className="p-2.5 md:p-4 space-y-2 md:space-y-3">
+        {/* Titre et catégorie */}
+        <div>
+          <h3 className="text-sm md:text-base font-bold text-gray-900 dark:text-white mb-1 line-clamp-2" title={article.nom}>
+            {article.nom}
+          </h3>
+          <span className="inline-flex items-center px-1.5 md:px-2 py-0.5 rounded-full text-[10px] md:text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+            {article.categorie}
+          </span>
+        </div>
+
+        {/* Indicateur de stock visuel - Compact sur mobile */}
+        <div className="space-y-1 md:space-y-1.5">
+          <div className="flex items-center justify-between text-xs md:text-sm">
+            <span className="text-gray-600 dark:text-gray-400 font-medium">Stock</span>
+            <span className={`font-bold ${
+              isOutOfStock 
+                ? 'text-red-600 dark:text-red-400' 
+                : isLowStock 
+                  ? 'text-orange-600 dark:text-orange-400' 
+                  : 'text-green-600 dark:text-green-400'
+            }`}>
+              {article.quantite_stock} <span className="hidden md:inline">unités</span>
+            </span>
+          </div>
+          <div className="relative w-full h-1.5 md:h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div
+              className={`absolute left-0 top-0 h-full rounded-full transition-all duration-500 ${
+                isOutOfStock
+                  ? 'bg-red-500'
+                  : isLowStock
+                    ? 'bg-orange-500'
+                    : 'bg-green-500'
+              }`}
+              style={{ width: `${Math.min(stockPercentage, 100)}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[10px] md:text-xs text-gray-500 dark:text-gray-400">
+            <span>Seuil: {article.seuil_minimum}</span>
+          </div>
+        </div>
+
+        {/* Informations secondaires - Plus compact sur mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2">
+          {/* Localisation */}
+          <div className="flex items-center gap-1.5 md:gap-2 p-1.5 md:p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="p-1 md:p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex-shrink-0">
+              <MapPin className="w-3 h-3 md:w-4 md:h-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] md:text-xs text-gray-500 dark:text-gray-400">Lieu</p>
+              <p className="text-[10px] md:text-xs font-semibold text-gray-900 dark:text-white truncate" title={article.localisation}>
+                {article.localisation}
+              </p>
+            </div>
+          </div>
+
+          {/* Fournisseur - Caché sur mobile */}
+          <div className="hidden md:flex items-center gap-1.5 md:gap-2 p-1.5 md:p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="p-1 md:p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex-shrink-0">
+              <Package className="w-3 h-3 md:w-4 md:h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] md:text-xs text-gray-500 dark:text-gray-400">Fourni.</p>
+              <p className="text-[10px] md:text-xs font-semibold text-gray-900 dark:text-white truncate" title={article.fournisseur}>
+                {article.fournisseur}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Prix et valeur - Plus compact sur mobile, caché sur mobile */}
+        {canViewPrice && (
+          <div className="hidden md:grid grid-cols-2 gap-1.5 md:gap-2 pt-1.5 md:pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center p-1.5 md:p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="flex items-center justify-center gap-0.5 md:gap-1 mb-0.5 md:mb-1">
+                <Euro className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-blue-600 dark:text-blue-400" />
+                <p className="text-[9px] md:text-xs text-gray-600 dark:text-gray-400 font-medium">Prix unit.</p>
+              </div>
+              <p className="text-xs md:text-sm font-bold text-blue-700 dark:text-blue-300">
+                {(article.prix_unitaire || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
+              </p>
+            </div>
+            <div className="text-center p-1.5 md:p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <div className="flex items-center justify-center gap-0.5 md:gap-1 mb-0.5 md:mb-1">
+                <TrendingUp className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 text-green-600 dark:text-green-400" />
+                <p className="text-[9px] md:text-xs text-gray-600 dark:text-gray-400 font-medium">Valeur</p>
+              </div>
+              <p className="text-xs md:text-sm font-bold text-green-700 dark:text-green-300">
+                {totalValue.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €
+              </p>
             </div>
           </div>
         )}
-        
+
+        {/* Code-barres - Simplifié sur mobile, complet sur desktop */}
         {canShowBarcode && (
-          <div className="hidden md:flex items-center gap-1 py-1 bg-gray-50 dark:bg-gray-700 rounded">
-            {/* Code-barres à gauche */}
-            <div className="flex flex-col items-center flex-1">
-              <div id={`barcode-container-${article.id}`} className="mb-0.5 scale-50">
-                <BarcodeGenerator value={article.code_barres || article.id || ''} />
+          <>
+            {/* Version mobile simple - juste la référence */}
+            <div className="md:hidden pt-1.5 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-1.5 p-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <Barcode className="w-3 h-3 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 truncate">
+                  Réf: {article.code_barres || 'Code auto'}
+                </span>
               </div>
-              <span className="text-[9px] text-gray-400 dark:text-gray-500 mb-0.5">
-                {article.code_barres || 'Auto'}
+            </div>
+
+            {/* Version desktop complète avec génération */}
+            <div className="hidden md:block pt-1.5 md:pt-2 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setShowBarcode(!showBarcode)}
+              className="w-full flex items-center justify-between p-1.5 md:p-2 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <Barcode className="w-3 h-3 md:w-4 md:h-4 text-gray-600 dark:text-gray-400" />
+                <span className="text-[10px] md:text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {article.code_barres || 'Code auto'}
+                </span>
+              </div>
+              <span className="text-[10px] md:text-xs text-gray-500">
+                {showBarcode ? 'Masquer' : 'Afficher'}
               </span>
-              <div className="flex gap-0.5">
-                <button
-                  className="px-1 py-0.5 text-[9px] bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors flex items-center gap-0.5"
-                  onClick={() => {
-                    const container = document.getElementById(`barcode-container-${article.id}`);
-                    if (!container) return;
-                    const canvas = container.querySelector('canvas');
-                    if (!canvas) return;
-                    const win = window.open('', 'PrintBarcode');
-                    if (win) {
-                      win.document.write('<img src="' + canvas.toDataURL() + '" style="width:300px" />');
-                      win.document.close();
-                      win.focus();
-                      win.print();
-                    }
-                  }}
-                  title="Imprimer le code-barres"
-                >
-                  <Printer size={10} className="md:hidden" />
-                  <span className="hidden md:inline">Imprimer</span>
-                </button>
-                <button
-                  className="px-1 py-0.5 text-[9px] bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex items-center gap-0.5"
-                  onClick={() => {
-                    const container = document.getElementById(`barcode-container-${article.id}`);
-                    if (!container) {
-                      alert('Impossible de trouver le code-barres.');
-                      return;
-                    }
-                    const canvas = container.querySelector('canvas');
-                    if (!canvas) {
-                      alert('Le code-barres n\'est pas généré.');
-                      return;
-                    }
-                    try {
-                      const dataUrl = canvas.toDataURL('image/png');
-                      if (!dataUrl.startsWith('data:image/png')) {
-                        toast.error('Erreur lors de la génération de l\'image.');
-                        return;
+            </button>
+
+            {showBarcode && (
+              <div className="mt-1.5 md:mt-2 p-2 md:p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div id={`barcode-container-${article.id}`} className="flex justify-center mb-1.5 md:mb-2 scale-75 md:scale-100">
+                  <BarcodeGenerator value={article.code_barres || article.id || ''} />
+                </div>
+                <div className="flex gap-1.5 md:gap-2">
+                  <button
+                    onClick={() => {
+                      const container = document.getElementById(`barcode-container-${article.id}`);
+                      if (!container) return;
+                      const canvas = container.querySelector('canvas');
+                      if (!canvas) return;
+                      const win = window.open('', 'PrintBarcode');
+                      if (win) {
+                        win.document.write('<img src="' + canvas.toDataURL() + '" style="width:300px" />');
+                        win.document.close();
+                        win.focus();
+                        win.print();
                       }
+                    }}
+                    className="flex-1 flex items-center justify-center gap-0.5 md:gap-1 px-2 py-1 md:px-3 md:py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] md:text-xs font-medium rounded-lg transition-colors"
+                  >
+                    <Printer className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                    <span className="hidden md:inline">Imprimer</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const container = document.getElementById(`barcode-container-${article.id}`);
+                      if (!container) return;
+                      const canvas = container.querySelector('canvas');
+                      if (!canvas) return;
                       const link = document.createElement('a');
                       link.download = `barcode-${article.code_barres || article.id}.png`;
-                      link.href = dataUrl;
+                      link.href = canvas.toDataURL('image/png');
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
-                      toast.success('Le code-barres a bien été téléchargé.');
-                    } catch (err) {
-                      toast.error('Erreur lors du téléchargement du code-barres.');
-                    }
-                  }}
-                  title="Télécharger le code-barres"
-                >
-                  <Download size={10} className="md:hidden" />
-                  <span className="hidden md:inline">Télécharger</span>
-                </button>
-              </div>
-            </div>
-            
-            {/* Image ronde à droite - visible sur desktop uniquement */}
-            {article.image_url && (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-50 border border-gray-200 flex items-center justify-center p-0.5">
-                  <img
-                    src={article.image_url}
-                    alt={article.nom}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
+                      toast.success('Code-barres téléchargé');
                     }}
-                  />
+                    className="flex-1 flex items-center justify-center gap-0.5 md:gap-1 px-2 py-1 md:px-3 md:py-1.5 bg-green-600 hover:bg-green-700 text-white text-[10px] md:text-xs font-medium rounded-lg transition-colors"
+                  >
+                    <Download className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                    <span className="hidden md:inline">Télécharger</span>
+                  </button>
                 </div>
               </div>
             )}
           </div>
+          </>
         )}
-        
-        {/* Stock et localisation */}
-        <div className="grid grid-cols-2 gap-1 md:gap-2">
-          <div className={`flex items-center gap-1 md:gap-2 text-xs p-1 md:p-2 rounded ${
-            isLowStock ? 'bg-orange-50' : 'bg-green-50'
-          }`}>
-            <Package size={10} className={`${isLowStock ? 'text-orange-600' : 'text-green-600'} md:w-5 md:h-5`} />
-            <div className="flex flex-col">
-              <span className="text-[9px] md:text-xs text-gray-500">Stock</span>
-              <span className={`font-semibold text-[10px] md:text-sm ${isLowStock ? 'text-orange-600' : 'text-green-600'}`}>
-                {article.quantite_stock}
-              </span>
-            </div>
-            {isLowStock && (
-              <AlertTriangle size={8} className="text-orange-500 ml-auto md:w-4 md:h-4" />
-            )}
-          </div>
+      </div>
 
-          <div className="flex items-center gap-1 md:gap-2 text-xs p-1 md:p-2 rounded bg-blue-50">
-            <MapPin size={10} className="text-blue-600 flex-shrink-0 md:w-5 md:h-5" />
-            <div className="flex flex-col min-w-0">
-              <span className="text-[9px] md:text-xs text-gray-500">Lieu</span>
-              <span className="text-[9px] md:text-xs text-gray-700 font-medium truncate">{article.localisation}</span>
-            </div>
-          </div>
-        </div>
-
-
-        {canViewPrice && (
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between text-[10px] md:text-sm bg-gray-100 dark:bg-gray-700 p-1 md:p-2 rounded border border-blue-200 dark:border-blue-700">
-              <span className="flex items-center gap-1 text-blue-700 dark:text-blue-300 font-medium">
-                💶 Prix
-              </span>
-              <span className={`font-semibold ${article.prix_unitaire > 0 ? 'text-blue-700 dark:text-blue-300' : 'text-gray-400 dark:text-gray-500'}`}> 
-                {typeof article.prix_unitaire === 'number' ? article.prix_unitaire.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} €
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-[10px] md:text-sm bg-gray-100 dark:bg-gray-700 p-1 md:p-2 rounded border border-green-200 dark:border-green-700">
-              <span className="flex items-center gap-1 text-green-700 dark:text-green-300 font-medium">
-                🏷️ Valeur
-              </span>
-              <span className={`font-semibold ${article.quantite_stock * (article.prix_unitaire || 0) > 0 ? 'text-green-700 dark:text-green-300' : 'text-gray-400 dark:text-gray-500'}`}> 
-                {typeof article.prix_unitaire === 'number' ? (article.quantite_stock * article.prix_unitaire).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} €
-              </span>
-            </div>
-          </div>
+      {/* Actions (footer) - Plus compact sur mobile */}
+      <div className="px-2.5 py-2 md:px-4 md:py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-end gap-1.5 md:gap-2">
+        {onEdit && (
+          <button
+            onClick={() => onEdit(article)}
+            className="hidden md:flex items-center gap-0.5 md:gap-1 px-2 py-1 md:px-3 md:py-1.5 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors text-xs md:text-sm font-medium"
+            title="Modifier"
+          >
+            <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Modifier</span>
+          </button>
         )}
-
-        <div className="flex items-center justify-between text-[9px] md:text-xs text-gray-500 dark:text-gray-400">
-          <span className="truncate"> {article.fournisseur}</span>
-          <div className="font-mono bg-gray-100 dark:bg-gray-700 px-1 md:px-2 py-0.5 md:py-1 rounded text-[8px] md:text-xs text-gray-700 dark:text-gray-300">
-            {article.code_barres || 'N/A'}
-          </div>
-        </div>
+        {onDelete && canDelete && (
+          <button
+            onClick={handleDelete}
+            className="flex items-center gap-0.5 md:gap-1 px-2 py-1 md:px-3 md:py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-xs md:text-sm font-medium"
+            title="Supprimer"
+          >
+            <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Supprimer</span>
+          </button>
+        )}
       </div>
       
-      {/* Modal de confirmation de suppression */}
       <DeleteConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ViewMode } from '../types';
 import { 
   LayoutDashboard, 
@@ -10,8 +10,11 @@ import {
   Shield,
   Truck,
   FileText,
-  Building2
+  Building2,
+  Settings,
+  Users
 } from 'lucide-react';
+import { UserProfileModal } from './UserProfileModal';
 
 interface LayoutProps {
   currentView: ViewMode;
@@ -20,10 +23,12 @@ interface LayoutProps {
   currentUser: {
     id: string;
     nom: string;
+    prenom: string;
     email: string;
     role: 'admin' | 'manager' | 'technicien';
   };
   onLogout: () => void;
+  onChangePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   hasPermission: (permission: string) => boolean;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
@@ -35,12 +40,15 @@ export function Layout({
   onViewChange, 
   alertsCount, 
   currentUser, 
-  onLogout, 
+  onLogout,
+  onChangePassword,
   hasPermission,
   isDarkMode,
   toggleDarkMode,
   children 
 }: LayoutProps) {
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   const menuItems = [
     { 
       id: 'dashboard' as ViewMode, 
@@ -78,6 +86,12 @@ export function Layout({
       id: 'entrepots' as ViewMode, 
       label: 'Entrepôts', 
       icon: Building2, 
+      permission: 'manage_users' 
+    },
+    { 
+      id: 'utilisateurs' as ViewMode, 
+      label: 'Utilisateurs', 
+      icon: Users, 
       permission: 'manage_users' 
     },
     { 
@@ -144,6 +158,16 @@ export function Layout({
             <div className="flex items-center gap-3 sm:gap-4 shrink-0 ml-auto">
               {/* Badge BETA visible sur mobile à côté du logout */}
               <div className="flex items-center gap-2 sm:gap-3">
+                {/* Pastille utilisateur mobile - cliquable */}
+                <button
+                  onClick={() => setShowProfileModal(true)}
+                  className="sm:hidden flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full text-white font-bold text-sm hover:scale-105 transition-transform shadow-lg"
+                  title="Mon profil"
+                >
+                  {currentUser.prenom?.[0]?.toUpperCase()}{currentUser.nom?.[0]?.toUpperCase()}
+                </button>
+
+                {/* Info utilisateur desktop */}
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium">{currentUser.nom}</p>
                   <div className="flex items-center gap-2">
@@ -153,6 +177,15 @@ export function Layout({
                     </span>
                   </div>
                 </div>
+
+                {/* Bouton paramètres desktop */}
+                <button
+                  onClick={() => setShowProfileModal(true)}
+                  className="hidden sm:block p-2 hover:bg-blue-600 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  title="Mon profil et paramètres"
+                >
+                  <Settings size={18} />
+                </button>
                 
                 {/* Bouton mode sombre */}
                 <button
@@ -230,6 +263,14 @@ export function Layout({
       <main className="container mx-auto px-4 py-6 overflow-x-hidden max-w-full">
         {children}
       </main>
+
+      {/* Modale profil utilisateur */}
+      <UserProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        currentUser={currentUser}
+        onChangePassword={onChangePassword}
+      />
     </div>
   );
 }

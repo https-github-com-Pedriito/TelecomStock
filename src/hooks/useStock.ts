@@ -70,6 +70,15 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
         console.log('📦 useStock - Chargement des articles...');
         const articlesResponse = await api.get<Article[]>('/articles');
         console.log('📦 useStock - Articles reçus:', articlesResponse.length, 'articles');
+        
+        // Debug: afficher les prix des articles
+        console.log('💰 Prix des articles:', articlesResponse.map(a => ({ 
+          nom: a.nom, 
+          prix: a.prix_unitaire, 
+          qte: a.quantite_stock,
+          valeur: (a.prix_unitaire || 0) * (a.quantite_stock || 0)
+        })));
+        
         setArticles(articlesResponse);
 
         console.log('📋 useStock - Chargement des mouvements...');

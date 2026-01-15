@@ -221,57 +221,133 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          {/* Header desktop uniquement */}
+          <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Utilisateur</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Rôle</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase text-center">Statut</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase text-center">Date création</div>
+            <div className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase text-right">Actions</div>
+          </div>
+
           <ul className="divide-y divide-gray-100 dark:divide-gray-800">
             {filteredUsers.map(user => (
-              <li key={user.id} className="flex flex-col sm:flex-row sm:items-center py-2 px-2 sm:px-4 gap-2 sm:gap-0 bg-white dark:bg-gray-900">
-                <div className="flex items-center gap-2 flex-1">
-                  <div className="bg-blue-100 dark:bg-blue-950 p-1 rounded-full">
-                    <Users size={18} className="text-blue-600 dark:text-blue-300" />
+              <li key={user.id} className="px-4 sm:px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                {/* Version mobile */}
+                <div className="sm:hidden space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="bg-blue-100 dark:bg-blue-950 p-2 rounded-full flex-shrink-0">
+                        <Users size={20} className="text-blue-600 dark:text-blue-300" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-gray-900 dark:text-white text-base truncate">{user.prenom} {user.nom}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.email}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0 ml-2">
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-900/30 rounded-lg transition-colors"
+                        title="Modifier"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={user.id === currentUser.id}
+                        className={`p-2 rounded-lg transition-colors ${
+                          user.id === currentUser.id
+                            ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                            : 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30'
+                        }`}
+                        title={user.id === currentUser.id ? 'Impossible de supprimer votre propre compte' : 'Supprimer'}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-900 dark:text-white text-xs sm:text-base">{user.nom}</span>
-                    <span className="text-xs text-gray-600 dark:text-gray-400">{user.email}</span>
+                  <div className="flex items-center justify-between gap-2 pl-14">
+                    <div className="flex items-center gap-2">
+                      <Shield size={14} className="text-gray-500 dark:text-gray-400" />
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+                        {getRoleLabel(user.role)}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => toggleUserActive(user)}
+                      disabled={user.id === currentUser.id}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors
+                        ${user.is_active
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        } ${user.id === currentUser.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-80'}`}
+                    >
+                      {user.is_active ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                      {user.is_active ? 'Actif' : 'Inactif'}
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 pl-14">
+                    Créé le {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: fr })}
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Shield size={12} className="text-gray-500 dark:text-gray-300" />
-                  <span className={`px-1.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)} dark:bg-opacity-40 dark:text-opacity-90`}>{getRoleLabel(user.role)}</span>
-                </div>
-                <div>
-                   <span
-                  className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap justify-center
-                    ${user.is_active
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                    } ${user.id === currentUser.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                >
-                  {user.is_active ? <CheckCircle size={10} className="text-green-600 dark:text-green-300" /> : <XCircle size={10} className="text-red-600 dark:text-red-300" />}
-                  {user.is_active ? 'Actif' : 'Inactif'}
-                </span>
-                </div>
-               
-                <span className="text-xs text-gray-600 dark:text-gray-400 min-w-[60px] text-center">{format(new Date(user.created_at), 'dd/MM/yyyy', { locale: fr })}</span>
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => handleEditUser(user)}
-                    className="p-1 text-yellow-500 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900 rounded-lg transition-colors"
-                    title="Modifier"
-                  >
-                    <Edit2 size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user.id)}
-                    disabled={user.id === currentUser.id}
-                    className={`p-1 rounded-lg transition-colors ${
-                      user.id === currentUser.id
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-red-500 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900'
-                    }`}
-                    title={user.id === currentUser.id ? 'Impossible de supprimer votre propre compte' : 'Supprimer'}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+
+                {/* Version desktop */}
+                <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-100 dark:bg-blue-950 p-2 rounded-full flex-shrink-0">
+                      <Users size={20} className="text-blue-600 dark:text-blue-300" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-semibold text-gray-900 dark:text-white truncate">{user.prenom} {user.nom}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.email}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield size={14} className="text-gray-500 dark:text-gray-400" />
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
+                      {getRoleLabel(user.role)}
+                    </span>
+                  </div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => toggleUserActive(user)}
+                      disabled={user.id === currentUser.id}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors
+                        ${user.is_active
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                        } ${user.id === currentUser.id ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-80'}`}
+                    >
+                      {user.is_active ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                      {user.is_active ? 'Actif' : 'Inactif'}
+                    </button>
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                    {format(new Date(user.created_at), 'dd/MM/yyyy', { locale: fr })}
+                  </div>
+                  <div className="flex gap-1 justify-end">
+                    <button
+                      onClick={() => handleEditUser(user)}
+                      className="p-2 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-900/30 rounded-lg transition-colors"
+                      title="Modifier"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      disabled={user.id === currentUser.id}
+                      className={`p-2 rounded-lg transition-colors ${
+                        user.id === currentUser.id
+                          ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed'
+                          : 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30'
+                      }`}
+                      title={user.id === currentUser.id ? 'Impossible de supprimer votre propre compte' : 'Supprimer'}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
@@ -286,34 +362,6 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
         onSave={handleSaveUser}
         user={editingUser}
       />
-
-      {/* Notification */}
-      {notification && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-md ${
-          notification.type === 'success' 
-            ? 'bg-green-100 border border-green-400 text-green-700' 
-            : 'bg-red-100 border border-red-400 text-red-700'
-        }`}>
-          <div className="flex items-start gap-2">
-            <div className="flex-shrink-0">
-              {notification.type === 'success' ? (
-                <CheckCircle size={20} className="text-green-600" />
-              ) : (
-                <XCircle size={20} className="text-red-600" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium">{notification.message}</p>
-            </div>
-            <button
-              onClick={() => setNotification(null)}
-              className="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600"
-            >
-              <XCircle size={16} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

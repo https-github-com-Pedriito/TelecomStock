@@ -165,7 +165,13 @@ export function MobileBottomNav({
               <Icon 
                 size={isScanner ? 24 : 22}
                 strokeWidth={isScanner ? 2.5 : 2}
-                className={active ? 'text-blue-600 dark:text-blue-300' : 'text-gray-500 dark:text-gray-300'}
+                className={
+                  isScanner 
+                    ? 'text-white dark:text-white' 
+                    : active 
+                      ? 'text-blue-600 dark:text-blue-300' 
+                      : 'text-gray-500 dark:text-gray-300'
+                }
               />
               <span className="text-[10px] font-medium leading-none">
                 {item.label}

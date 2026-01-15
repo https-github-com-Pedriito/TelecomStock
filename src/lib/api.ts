@@ -174,7 +174,8 @@ class ApiService {
   }
 
   async createUser(data: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
-    return this.request('/users', {
+    // Utiliser l'endpoint d'inscription pour créer un nouvel utilisateur
+    return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -327,6 +328,14 @@ class ApiService {
   async deleteFournisseur(id: string) {
     return this.request(`/fournisseurs/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // Changement de mot de passe utilisateur
+  async changePassword(oldPassword: string, newPassword: string) {
+    return this.request('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ oldPassword, newPassword }),
     });
   }
 
