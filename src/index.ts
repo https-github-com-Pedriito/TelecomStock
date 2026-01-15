@@ -52,15 +52,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// Swagger Documentation (disabled on Vercel for compatibility)
-if (process.env.VERCEL !== '1') {
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'TelecomStock API Documentation',
-  }));
-}
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'TelecomStock API Documentation',
+  swaggerOptions: {
+    persistAuthorization: true,
+  }
+}));
 
-// Swagger JSON endpoint (always available for programmatic access)
+// Swagger JSON endpoint
 app.get('/api-docs.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
