@@ -178,9 +178,9 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Articles</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Equipements</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {filteredArticles.length} article{filteredArticles.length > 1 ? 's' : ''}
+            {filteredArticles.length} équipement{filteredArticles.length > 1 ? 's' : ''}
             {!barcodesLoaded && articles.length > 0 && (
               <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
                 ⏳ Génération des codes-barres...
@@ -210,7 +210,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
             >
               <Plus size={18} />
-              Nouvel article
+              Nouvel équipement
             </button>
           )}
         </div>

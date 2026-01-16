@@ -162,8 +162,8 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-end sm:items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-t-lg sm:rounded-lg shadow-xl w-full sm:max-w-md max-h-[80vh] sm:max-h-[90vh] overflow-hidden flex flex-col mb-16 sm:mb-0">
+    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-end sm:items-center justify-center z-[9999] px-3 sm:px-0">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full sm:max-w-md max-h-[85vh] sm:max-h-[90vh] overflow-hidden flex flex-col mb-16 sm:mb-0">
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Package size={18} className="text-blue-600 dark:text-blue-400" />

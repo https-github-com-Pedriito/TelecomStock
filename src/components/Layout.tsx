@@ -52,19 +52,19 @@ export function Layout({
   const menuItems = [
     { 
       id: 'dashboard' as ViewMode, 
-      label: 'Administration', 
+      label: 'Pilotage', 
       icon: LayoutDashboard, 
       permission: 'view_dashboard' 
     },
     { 
       id: 'articles' as ViewMode, 
-      label: 'Articles', 
+      label: 'Equipements', 
       icon: Package, 
       permission: 'view_articles' 
     },
     { 
       id: 'mouvements' as ViewMode, 
-      label: 'Mouvements', 
+      label: 'Flux de stock', 
       icon: ArrowUpDown, 
       permission: 'view_mouvements' 
     },
@@ -84,7 +84,7 @@ export function Layout({
     },
     { 
       id: 'entrepots' as ViewMode, 
-      label: 'Entrepôts', 
+      label: 'Dépôts', 
       icon: Building2, 
       permission: 'manage_users' 
     },

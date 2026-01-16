@@ -26,6 +26,7 @@ const COLORS = ['#2563eb', '#22c55e', '#f59e42', '#ef4444', '#a855f7', '#eab308'
 export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshData }: DashboardProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [chartData, setChartData] = useState<{ date: string; Entrees: number; Sorties: number }[]>([]);
+  const [selectedAlertArticle, setSelectedAlertArticle] = useState<Article | null>(null);
 
   // Générer les données du graphique quand les mouvements changent
   useEffect(() => {
@@ -123,10 +124,15 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
   }, {} as Record<string, number>);
 
   const maxValue = Math.max(...chartData.map(d => Math.max(d.Entrees, d.Sorties)), 1);
+  
+  // Calculer le pourcentage pour les barres de progression d'aujourd'hui
+  const maxDailyMovement = Math.max(entreesDuJour, sortiesDuJour, 1);
+  const entreesPercentage = (entreesDuJour / maxDailyMovement) * 100;
+  const sortiesPercentage = (sortiesDuJour / maxDailyMovement) * 100;
 
   const statsCards = [
     {
-      title: "Total Articles",
+      title: "Références",
       value: totalArticles.toString(),
       subtitle: "Références actives",
       icon: Package,
@@ -135,9 +141,9 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
       borderColor: "border-blue-200 dark:border-blue-800"
     },
     {
-      title: "Stock Total",
+      title: "Unités totales",
       value: totalStock.toString(),
-      subtitle: "Unités en stock",
+      subtitle: "Equipements disponibles",
       icon: BarChart3,
       bgColor: "bg-green-50 dark:bg-green-900/30",
       iconColor: "text-green-600 dark:text-green-400",
@@ -159,7 +165,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
     {
       title: "Alertes Stock",
       value: articlesWithAlerts.length.toString(),
-      subtitle: "Articles en alerte",
+      subtitle: "Seuils critiques atteints",
       icon: AlertTriangle,
       bgColor: "bg-orange-50 dark:bg-orange-900/30",
       iconColor: "text-orange-600 dark:text-orange-400",
@@ -232,7 +238,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               </div>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-green-600 dark:bg-green-500 h-2 rounded-full transition-all" style={{ width: '70%' }} />
+              <div className="bg-green-600 dark:bg-green-500 h-2 rounded-full transition-all" style={{ width: `${entreesPercentage}%` }} />
             </div>
           </div>
 
@@ -249,7 +255,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               </div>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-orange-600 dark:bg-orange-500 h-2 rounded-full transition-all" style={{ width: '50%' }} />
+              <div className="bg-orange-600 dark:bg-orange-500 h-2 rounded-full transition-all" style={{ width: `${sortiesPercentage}%` }} />
             </div>
           </div>
         </div>
@@ -261,7 +267,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-1">
                 <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Mouvements (14 jours)</h3>
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Flux de stock (14 jours)</h3>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Entrées et sorties quotidiennes</p>
             </div>
@@ -324,9 +330,9 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-1">
                 <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Stock par catégorie</h3>
+                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Répartition du stock par catégorie</h3>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Répartition des stocks</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Par famille d’équipements</p>
             </div>
 
             <div className="space-y-4">
@@ -370,7 +376,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Alertes Stock ({articlesWithAlerts.length})
+                  Alertes Stock Critique ({articlesWithAlerts.length})
                 </h2>
               </div>
             </div>
@@ -380,15 +386,16 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                   <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Package className="w-8 h-8 text-green-600 dark:text-green-400" />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Aucune alerte stock</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Tous les articles sont au-dessus du seuil</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Aucune alerte stock critique</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Aucun équipement n'est en rupture de stock</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {articlesWithAlerts.slice(0, 8).map(article => (
                     <div
                       key={article.id}
-                      className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+                      onClick={() => setSelectedAlertArticle(article)}
+                      className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${
@@ -425,7 +432,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Derniers Mouvements
+                  Derniers Flux De Stock
                 </h2>
               </div>
             </div>
@@ -435,8 +442,8 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                   <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Clock className="w-8 h-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Aucun mouvement</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Les mouvements apparaîtront ici</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Aucun Flux de Stock</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Les Flux de Stock apparaîtront ici</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -474,6 +481,115 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
           </div>
         </div>
       </div>
+
+      {/* Modale d'article pour les alertes */}
+      {selectedAlertArticle && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[9999] p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between">
+              <h2 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white">Équipement en alerte</h2>
+              <button
+                onClick={() => setSelectedAlertArticle(null)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Contenu */}
+            <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+              {/* Image */}
+              {selectedAlertArticle.image_url && (
+                <div className="w-full h-32 sm:h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
+                  <img 
+                    src={selectedAlertArticle.image_url} 
+                    alt={selectedAlertArticle.nom}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Nom et Référence */}
+              <div>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 leading-tight">
+                  {selectedAlertArticle.nom}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Réf: {selectedAlertArticle.code_barres || selectedAlertArticle.id.slice(0, 8)}
+                </p>
+              </div>
+
+              {/* Catégorie et Localisation */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="p-2.5 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mb-1">Catégorie</p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">{selectedAlertArticle.categorie}</p>
+                </div>
+                <div className="p-2.5 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mb-1">Localisation</p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">{selectedAlertArticle.localisation}</p>
+                </div>
+              </div>
+
+              {/* Stock */}
+              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mb-2">État du stock</p>
+                <div className="flex items-baseline gap-2 mb-2 sm:mb-3">
+                  <span className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400">
+                    {selectedAlertArticle.quantite_stock}
+                  </span>
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                    / {selectedAlertArticle.seuil_minimum} (min)
+                  </span>
+                </div>
+                {selectedAlertArticle.quantite_stock === 0 && (
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs sm:text-sm font-semibold">
+                    <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Rupture de stock
+                  </div>
+                )}
+                {selectedAlertArticle.quantite_stock < selectedAlertArticle.seuil_minimum && selectedAlertArticle.quantite_stock > 0 && (
+                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 text-xs sm:text-sm font-semibold">
+                    <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
+                    Stock faible
+                  </div>
+                )}
+              </div>
+
+              {/* Prix */}
+              {selectedAlertArticle.prix_unitaire && (
+                <div className="p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mb-1">Prix unitaire</p>
+                  <p className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                    {Number(selectedAlertArticle.prix_unitaire).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                  </p>
+                </div>
+              )}
+
+              {/* Fournisseur */}
+              {selectedAlertArticle.fournisseur && (
+                <div className="p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mb-1">Fournisseur</p>
+                  <p className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">{selectedAlertArticle.fournisseur}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+              <button
+                onClick={() => setSelectedAlertArticle(null)}
+                className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm sm:text-base"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function MobileBottomNav({
         {
           id: 'articles' as ViewMode,
           icon: Package,
-          label: 'Stock'
+          label: 'Equipements'
         },
         {
           id: 'scanner' as ViewMode,
@@ -66,7 +66,7 @@ export function MobileBottomNav({
         {
           id: 'articles' as ViewMode,
           icon: Package,
-          label: 'Stock'
+          label: 'Equipements'
         },
         {
           id: 'scanner' as ViewMode,
@@ -88,12 +88,12 @@ export function MobileBottomNav({
         {
           id: 'dashboard' as ViewMode,
           icon: Home,
-          label: 'Admin'
+          label: 'Pilotage'
         },
         {
           id: 'articles' as ViewMode,
           icon: Package,
-          label: 'Stock'
+          label: 'Equipements'
         },
         {
           id: 'scanner' as ViewMode,

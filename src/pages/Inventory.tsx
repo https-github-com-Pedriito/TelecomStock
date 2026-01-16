@@ -41,6 +41,10 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
   // État pour la modale de détails
   const [selectedInventaire, setSelectedInventaire] = useState<any>(null);
   
+  // États pour la pagination des inventaires
+  const [currentPageInventaires, setCurrentPageInventaires] = useState(1);
+  const [itemsPerPageInventaires, setItemsPerPageInventaires] = useState(10);
+  
   // États pour le formulaire de comptage
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedArticle, setSelectedArticle] = useState<any>(null);
@@ -83,6 +87,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     setNewInventaireDescription(`Inventaire mensuel de ${month} ${year}`);
   }, []);
 
+  const handleItemsPerPageChangeInventaires = (newItemsPerPage: number) => {
+    setItemsPerPageInventaires(newItemsPerPage);
+    setCurrentPageInventaires(1); // Réinitialiser à la première page
+  };
+
   const handleCreateInventaire = async () => {
     if (!newInventaireName.trim()) return;
     
@@ -118,7 +127,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     setShowScanner(false);
     const found = getArticleByCodeBarres(barcode);
     if (!found) {
-      alert("Article non trouvé dans la base — impossible d'enregistrer");
+      alert("Equipement non trouvé dans la base — impossible d'enregistrer");
       return;
     }
     setSelectedArticle(found);
@@ -302,14 +311,14 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         addNotification && addNotification({
           type: 'success',
           title: 'Validation réussie',
-          message: `Tous les ${foundCount} articles ont été trouvés dans la base de données !`,
+          message: `Tous les ${foundCount} équipements ont été trouvés dans la base de données !`,
           duration: 5000
         });
       } else {
         addNotification && addNotification({
           type: 'warning',
-          title: 'Articles non trouvés',
-          message: `${notFound.length} article(s) sur ${lines.length - 1} n'ont pas été trouvés`,
+          title: 'Équipements non trouvés',
+          message: `${notFound.length} équipement(s) sur ${lines.length - 1} n'ont pas été trouvés`,
           duration: 5000
         });
       }
@@ -338,11 +347,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     
     // Vérifier que tous les articles ont été trouvés
     if (csvValidation.notFoundArticles.length > 0) {
-      console.log('❌ [VALIDATION] Articles non trouvés:', csvValidation.notFoundArticles);
+      console.log('❌ [VALIDATION] Equipements non trouvés:', csvValidation.notFoundArticles);
       addNotification && addNotification({
         type: 'error',
         title: 'Validation requise',
-        message: 'Tous les articles doivent être trouvés dans la base de données avant de créer l\'inventaire',
+        message: 'Tous les équipements doivent être trouvés dans la base de données avant de créer l\'inventaire',
         duration: 5000
       });
       return;
@@ -359,7 +368,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       const text = await csvFile.text();
       const lines = text.split('\n').filter(line => line.trim());
       
-      console.log(`📊 [FICHIER] ${lines.length} lignes trouvées (header + ${lines.length - 1} articles)`);
+      console.log(`📊 [FICHIER] ${lines.length} lignes trouvées (header + ${lines.length - 1} équipements)`);
       setExpressProgress(prev => ({ ...prev, currentStep: '✓ Étape 1 terminée\n📋 Étape 2/5 - Validation du format...', total: lines.length - 1 }));
       await new Promise(resolve => setTimeout(resolve, 300));
       
@@ -409,14 +418,14 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
           row[header] = values[index];
         });
         
-        console.log(`📍 [LIGNE ${i}] Traitement de l\'article:`, row.nom, '(Référence:', row.reference, ')');
+        console.log(`📍 [LIGNE ${i}] Traitement de l\'équipement:`, row.nom, '(Référence:', row.reference, ')');
         
         // Mise à jour de la progression
         setExpressProgress(prev => ({
           ...prev,
-          currentArticle: row.nom || 'Article inconnu',
+          currentArticle: row.nom || 'Equipement inconnu',
           processed: i,
-          currentStep: `📦 Étape 4/5 - Import en cours...\n${i}/${lines.length - 1} articles (${Math.round((i / (lines.length - 1)) * 100)}%)`
+          currentStep: `📦 Étape 4/5 - Import en cours...\n${i}/${lines.length - 1} équipements (${Math.round((i / (lines.length - 1)) * 100)}%)`
         }));
         
         // Trouver l'article par nom ou référence
@@ -447,7 +456,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
             
             const result = await api.addInventaireEntry(createdInventaireId!, requestBody);
             
-            console.log(`✅ [LIGNE ${i}] Article ajouté avec succès:`, result);
+            console.log(`✅ [LIGNE ${i}] Équipement ajouté avec succès:`, result);
             
             successCount++;
           } catch (err) {
@@ -459,7 +468,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
           }
         } else {
           errorCount++;
-          const errorMsg = `Ligne ${i + 1}: Article non trouvé - ${row.nom}`;
+          const errorMsg = `Ligne ${i + 1}: Équipement non trouvé - ${row.nom}`;
           errors.push(errorMsg);
           console.warn(`❌ [LIGNE ${i}]`, errorMsg);
           setExpressProgress(prev => ({ ...prev, errors: [...prev.errors, errorMsg] }));
@@ -472,8 +481,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       console.log(`📊 [RÉSUMÉ IMPORT] Succès: ${successCount}, Erreurs: ${errorCount}`);
       
       if (successCount === 0) {
-        console.log('❌ [IMPORT] Aucun article n\'a pu être importé');
-        throw new Error('Aucun article n\'a pu être importé');
+        console.log('❌ [IMPORT] Aucun équipement n\'a pu être importé');
+        throw new Error('Aucun équipement n\'a pu être importé');
       }
       
       console.log('🏁 [FINALISATION] Passage en mode finalisation');
@@ -780,17 +789,17 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
               <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
                 <Package className="text-white" size={32} />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 text-center">
                 Comment réaliser un inventaire ?
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-gray-400 text-center">
                 Suivez ce guide étape par étape pour effectuer un inventaire complet
               </p>
             </div>
             
             <div className="space-y-6">
               {/* Étape 1 */}
-              <div className="flex gap-4 bg-white dark:bg-gray-800 rounded-xl p-5 border border-blue-200 dark:border-blue-700 shadow-sm">
+              <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-800 rounded-xl p-5 border border-blue-200 dark:border-blue-700 shadow-sm text-center sm:text-left items-center sm:items-start">
                 <div className="flex-shrink-0">
                   <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
                     1
@@ -807,7 +816,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
               </div>
               
               {/* Étape 2 */}
-              <div className="flex gap-4 bg-white dark:bg-gray-800 rounded-xl p-5 border border-green-200 dark:border-green-700 shadow-sm">
+              <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-800 rounded-xl p-5 border border-green-200 dark:border-green-700 shadow-sm text-center sm:text-left items-center sm:items-start">
                 <div className="flex-shrink-0">
                   <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
                     2
@@ -815,10 +824,10 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                 </div>
                 <div>
                   <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2">
-                    Compter les articles
+                    Compter les équipements
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                    Recherchez chaque article par nom, code-barres ou scannez-le. Saisissez la quantité réellement comptée en stock.
+                    Recherchez chaque équipement par nom, code-barres ou scannez-le. Saisissez la quantité réellement comptée en stock.
                   </p>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
                     L'application comparera automatiquement avec le stock théorique et affichera les écarts (surplus en vert, manques en rouge).
@@ -827,7 +836,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
               </div>
               
               {/* Étape 3 */}
-              <div className="flex gap-4 bg-white dark:bg-gray-800 rounded-xl p-5 border border-purple-200 dark:border-purple-700 shadow-sm">
+              <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-gray-800 rounded-xl p-5 border border-purple-200 dark:border-purple-700 shadow-sm text-center sm:text-left items-center sm:items-start">
                 <div className="flex-shrink-0">
                   <div className="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
                     3
@@ -838,7 +847,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                     Finaliser l'inventaire
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                    Une fois tous les articles comptés, cliquez sur "Finaliser". Les stocks seront automatiquement mis à jour selon vos comptages. Par la suite un fichier Excel récapitulatif sera généré et automatiquement téléchargé.
+                    Une fois tous les équipements comptés, cliquez sur "Finaliser". Les stocks seront automatiquement mis à jour selon vos comptages. Par la suite un fichier Excel récapitulatif sera généré et automatiquement téléchargé.
                   </p>
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-3 mt-3">
                     <p className="text-sm text-red-700 dark:text-red-400 font-semibold flex items-center gap-2">
@@ -1155,45 +1164,146 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         {inventaires.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400">Aucun inventaire trouvé</p>
         ) : (
-          <ol className="relative border-l-2 border-blue-200 dark:border-blue-800 ml-2 space-y-0.5">
-            {inventaires.map((inv) => (
-              <li key={inv.id} className="mb-6 ml-6 group">
-                <span className={`absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white dark:ring-gray-900 border-2 ${
-                  inv.statut === 'EN_COURS' ? 'bg-green-500 border-green-700' :
-                  inv.statut === 'FINALISE' ? 'bg-blue-500 border-blue-700' :
-                  'bg-gray-400 border-gray-600'
-                }`} />
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10 transition-colors">
-                  <div>
-                    <div className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                      {inv.nom}
-                      <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold tracking-wide ${
-                        inv.statut === 'EN_COURS' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
-                        inv.statut === 'FINALISE' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
-                        'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                      }`}>
-                        {inv.statut}
-                      </span>
+          <>
+            <ol className="relative border-l-2 border-blue-200 dark:border-blue-800 ml-2 space-y-0.5 mb-8">
+              {inventaires
+                .slice((currentPageInventaires - 1) * itemsPerPageInventaires, currentPageInventaires * itemsPerPageInventaires)
+                .map((inv) => (
+                <li key={inv.id} className="mb-6 ml-6 group">
+                  <span className={`absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full ring-4 ring-white dark:ring-gray-900 border-2 ${
+                    inv.statut === 'EN_COURS' ? 'bg-green-500 border-green-700' :
+                    inv.statut === 'FINALISE' ? 'bg-blue-500 border-blue-700' :
+                    'bg-gray-400 border-gray-600'
+                  }`} />
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10 transition-colors">
+                    <div>
+                      <div className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                        {inv.nom}
+                        <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold tracking-wide ${
+                          inv.statut === 'EN_COURS' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
+                          inv.statut === 'FINALISE' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                          'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+                        }`}>
+                          {inv.statut}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {inv.description} • <span className="italic">Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}</span>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      {inv.description} • <span className="italic">Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}</span>
+                    <div className="flex gap-2 items-center mt-2 sm:mt-0">
+                      <button
+                        onClick={() => setSelectedInventaire(inv)}
+                        className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 font-semibold shadow-md transition-colors"
+                      >
+                        <Eye size={16} /> Voir détails
+                      </button>
+                      {inv.statut === 'FINALISE' && (
+                        <Archive className="text-gray-400 dark:text-gray-500" size={20} />
+                      )}
                     </div>
                   </div>
-                  <div className="flex gap-2 items-center mt-2 sm:mt-0">
-                    <button
-                      onClick={() => setSelectedInventaire(inv)}
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 font-semibold shadow-md transition-colors"
-                    >
-                      <Eye size={16} /> Voir détails
-                    </button>
-                    {inv.statut === 'FINALISE' && (
-                      <Archive className="text-gray-400 dark:text-gray-500" size={20} />
-                    )}
+                </li>
+              ))}
+            </ol>
+
+            {/* Pagination */}
+            {inventaires.length > 10 && (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  {/* Informations de pagination */}
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      Affichage de{' '}
+                      <span className="font-medium">
+                        {inventaires.length === 0 ? 0 : (currentPageInventaires - 1) * itemsPerPageInventaires + 1}
+                      </span>
+                      {' '}à{' '}
+                      <span className="font-medium">
+                        {Math.min(currentPageInventaires * itemsPerPageInventaires, inventaires.length)}
+                      </span>
+                      {' '}sur{' '}
+                      <span className="font-medium">{inventaires.length}</span>
+                      {' '}inventaires
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Afficher par page:
+                      </label>
+                      <select
+                        className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                        value={itemsPerPageInventaires}
+                        onChange={(e) => handleItemsPerPageChangeInventaires(Number(e.target.value))}
+                      >
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Navigation des pages */}
+                  <div className="flex flex-col items-stretch md:items-center gap-3">
+                    {/* Indicateur de page */}
+                    <div className="text-sm text-gray-700 dark:text-gray-300 text-center">
+                      Page <span className="font-semibold text-blue-600 dark:text-blue-400">{currentPageInventaires}</span> sur{' '}
+                      <span className="font-semibold">{Math.ceil(inventaires.length / itemsPerPageInventaires)}</span>
+                    </div>
+
+                    {/* Boutons de pagination */}
+                    <nav className="flex items-center gap-1" aria-label="Pagination">
+                      <button
+                        onClick={() => setCurrentPageInventaires(1)}
+                        disabled={currentPageInventaires === 1}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Première page"
+                      >
+                        ⏮
+                      </button>
+                      <button
+                        onClick={() => setCurrentPageInventaires(Math.max(1, currentPageInventaires - 1))}
+                        disabled={currentPageInventaires === 1}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Page précédente"
+                      >
+                        ← Précédent
+                      </button>
+
+                      {/* Sélecteur de page */}
+                      <select
+                        value={currentPageInventaires}
+                        onChange={(e) => setCurrentPageInventaires(Number(e.target.value))}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
+                      >
+                        {Array.from({ length: Math.ceil(inventaires.length / itemsPerPageInventaires) }, (_, i) => (
+                          <option key={i + 1} value={i + 1}>
+                            {i + 1}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        onClick={() => setCurrentPageInventaires(Math.min(Math.ceil(inventaires.length / itemsPerPageInventaires), currentPageInventaires + 1))}
+                        disabled={currentPageInventaires === Math.ceil(inventaires.length / itemsPerPageInventaires)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Page suivante"
+                      >
+                        Suivant →
+                      </button>
+                      <button
+                        onClick={() => setCurrentPageInventaires(Math.ceil(inventaires.length / itemsPerPageInventaires))}
+                        disabled={currentPageInventaires === Math.ceil(inventaires.length / itemsPerPageInventaires)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title="Dernière page"
+                      >
+                        ⏭
+                      </button>
+                    </nav>
                   </div>
                 </div>
-              </li>
-            ))}
-          </ol>
+              </div>
+            )}
+          </>
         )}
       </div>
 

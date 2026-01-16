@@ -227,7 +227,7 @@ function App() {
       case 'manage_users':
         return role === 'admin';
       case 'edit_articles':
-        return role === 'admin' || role === 'manager';
+        return role === 'admin';
       case 'delete_articles':
         return role === 'admin';
       case 'view_articles':
@@ -235,7 +235,7 @@ function App() {
       case 'view_prices':
         return role === 'admin' || role === 'manager';
       case 'manage_articles':
-        return role === 'admin' || role === 'manager';
+        return role === 'admin';
       case 'view_mouvements':
       case 'view_historique':
       case 'view_inventory':

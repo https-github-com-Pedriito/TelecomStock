@@ -94,7 +94,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Scanner</h1>
-        <p className="text-gray-600 dark:text-gray-400">Scanner des codes-barres pour identifier les articles</p>
+        <p className="text-gray-600 dark:text-gray-400">Scanner des codes-barres pour identifier les équipements</p>
       </div>
 
       {/* Action Cards */}
@@ -109,7 +109,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Entrée de Stock</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un article pour enregistrer une entrée</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un équipement pour enregistrer une entrée</p>
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                 <ScanLine size={18} />
                 <span className="text-sm font-medium">Scanner maintenant</span>
@@ -128,7 +128,7 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sortie de Stock</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un article pour enregistrer une sortie</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un équipement pour enregistrer une sortie</p>
               <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
                 <ScanLine size={18} />
                 <span className="text-sm font-medium">Scanner maintenant</span>
