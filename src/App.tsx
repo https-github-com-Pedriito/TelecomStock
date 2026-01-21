@@ -21,7 +21,7 @@ import { AdminPortal } from './pages/AdminPortal';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UserProfileModal } from './components/UserProfileModal';
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
@@ -623,6 +623,7 @@ function App() {
         {renderCurrentView({ addNotification })}
       </Layout>
       <NotificationContainer />
+      <Analytics />
     </FeedbackProvider>
   );
 }
