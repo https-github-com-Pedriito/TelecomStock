@@ -227,7 +227,7 @@ function App() {
       case 'manage_users':
         return role === 'admin';
       case 'edit_articles':
-        return role === 'admin';
+        return role === 'admin' || role === 'manager';
       case 'delete_articles':
         return role === 'admin';
       case 'view_articles':
@@ -235,7 +235,7 @@ function App() {
       case 'view_prices':
         return role === 'admin' || role === 'manager';
       case 'manage_articles':
-        return role === 'admin';
+        return role === 'admin' || role === 'manager';
       case 'view_mouvements':
       case 'view_historique':
       case 'view_inventory':
@@ -468,7 +468,7 @@ function App() {
             />
           );
       case 'utilisateurs':
-        return hasPermission('manage_users') && (
+        return (
           <Utilisateurs
             users={usersForComponents}
             currentUser={currentUserForComponents!}
@@ -599,14 +599,8 @@ function App() {
             alertsCount={getArticlesWithAlerts().length}
           />
         </div>
-                {/* Modale profil utilisateur */}
-        <UserProfileModal
-          isOpen={showProfileModal}
-          onClose={() => setShowProfileModal(false)}
-          currentUser={currentUserForComponents}
-          onChangePassword={handleChangePassword}
-        />
-                <NotificationContainer />
+        
+        <NotificationContainer />
       </FeedbackProvider>
     );
   }
