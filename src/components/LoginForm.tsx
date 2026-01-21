@@ -90,7 +90,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
       {/* Section droite - Formulaire */}
       <div className="flex-1  lg:w-2/5 flex flex-col items-center justify-center p-6 sm:p-4 pt-20 pb-32 lg:pt-0 lg:p-6 bg-white min-h-screen lg:min-h-0 overflow-y-hidden">
        
-          <div className="bg-white shadow-lg rounded-2xl shadow-gray-400/30 p-6 ">
+          <div className="bg-white shadow-lg rounded-2xl shadow-gray-400/30 p-6 max-w-xs sm:max-w-sm mx-auto">
             <div className="text-center mb-8 lg:hidden">
               <div className="w-48 h-48 flex items-center justify-center mx-auto mb-6 rounded-full shadow-lg shadow-blue-200 p-6 bg-white">
                 <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-36 h-36 object-contain rounded-full" />
