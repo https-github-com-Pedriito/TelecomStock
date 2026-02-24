@@ -95,4 +95,13 @@
   :focus-visible {
     @apply outline-none ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-900;
   }
+  /* Glassmorphism */
+  .glass {
+    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border border-white/20 dark:border-gray-800/30;
+  }
+
+  /* Premium Buttons */
+  .btn-premium {
+    @apply relative overflow-hidden transition-all duration-300 active:scale-95;
+  }
 }

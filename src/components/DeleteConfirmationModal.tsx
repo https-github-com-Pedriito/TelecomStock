@@ -1,5 +1,4 @@
-import React from 'react';
-import { AlertTriangle, X, Loader2 } from 'lucide-react';
+import { AlertTriangle, X, Loader2, Trash2, ChevronRight } from 'lucide-react';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -19,117 +18,112 @@ export function DeleteConfirmationModal({
   articleName,
   hasMovements,
   movementCount,
-  warningMessage,
   isDeleting = false
 }: DeleteConfirmationModalProps) {
   if (!isOpen) return null;
 
+  const themeColor = hasMovements ? 'red' : 'orange';
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        {/* Overlay */}
-        <div 
-          className="fixed inset-0 bg-gray-500 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-80 transition-opacity"
-          onClick={isDeleting ? undefined : onClose}
-        />
-        
-        {/* Modal */}
-        <div className="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-          {!isDeleting && (
-            <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-              <button
-                type="button"
-                className="rounded-md bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                onClick={onClose}
-              >
-                <span className="sr-only">Fermer</span>
-                <X className="h-6 w-6" />
-              </button>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
+        onClick={isDeleting ? undefined : onClose}
+      />
+
+      {/* Modal Container */}
+      <div className="relative w-full max-w-md glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col">
+
+        {/* Header */}
+        <div className={`relative px-8 pt-8 pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-${themeColor}-500/5 dark:bg-${themeColor}-950/20`}>
+          <div className="flex items-center gap-4">
+            <div className={`p-3 bg-${themeColor}-600 rounded-2xl shadow-lg shadow-${themeColor}-600/20 text-white`}>
+              <Trash2 size={24} strokeWidth={2.5} />
             </div>
-          )}
-          
-          <div className="sm:flex sm:items-start">
-            <div className={`mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${
-              hasMovements ? 'bg-red-100 dark:bg-red-900/30' : 'bg-orange-100 dark:bg-orange-900/30'
-            } sm:mx-0 sm:h-10 sm:w-10`}>
-              <AlertTriangle className={`h-6 w-6 ${
-                hasMovements ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'
-              }`} />
-            </div>
-            
-            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 className="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                {hasMovements ? 'Suppression avec mouvements associés' : 'Confirmer la suppression'}
-              </h3>
-              
-              <div className="mt-2">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Êtes-vous sûr de vouloir supprimer l'article{' '}
-                  <span className="font-medium text-gray-900 dark:text-white">"{articleName}"</span> ?
-                </p>
-                
-                {hasMovements && (
-                  <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-md">
-                    <div className="flex">
-                      <AlertTriangle className="h-5 w-5 text-red-400 dark:text-red-500 mt-0.5" />
-                      <div className="ml-3">
-                        <p className="text-sm text-red-700 dark:text-red-400">
-                          <strong>Attention :</strong> Cet article a{' '}
-                          <span className="font-bold">{movementCount} mouvement(s)</span> associé(s).
-                        </p>
-                        <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                          Cette action supprimera définitivement l'article ET tous ses mouvements 
-                          de l'historique. Cette action est irréversible.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {!hasMovements && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                    Cette action est irréversible.
-                  </p>
-                )}
+            <div>
+              <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                Confirmation de Retrait
+              </h2>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <div className={`w-1.5 h-1.5 bg-${themeColor}-500 rounded-full animate-pulse`} />
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Action Irréversible</span>
               </div>
             </div>
           </div>
-          
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+          {!isDeleting && (
             <button
-              type="button"
-              disabled={isDeleting}
-              className={`inline-flex w-full justify-center items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm sm:ml-3 sm:w-auto ${
-                isDeleting
-                  ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-                  : hasMovements 
-                    ? 'bg-red-600 hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600'
-                    : 'bg-orange-600 hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600'
-              }`}
-              onClick={onConfirm}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Suppression en cours...</span>
-                </>
-              ) : (
-                <span>{hasMovements ? 'Supprimer tout' : 'Supprimer'}</span>
-              )}
-            </button>
-            <button
-              type="button"
-              disabled={isDeleting}
-              className={`mt-3 inline-flex w-full justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset sm:mt-0 sm:w-auto ${
-                isDeleting
-                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 ring-gray-200 dark:ring-gray-600 cursor-not-allowed'
-                  : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
-              }`}
               onClick={onClose}
+              className="p-2 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-xl transition-all text-gray-400 hover:text-gray-900 dark:hover:text-white active:scale-90"
             >
-              Annuler
+              <X size={24} strokeWidth={2.5} />
             </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-8 space-y-6">
+          <div className="space-y-4">
+            <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed text-center sm:text-left">
+              Êtes-vous certain de vouloir supprimer l'équipement <span className="font-black text-gray-900 dark:text-white">"{articleName}"</span> du catalogue ?
+            </p>
+
+            {hasMovements && (
+              <div className="glass p-5 rounded-3xl border border-red-200/50 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/20 space-y-3 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/5 blur-xl group-hover:bg-red-500/10 transition-colors" />
+                <div className="flex gap-3 items-start relative">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-xl text-red-600 dark:text-red-400">
+                    <AlertTriangle size={18} strokeWidth={3} />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest">Impact Critique</h4>
+                    <p className="text-xs text-red-600/80 dark:text-red-400/80 leading-relaxed">
+                      Cet article possède <span className="font-black underline">{movementCount} mouvement(s)</span>.
+                      Sa suppression effacera <span className="font-black">tout l'historique associé</span> définitivement.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!hasMovements && (
+              <div className="flex items-center gap-3 justify-center sm:justify-start px-4 py-3 glass rounded-2xl border border-white/20 dark:border-gray-800/50 bg-orange-50/20 dark:bg-orange-950/20">
+                <AlertTriangle size={16} className="text-orange-500" strokeWidth={3} />
+                <span className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">
+                  Action définitive
+                </span>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="px-8 py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-end gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={onClose}
+            className="w-full sm:w-auto px-6 py-3.5 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className={`w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-3.5 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white font-black rounded-2xl shadow-xl shadow-${themeColor}-600/20 active:scale-95 transition-all group disabled:opacity-50`}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 size={18} strokeWidth={3} className="animate-spin" />
+                <span>Traitement...</span>
+              </>
+            ) : (
+              <>
+                <span>{hasMovements ? 'Tout Supprimer' : 'Confirmer'}</span>
+                <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

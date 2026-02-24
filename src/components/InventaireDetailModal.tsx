@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { X, Download, AlertCircle, CheckCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { FileText, X, CheckCircle, Package, Loader2, Download, TrendingDown, Calendar, History, Activity, AlertCircle, ChevronRight, TrendingUp } from 'lucide-react';
+import { Portal } from './Portal';
 import { Inventaire, InventaireEntry } from '../types';
 import { api } from '../lib/api';
 
@@ -33,13 +34,11 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
   const handleExportExcel = async () => {
     try {
       setExporting(true);
-      
-      // Créer le workbook Excel avec les données
+
       const ExcelJS = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Inventaire');
 
-      // Informations de l'inventaire
       worksheet.mergeCells('A1:F1');
       worksheet.getCell('A1').value = inventaire.nom;
       worksheet.getCell('A1').font = { bold: true, size: 16 };
@@ -51,13 +50,11 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
 
       worksheet.mergeCells('A3:F3');
       const dateStr = new Date(inventaire.created_at).toLocaleDateString('fr-FR');
-      worksheet.getCell('A3').value = `Date: ${dateStr} - Statut: ${inventaire.statut}`;
+      worksheet.getCell('A3').value = `Date: ${dateStr} - Statut: ${inventaire.statut} `;
       worksheet.getCell('A3').alignment = { horizontal: 'center' };
 
-      // Ligne vide
       worksheet.addRow([]);
 
-      // En-têtes des colonnes
       const headerRow = worksheet.addRow([
         'Article',
         'Code Barre',
@@ -66,7 +63,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
         'Écart',
         'Comptabilisé par'
       ]);
-      
+
       headerRow.font = { bold: true };
       headerRow.fill = {
         type: 'pattern',
@@ -75,7 +72,6 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
       };
       headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-      // Données
       entries.forEach(entry => {
         const ecart = entry.quantite_comptee - entry.quantite_theorique;
         const row = worksheet.addRow([
@@ -87,7 +83,6 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
           entry.utilisateur?.prenom + ' ' + entry.utilisateur?.nom || 'Inconnu'
         ]);
 
-        // Colorer les écarts
         if (ecart < 0) {
           row.getCell(5).fill = {
             type: 'pattern',
@@ -103,7 +98,6 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
         }
       });
 
-      // Ajuster la largeur des colonnes
       worksheet.columns = [
         { width: 30 },
         { width: 15 },
@@ -113,7 +107,6 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
         { width: 25 }
       ];
 
-      // Ajouter les statistiques en bas
       const stats = calculateStats();
       worksheet.addRow([]);
       worksheet.addRow(['Statistiques']);
@@ -124,12 +117,11 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
       worksheet.addRow(['Total comptabilisé', stats.totalComptee]);
       worksheet.addRow(['Total théorique', stats.totalTheorique]);
 
-      // Générer le fichier
       const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
-      
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -160,7 +152,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
       totalComptee += entry.quantite_comptee;
       totalTheorique += entry.quantite_theorique;
       const ecart = entry.quantite_comptee - entry.quantite_theorique;
-      
+
       if (ecart === 0) articlesOk++;
       else if (ecart < 0) articlesManquants++;
       else articlesExcedents++;
@@ -183,233 +175,253 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
   const stats = calculateStats();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 pb-20">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-7xl h-[85vh] flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700">
-        {/* Header - Fixed, no scroll */}
-        <div className="bg-blue-600 dark:bg-blue-700 text-white p-4 flex-shrink-0 flex justify-between items-start">
-          <div className="flex-1 overflow-hidden">
-            <h2 className="text-xl font-bold mb-1 truncate" title={inventaire.nom}>
-              {inventaire.nom}
-            </h2>
-            <p className="text-blue-100 dark:text-blue-200 text-sm truncate" title={inventaire.description}>
-              {inventaire.description}
-            </p>
-            <div className="flex flex-wrap gap-2 mt-2 text-xs">
-              <span className="bg-blue-700 dark:bg-blue-800 px-2 py-1 rounded whitespace-nowrap">
-                {inventaire.statut}
-              </span>
-              <span className="whitespace-nowrap">
-                Créé le {new Date(inventaire.created_at).toLocaleDateString('fr-FR')}
-              </span>
-              {inventaire.finalized_at && (
-                <span className="whitespace-nowrap">
-                  Finalisé le {new Date(inventaire.finalized_at).toLocaleDateString('fr-FR')}
-                </span>
+    <Portal>
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
+          onClick={onClose}
+        />
+
+        {/* Modal Container */}
+        <div className="relative w-full max-w-7xl glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[82dvh] sm:max-h-[90vh]">
+
+          {/* Header */}
+          <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-blue-500/5 dark:bg-blue-950/20">
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-blue-600 rounded-3xl shadow-lg shadow-blue-600/20 text-white">
+                <FileText size={28} strokeWidth={2.5} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{inventaire.statut}</span>
+                  <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Rapport d'Audit</span>
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight truncate max-w-[300px] sm:max-w-md">
+                  {inventaire.nom}
+                </h2>
+                <div className="flex items-center gap-3 mt-1 text-gray-500">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+                    <Calendar size={12} className="text-blue-500" />
+                    {new Date(inventaire.created_at).toLocaleDateString('fr-FR')}
+                  </div>
+                  {inventaire.finalized_at && (
+                    <>
+                      <span className="w-1 h-1 bg-gray-300 rounded-full" />
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+                        <History size={12} className="text-emerald-500" />
+                        Finalisé le {new Date(inventaire.finalized_at).toLocaleDateString('fr-FR')}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExportExcel}
+                disabled={exporting || entries.length === 0}
+                className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-emerald-600/20 active:scale-95 transition-all group"
+              >
+                {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} strokeWidth={3} />}
+                <span>{exporting ? 'Export...' : 'Exporter Excel'}</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-3 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl transition-all text-gray-400 hover:text-gray-900 dark:hover:text-white active:scale-90 border border-transparent hover:border-white/40"
+              >
+                <X size={24} strokeWidth={2.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 p-4 sm:p-6 bg-gray-50/30 dark:bg-gray-950/20 border-b border-white/20 dark:border-gray-800/50">
+            <StatCard label="Articles" value={entries.length} icon={<Package size={14} />} color="blue" />
+            <StatCard label="Conformes" value={stats.articlesOk} icon={<CheckCircle size={14} />} color="emerald" />
+            <StatCard label="Manquants" value={stats.articlesManquants} icon={<TrendingDown size={14} />} color="red" />
+            <StatCard label="Excédents" value={stats.articlesExcedents} icon={<TrendingUp size={14} />} color="blue" />
+            <StatCard label="Total Compté" value={stats.totalComptee} icon={<Activity size={14} />} color="indigo" />
+            <StatCard
+              label="Écart Global"
+              value={`${stats.ecartTotal > 0 ? '+' : ''}${stats.ecartTotal}`}
+              subValue={`${stats.ecartPct}%`}
+              icon={<TrendingUp size={14} />}
+              color={stats.ecartTotal === 0 ? 'emerald' : stats.ecartTotal > 0 ? 'blue' : 'red'}
+            />
+          </div>
+
+          {/* Content Table */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0 bg-white/20 dark:bg-transparent">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
+              {loading ? (
+                <div className="h-full flex flex-col items-center justify-center space-y-4 animate-fade-in">
+                  <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Chargement des données...</p>
+                </div>
+              ) : error ? (
+                <div className="h-full flex items-center justify-center p-8 animate-fade-in">
+                  <div className="glass p-8 rounded-[2rem] border border-red-200 dark:border-red-900/30 max-w-md text-center space-y-4">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-3xl flex items-center justify-center mx-auto text-red-600">
+                      <AlertCircle size={32} strokeWidth={2.5} />
+                    </div>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white">Une erreur est survenue</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{error}</p>
+                    <button onClick={loadEntries} className="px-6 py-3 bg-red-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors">Réessayer</button>
+                  </div>
+                </div>
+              ) : entries.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center space-y-4 text-gray-400 animate-fade-in">
+                  <FileText size={48} strokeWidth={1} className="opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em]">Aucune entrée répertoriée</p>
+                </div>
+              ) : (
+                <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 overflow-hidden shadow-xl">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-white/20 dark:border-gray-800/50">
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Image</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Référence / Nom</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Quantités</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Écart</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Statut</th>
+                        <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Audité par</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10 dark:divide-gray-800/30">
+                      {entries.map((entry) => {
+                        const ecart = entry.quantite_comptee - entry.quantite_theorique;
+                        const ecartPct = entry.quantite_theorique > 0
+                          ? ((ecart / entry.quantite_theorique) * 100).toFixed(1)
+                          : '0';
+
+                        return (
+                          <tr key={entry.id} className="group hover:bg-white/40 dark:hover:bg-gray-800/20 transition-all">
+                            <td className="px-6 py-4">
+                              <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center overflow-hidden border border-white/40 dark:border-gray-700/50 shadow-inner group-hover:scale-110 transition-transform">
+                                {entry.article?.image_url ? (
+                                  <img src={entry.article.image_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <Package className="text-gray-300 dark:text-gray-700" size={20} />
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{entry.article?.nom || 'Inconnu'}</span>
+                                <span className="text-[10px] font-bold text-gray-400 font-mono tracking-tight">{entry.article?.code_barres || 'Sans code-barre'}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center justify-center gap-4">
+                                <div className="text-center">
+                                  <div className="text-[10px] text-gray-400 font-black uppercase tracking-tighter mb-0.5">Compté</div>
+                                  <div className="text-lg font-black text-blue-600 dark:text-blue-400">{entry.quantite_comptee}</div>
+                                </div>
+                                <div className="w-px h-8 bg-gray-200 dark:bg-gray-800" />
+                                <div className="text-center">
+                                  <div className="text-[10px] text-gray-400 font-black uppercase tracking-tighter mb-0.5">Théor.</div>
+                                  <div className="text-lg font-bold text-gray-500">{entry.quantite_theorique}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div className="flex flex-col items-center">
+                                <span className={`text-lg font-black ${ecart === 0 ? 'text-emerald-500' :
+                                  ecart > 0 ? 'text-blue-500' : 'text-red-500'
+                                  }`}>
+                                  {ecart > 0 ? '+' : ''}{ecart}
+                                </span>
+                                <span className="text-[10px] font-black text-gray-400">
+                                  {ecartPct}%
+                                </span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex justify-center">
+                                {ecart === 0 ? (
+                                  <div className="p-2 bg-emerald-100 dark:bg-emerald-950/50 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-500/10">
+                                    <CheckCircle size={20} strokeWidth={2.5} />
+                                  </div>
+                                ) : ecart > 0 ? (
+                                  <div className="p-2 bg-blue-100 dark:bg-blue-950/50 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm border border-blue-500/10">
+                                    <TrendingUp size={20} strokeWidth={2.5} />
+                                  </div>
+                                ) : (
+                                  <div className="p-2 bg-red-100 dark:bg-red-950/50 rounded-xl text-red-600 dark:text-red-400 shadow-sm border border-red-500/10">
+                                    <TrendingDown size={20} strokeWidth={2.5} />
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-black shadow-lg shadow-blue-600/20">
+                                  {entry.utilisateur?.prenom?.substring(0, 1)}{entry.utilisateur?.nom?.substring(0, 1)}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-black text-gray-900 dark:text-white">{entry.utilisateur?.prenom} {entry.utilisateur?.nom}</span>
+                                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{entry.commentaire ? 'Note ajoutée' : 'Pas de note'}</span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white hover:bg-blue-700 dark:hover:bg-blue-800 p-2 rounded flex-shrink-0 ml-2"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
 
-        {/* Stats - Fixed, no scroll */}
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow border border-gray-200 dark:border-gray-600">
-            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 truncate" title="Total Articles">Articles</div>
-            <div className="text-lg font-bold dark:text-white truncate">{entries.length}</div>
-          </div>
-          <div className="bg-green-50 dark:bg-green-900/30 p-2 rounded-lg shadow border border-green-200 dark:border-green-700">
-            <div className="text-xs text-green-700 dark:text-green-400 mb-1 truncate flex items-center gap-1">
-              <CheckCircle className="h-3 w-3" /> OK
-            </div>
-            <div className="text-lg font-bold text-green-600 dark:text-green-400 truncate">{stats.articlesOk}</div>
-          </div>
-          <div className="bg-red-50 dark:bg-red-900/30 p-2 rounded-lg shadow border border-red-200 dark:border-red-700">
-            <div className="text-xs text-red-700 dark:text-red-400 mb-1 truncate flex items-center gap-1">
-              <TrendingDown className="h-3 w-3" /> Manq.
-            </div>
-            <div className="text-lg font-bold text-red-600 dark:text-red-400 truncate">{stats.articlesManquants}</div>
-          </div>
-          <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg shadow border border-blue-200 dark:border-blue-700">
-            <div className="text-xs text-blue-700 dark:text-blue-400 mb-1 truncate flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" /> Excéd.
-            </div>
-            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{stats.articlesExcedents}</div>
-          </div>
-          <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg shadow border border-blue-200 dark:border-blue-700">
-            <div className="text-xs text-blue-700 dark:text-blue-400 mb-1 truncate" title="Quantité Comptée">Qté Compt.</div>
-            <div className="text-lg font-bold text-blue-600 dark:text-blue-400 truncate">{stats.totalComptee}</div>
-          </div>
-          <div className={`p-2 rounded-lg shadow border ${
-            stats.ecartTotal === 0 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 
-            stats.ecartTotal > 0 ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700' : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700'
-          }`}>
-            <div className="text-xs mb-1 truncate dark:text-gray-300" title="Écart Total">Écart</div>
-            <div className={`text-lg font-bold truncate ${
-              stats.ecartTotal === 0 ? 'text-green-600 dark:text-green-400' : 
-              stats.ecartTotal > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
-            }`} title={`${stats.ecartTotal > 0 ? '+' : ''}${stats.ecartTotal} (${stats.ecartPct}%)`}>
-              {stats.ecartTotal > 0 ? '+' : ''}{stats.ecartTotal}
-            </div>
-          </div>
-        </div>
-
-        {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 min-h-0">
-          {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Chargement des données...</p>
-            </div>
-          ) : error ? (
-            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
-              <div>
-                <h3 className="font-semibold text-red-800 dark:text-red-300">Erreur</h3>
-                <p className="text-red-600 dark:text-red-400">{error}</p>
+          {/* Footer */}
+          <div className="px-6 sm:px-8 py-4 sm:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-500/10 rounded-xl">
+                <FileText size={16} className="text-gray-400" />
               </div>
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                {entries.length} items audités dans ce rapport
+              </span>
             </div>
-          ) : entries.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              Aucune entrée dans cet inventaire
-            </div>
-          ) : (
-            <div className="w-full">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
-                  <tr>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Image
-                    </th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
-                      Réf.
-                    </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Compt.
-                    </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Théor.
-                    </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Écart
-                    </th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Statut
-                    </th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Par
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Commentaire
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {entries.map((entry) => {
-                    const ecart = entry.quantite_comptee - entry.quantite_theorique;
-                    const ecartPct = entry.quantite_theorique > 0 
-                      ? ((ecart / entry.quantite_theorique) * 100).toFixed(1)
-                      : '0';
-
-                    return (
-                      <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-2 py-2">
-                          <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden mx-auto">
-                            {entry.article?.image_url ? (
-                              <img 
-                                src={entry.article.image_url} 
-                                alt={entry.article.nom}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  e.currentTarget.nextElementSibling!.classList.remove('hidden');
-                                }}
-                              />
-                            ) : null}
-                            <span className={`text-xs font-semibold text-gray-400 ${entry.article?.image_url ? 'hidden' : ''}`}>
-                              {entry.article?.nom?.substring(0, 2).toUpperCase() || '??'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap hidden md:table-cell">
-                          <div className="truncate max-w-[120px]" title={entry.article?.code_barres || 'N/A'}>
-                            {entry.article?.code_barres || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">
-                          {entry.quantite_comptee}
-                        </td>
-                        <td className="px-2 py-2 text-center text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                          {entry.quantite_theorique}
-                        </td>
-                        <td className="px-2 py-2 text-center whitespace-nowrap">
-                          <div className="flex flex-col items-center">
-                            <span className={`text-sm font-bold ${
-                              ecart === 0 ? 'text-green-600 dark:text-green-400' :
-                              ecart > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'
-                            }`}>
-                              {ecart > 0 ? '+' : ''}{ecart}
-                            </span>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {ecartPct}%
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 text-center">
-                          <div title={ecart === 0 ? 'OK' : ecart > 0 ? 'Excédent' : 'Manquant'}>
-                            {ecart === 0 ? (
-                              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto" />
-                            ) : ecart > 0 ? (
-                              <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400 mx-auto" />
-                            ) : (
-                              <TrendingDown className="h-5 w-5 text-red-600 dark:text-red-400 mx-auto" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-2 py-2 text-xs text-gray-500 dark:text-gray-400">
-                          <div className="truncate max-w-[100px]" title={entry.utilisateur?.nom || 'N/A'}>
-                            {entry.utilisateur?.nom || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
-                          <div className="truncate max-w-[200px]" title={entry.commentaire || '-'}>
-                            {entry.commentaire || '-'}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* Footer - Fixed, no scroll */}
-        <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-900 flex-shrink-0 flex flex-wrap justify-between items-center gap-2">
-          <div className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-            {entries.length} entrée(s) au total
-          </div>
-          <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 whitespace-nowrap"
+              className="w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-2xl font-black text-gray-500 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all active:scale-95 flex items-center justify-center gap-3 group border border-gray-200 dark:border-gray-700"
             >
-              Fermer
-            </button>
-            <button
-              onClick={handleExportExcel}
-              disabled={exporting || entries.length === 0}
-              className="px-3 py-2 text-sm bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap"
-            >
-              <Download className="h-4 w-4 flex-shrink-0" />
-              {exporting ? 'Export...' : 'Excel'}
+              <span className="text-sm uppercase tracking-widest">Quitter le Rapport</span>
+              <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+// Sub-components
+function StatCard({ label, value, subValue, icon, color }: { label: string; value: string | number; subValue?: string; icon: React.ReactNode; color: 'blue' | 'emerald' | 'red' | 'indigo' }) {
+  const colors = {
+    blue: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20 shadow-blue-500/10',
+    emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10',
+    red: 'text-red-600 dark:text-red-400 bg-red-500/10 border-red-500/20 shadow-red-500/10',
+    indigo: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20 shadow-indigo-500/10',
+  };
+
+  return (
+    <div className={`glass p-4 rounded-3xl border border-white/40 dark:border-gray-800/50 flex flex-col items-center justify-center space-y-2 shadow-sm relative overflow-hidden group`}>
+      <div className={`absolute top-0 right-0 w-12 h-12 opacity-5 translate-x-4 -translate-y-4 group-hover:scale-150 transition-transform ${colors[color].split(' ')[0]}`}>
+        {icon}
+      </div>
+      <div className={`p-2 rounded-xl scale-90 ${colors[color].split(' ').slice(0, 3).join(' ')}`}>
+        {icon}
+      </div>
+      <div className="text-center">
+        <div className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{label}</div>
+        <div className="flex items-baseline justify-center gap-1">
+          <div className="text-xl font-black text-gray-900 dark:text-white tabular-nums">{value}</div>
+          {subValue && <div className="text-[10px] font-black text-gray-400">({subValue})</div>}
         </div>
       </div>
     </div>

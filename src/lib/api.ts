@@ -21,87 +21,87 @@ class ApiService {
     return await this.request(endpoint, options);
   }
 
+  private inFlightRequests: Map<string, Promise<any>> = new Map();
+  private cache: Map<string, { data: any, timestamp: number }> = new Map();
+  private CACHE_DURATION = 500; // 500ms pour éviter les rafales
+
   private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
-    try {
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
-        ...options.headers,
-      };
+    const isGet = !options.method || options.method === 'GET';
+    const cacheKey = `${endpoint}_${JSON.stringify(options.body || '')}`;
 
-      const url = `${this.baseUrl}${endpoint}`;
+    // 1. Dépendance du cache pour les GET rapides
+    if (isGet) {
+      const cached = this.cache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) {
+        // console.log(`[DEDUPE] Serving from cache: ${endpoint}`);
+        return cached.data;
+      }
+    }
 
-      const fetchOptions = {
-        ...options,
-        headers,
-        mode: 'cors' as RequestMode,
-        credentials: 'include' as RequestCredentials
-      };
+    // 2. Déduplication des requêtes en vol
+    if (this.inFlightRequests.has(cacheKey)) {
+      // console.log(`[DEDUPE] Joining in-flight request: ${endpoint}`);
+      return this.inFlightRequests.get(cacheKey);
+    }
 
-      const response = await fetch(url, fetchOptions);
+    const requestPromise = (async () => {
+      try {
+        const headers = {
+          'Content-Type': 'application/json',
+          ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+          ...options.headers,
+        };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { message: errorText || `Erreur HTTP ${response.status}` };
+        const url = `${this.baseUrl}${endpoint}`;
+        const fetchOptions = {
+          ...options,
+          headers,
+          mode: 'cors' as RequestMode,
+          credentials: 'include' as RequestCredentials
+        };
+
+        const response = await fetch(url, fetchOptions);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch {
+            errorData = { message: errorText || `Erreur HTTP ${response.status}` };
+          }
+
+          logger.error('API Error:', { status: response.status, url });
+          const error = new Error(errorData.message || 'Une erreur est survenue');
+          (error as any).response = { status: response.status, data: errorData };
+          throw error;
         }
 
-        logger.error('API Error:', {
-          status: response.status,
-          statusText: response.statusText,
-          url
-        });
+        if (response.status === 204) return null;
 
-        // Créer une erreur avec toutes les informations
-        const error = new Error(errorData.message || 'Une erreur est survenue');
-        (error as any).response = {
-          status: response.status,
-          statusText: response.statusText,
-          data: errorData
-        };
-        throw error;
+        const text = await response.text();
+        if (!text || text.trim() === '') return null;
+
+        try {
+          const jsonData = JSON.parse(text);
+          
+          // Mettre en cache pour les GET
+          if (isGet) {
+            this.cache.set(cacheKey, { data: jsonData, timestamp: Date.now() });
+          }
+          
+          return jsonData;
+        } catch (error) {
+          return text;
+        }
+      } finally {
+        // Toujours nettoyer les requêtes en vol
+        this.inFlightRequests.delete(cacheKey);
       }
+    })();
 
-      // Gérer les réponses vides (comme 204 No Content)
-      if (response.status === 204) {
-        return null;
-      }
-
-      // Vérifier s'il y a du contenu à parser
-      const text = await response.text();
-      if (!text || text.trim() === '') {
-        return null;
-      }
-
-      // Essayer de parser le JSON
-      try {
-        const jsonData = JSON.parse(text);
-        //console.log('[DEBUG] Response data:', jsonData);
-        return jsonData;
-      } catch (error) {
-        logger.warn('Failed to parse response as JSON:', text);
-        return text;
-      }
-    } catch (error) {
-      logger.error('Request failed:', {
-        endpoint,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-
-      // Si c'est une erreur réseau (TypeError), donner plus de détails
-      if (error instanceof TypeError) {
-        const networkError = new Error(
-          `Veuillez contacter l'administrateur, Les serveurs sont injoignables `
-        );
-        (networkError as any).originalError = error;
-        throw networkError;
-      }
-
-      throw error;
-    }
+    this.inFlightRequests.set(cacheKey, requestPromise);
+    return requestPromise;
   }
 
   async login(email: string, password: string) {

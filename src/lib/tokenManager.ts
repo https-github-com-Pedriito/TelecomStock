@@ -15,10 +15,6 @@ const TOKEN_KEY = 'auth_token';
 const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
 const TOKEN_LIFETIME = 30 * 60 * 1000; // 30 minutes en millisecondes
 
-interface TokenData {
-  token: string;
-  expiresAt: number;
-}
 
 /**
  * Stocke un token avec une date d'expiration

@@ -191,7 +191,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               Tableau de bord
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-              Vue d'ensemble complète de votre stock 
+              Vue d'ensemble complète de votre stock
             </p>
           </div>
           <button
@@ -205,25 +205,25 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
         </div>
 
         {/* Stats Cards principales */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
           {statsCards.map((card, index) => (
             <div
               key={index}
-              className={`bg-white dark:bg-gray-900 rounded-xl shadow-sm border ${card.borderColor} p-4 md:p-6 hover:shadow-lg transition-all duration-200`}
+              className="glass rounded-2xl p-4 md:p-6 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group cursor-default"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`p-3 rounded-lg ${card.bgColor}`}>
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-xl ${card.bgColor} group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                   <card.icon className={`w-6 h-6 ${card.iconColor}`} />
                 </div>
               </div>
-              <div>
-                <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+              <div className="space-y-1">
+                <p className="text-xs md:text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                   {card.title}
                 </p>
-                <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                <p className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                   {card.value}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">
                   {card.subtitle}
                 </p>
               </div>
@@ -232,99 +232,112 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
         </div>
 
         {/* Mouvements du jour */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-green-200 dark:border-green-800 p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/30">
-                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <div className="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-green-500/5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 shadow-sm">
+                  <TrendingUp className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Entrées aujourd'hui</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{entreesDuJour}</p>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Entrées aujourd'hui</p>
+                  <p className="text-3xl font-extrabold text-gray-900 dark:text-white">{entreesDuJour}</p>
                 </div>
               </div>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-green-600 dark:bg-green-500 h-2 rounded-full transition-all" style={{ width: `${entreesPercentage}%` }} />
+            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden p-[2px]">
+              <div
+                className="bg-gradient-to-r from-green-400 to-green-600 h-full rounded-full transition-all duration-1000 shadow-sm"
+                style={{ width: `${entreesPercentage}%` }}
+              />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-orange-200 dark:border-orange-800 p-6 hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/30">
-                  <TrendingDown className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+          <div className="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 shadow-sm">
+                  <TrendingDown className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sorties aujourd'hui</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{sortiesDuJour}</p>
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Sorties aujourd'hui</p>
+                  <p className="text-3xl font-extrabold text-gray-900 dark:text-white">{sortiesDuJour}</p>
                 </div>
               </div>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-orange-600 dark:bg-orange-500 h-2 rounded-full transition-all" style={{ width: `${sortiesPercentage}%` }} />
+            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden p-[2px]">
+              <div
+                className="bg-gradient-to-r from-orange-400 to-orange-600 h-full rounded-full transition-all duration-1000 shadow-sm"
+                style={{ width: `${sortiesPercentage}%` }}
+              />
             </div>
           </div>
         </div>
 
         {/* Graphiques */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-          {/* Graphique Mouvements 30 jours */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-1">
-                <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Flux de stock (14 jours)</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
+          {/* Graphique Mouvements 14 jours */}
+          <div className="glass rounded-2xl p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-sm">
+                    <Activity size={20} />
+                  </div>
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-white">Flux de stock</h3>
+                </div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Activité des 14 derniers jours</p>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Entrées et sorties quotidiennes</p>
-            </div>
 
-            <div className="flex gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-400">Entrées</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-sm text-gray-600 dark:text-gray-400">Sorties</span>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-sm shadow-green-500/50"></div>
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">ENTRÉES</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50"></div>
+                  <span className="text-xs font-bold text-gray-600 dark:text-gray-400">SORTIES</span>
+                </div>
               </div>
             </div>
 
             <div
               ref={(el) => {
-                // Auto-scroll vers la droite (jours les plus récents) sur mobile
-                if (el && window.innerWidth < 1024) {
-                  el.scrollLeft = el.scrollWidth;
-                }
+                if (el && window.innerWidth < 1024) el.scrollLeft = el.scrollWidth;
               }}
-              className="h-64 flex items-end justify-between gap-1 pb-8 overflow-x-auto lg:overflow-x-visible scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700"
+              className="h-72 flex items-end justify-between gap-1 pb-10 overflow-x-auto no-scrollbar"
             >
               {chartData.map((data, idx) => {
                 const entreesHeight = (data.Entrees / maxValue) * 100;
                 const sortiesHeight = (data.Sorties / maxValue) * 100;
 
                 return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 min-w-[30px] lg:min-w-[20px] max-w-[50px]">
-                    <div className="w-full flex flex-col-reverse items-center gap-1 flex-1">
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-2 min-w-[32px] max-w-[40px] group/item">
+                    <div className="w-full flex items-end justify-center h-full gap-1">
                       <div
-                        className="w-full bg-green-500 dark:bg-green-400 rounded-t transition-all hover:bg-green-600 relative group"
-                        style={{ height: `${entreesHeight}%`, minHeight: data.Entrees > 0 ? '4px' : '0' }}
+                        className="w-2.5 bg-green-500/90 dark:bg-green-400 shadow-lg shadow-green-500/20 rounded-t-full transition-all duration-300 group-hover/item:bg-green-600 relative group/tooltip"
+                        style={{ height: `${Math.max(entreesHeight, 2)}%` }}
                       >
-                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-gray-900 dark:text-white opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-800 px-2 py-1 rounded shadow-lg">
-                          {data.Entrees}
-                        </span>
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 pointer-events-none scale-90 group-hover/tooltip:scale-100 z-10">
+                          <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-white/10">
+                            {data.Entrees} entrées
+                          </div>
+                          <div className="w-2 h-2 bg-gray-900 rotate-45 mx-auto -mt-1 border-r border-b border-white/10"></div>
+                        </div>
                       </div>
                       <div
-                        className="w-full bg-red-500 dark:bg-red-400 rounded-t transition-all hover:bg-red-600 relative group"
-                        style={{ height: `${sortiesHeight}%`, minHeight: data.Sorties > 0 ? '4px' : '0' }}
+                        className="w-2.5 bg-red-500/90 dark:bg-red-400 shadow-lg shadow-red-500/20 rounded-t-full transition-all duration-300 group-hover/item:bg-red-600 relative group/tooltip"
+                        style={{ height: `${Math.max(sortiesHeight, 2)}%` }}
                       >
-                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-gray-900 dark:text-white opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-800 px-2 py-1 rounded shadow-lg">
-                          {data.Sorties}
-                        </span>
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover/tooltip:opacity-100 transition-all duration-300 pointer-events-none scale-90 group-hover/tooltip:scale-100 z-10">
+                          <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-white/10">
+                            {data.Sorties} sorties
+                          </div>
+                          <div className="w-2 h-2 bg-gray-900 rotate-45 mx-auto -mt-1 border-r border-b border-white/10"></div>
+                        </div>
                       </div>
                     </div>
-                    <span className="text-[9px] text-gray-500 dark:text-gray-400 rotate-45 origin-top-left whitespace-nowrap mt-2">
+                    <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 -rotate-45 mt-1">
                       {data.date}
                     </span>
                   </div>
@@ -334,38 +347,40 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
           </div>
 
           {/* Stock par Catégorie */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
-            <div className="mb-6">
+          <div className="glass rounded-2xl p-6 lg:p-8">
+            <div className="mb-8">
               <div className="flex items-center gap-2 mb-1">
-                <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Répartition du stock par catégorie</h3>
+                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-sm">
+                  <BarChart3 size={20} />
+                </div>
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white">Répartition par catégorie</h3>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Par famille d’équipements</p>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Volume de stock par famille</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               {Object.entries(categoriesStats)
                 .sort(([, a], [, b]) => b - a)
-                .slice(0, 8)
+                .slice(0, 6)
                 .map(([categorie, quantite], idx) => {
                   const maxQuantite = Math.max(...Object.values(categoriesStats));
                   const percentage = (quantite / maxQuantite) * 100;
                   const color = COLORS[idx % COLORS.length];
 
                   return (
-                    <div key={categorie}>
+                    <div key={categorie} className="group cursor-default">
                       <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{categorie}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: color }}></div>
+                          <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide truncate max-w-[150px]">{categorie}</span>
                         </div>
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white ml-2">
+                        <span className="text-sm font-extrabold text-gray-900 dark:text-white">
                           {quantite}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                      <div className="w-full bg-gray-100 dark:bg-gray-800/50 rounded-full h-2.5 overflow-hidden p-[1px]">
                         <div
-                          className="h-full rounded-full transition-all duration-500"
+                          className="h-full rounded-full transition-all duration-1000 shadow-sm"
                           style={{ width: `${percentage}%`, backgroundColor: color }}
                         />
                       </div>
@@ -377,58 +392,58 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
         </div>
 
         {/* Alertes et Mouvements récents */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 animate-slide-up" style={{ animationDelay: '400ms' }}>
           {/* Alertes Stock */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-orange-200 dark:border-orange-800 overflow-hidden">
-            <div className="px-6 py-4 bg-orange-50 dark:bg-orange-900/20 border-b border-orange-200 dark:border-orange-800">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Alertes Stock Critique ({articlesWithAlerts.length})
-                </h2>
+          <div className="glass rounded-2xl overflow-hidden border-orange-500/20">
+            <div className="px-6 py-5 bg-orange-500/5 border-b border-orange-500/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20">
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                    Alertes Critiques
+                  </h2>
+                  <p className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider">
+                    {articlesWithAlerts.length} équipements à réapprovisionner
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="p-6 max-h-96 overflow-y-auto">
+            <div className="p-6 max-h-[400px] overflow-y-auto no-scrollbar">
               {articlesWithAlerts.length === 0 ? (
-                <div className="text-center py-10 md:py-16">
-                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100 dark:border-green-800">
-                    <img
-                      src="/empty-state.png"
-                      alt="Aucune alerte"
-                      className="w-16 h-16 sm:w-24 sm:h-24 opacity-60 mix-blend-multiply dark:mix-blend-normal dark:filter dark:brightness-200"
-                    />
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20">
+                    <Package className="w-10 h-10 text-green-500" />
                   </div>
-                  <p className="text-gray-900 dark:text-white text-sm md:text-base font-semibold">Tout est sous contrôle !</p>
-                  <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">Aucune alerte stock critique à signaler.</p>
+                  <p className="text-gray-900 dark:text-white font-bold">Stock optimal</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Aucune alerte critique à signaler.</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {articlesWithAlerts.slice(0, 8).map(article => (
+                <div className="space-y-3">
+                  {articlesWithAlerts.slice(0, 10).map(article => (
                     <div
                       key={article.id}
                       onClick={() => setSelectedAlertArticle(article)}
-                      className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors cursor-pointer"
+                      className="group flex items-center justify-between p-4 bg-white/50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 rounded-2xl hover:border-orange-500/50 hover:bg-orange-500/5 transition-all duration-300 cursor-pointer shadow-sm active:scale-[0.99]"
                     >
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${article.quantite_stock === 0
-                          ? 'text-red-600 dark:text-red-400'
-                          : 'text-orange-600 dark:text-orange-400'
-                          }`} />
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className={`w-2 h-10 rounded-full ${article.quantite_stock === 0 ? 'bg-red-500' : 'bg-orange-500'} shadow-sm`}></div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          <p className="text-[15px] font-bold text-gray-900 dark:text-white truncate group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                             {article.nom}
                           </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                          <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                             {article.categorie}
                           </p>
                         </div>
                       </div>
-                      <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${article.quantite_stock === 0
-                        ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
-                        : 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
-                        }`}>
-                        {article.quantite_stock} / {article.seuil_minimum}
-                      </span>
+                      <div className="text-right ml-4">
+                        <p className={`text-lg font-black ${article.quantite_stock === 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                          {article.quantite_stock}
+                        </p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">sur {article.seuil_minimum}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -437,53 +452,62 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
           </div>
 
           {/* Derniers Mouvements */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Derniers Flux De Stock
-                </h2>
+          <div className="glass rounded-2xl overflow-hidden">
+            <div className="px-6 py-5 bg-blue-500/5 border-b border-blue-500/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-500/20">
+                  <RefreshCw size={20} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                    Flux récents
+                  </h2>
+                  <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                    Dernières activités logistiques
+                  </p>
+                </div>
               </div>
             </div>
-            <div className="p-6 max-h-96 overflow-y-auto">
+            <div className="p-6 max-h-[400px] overflow-y-auto no-scrollbar">
               {recentMouvements.length === 0 ? (
-                <div className="text-center py-10 md:py-16">
-                  <div className="w-20 h-20 sm:w-28 sm:h-28 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
-                    <Clock className="w-10 h-10 sm:w-14 sm:h-14 text-gray-300 dark:text-gray-600" />
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                    <Clock className="w-10 h-10 text-blue-500" />
                   </div>
-                  <p className="text-gray-900 dark:text-white text-sm md:text-base font-semibold">Calme plat sur les flux</p>
-                  <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">Les derniers mouvements de stock apparaîtront ici.</p>
+                  <p className="text-gray-900 dark:text-white font-bold">Aucun flux</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Les mouvements de stock apparaîtront ici.</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {recentMouvements.map((mouvement) => {
-                    const article = mouvement.article;
-
-                    return (
-                      <div
-                        key={mouvement.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${mouvement.type === 'ENTREE'
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                            }`}>
-                            {mouvement.type === 'ENTREE' ? '↑' : '↓'} {mouvement.quantite}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                              {article?.nom || 'Article supprimé'}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {format(new Date(mouvement.dateHeure), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                <div className="space-y-3">
+                  {recentMouvements.map((mouvement) => (
+                    <div
+                      key={mouvement.id}
+                      className="group flex items-center justify-between p-4 bg-white/50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-700/50 rounded-2xl hover:border-blue-500/30 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300 shadow-sm"
+                    >
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <div className={`p-2 rounded-xl ${mouvement.type === 'ENTREE' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'} transition-transform group-hover:scale-110`}>
+                          {mouvement.type === 'ENTREE' ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[15px] font-bold text-gray-900 dark:text-white truncate">
+                            {mouvement.article?.nom || 'Équipement supprimé'}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <Clock size={12} className="text-gray-400" />
+                            <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tighter">
+                              {format(new Date(mouvement.dateHeure), 'dd MMM HH:mm', { locale: fr })}
                             </p>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                      <div className="text-right ml-4">
+                        <p className={`text-lg font-black ${mouvement.type === 'ENTREE' ? 'text-green-600' : 'text-orange-600'}`}>
+                          {mouvement.type === 'ENTREE' ? '+' : '-'}{mouvement.quantite}
+                        </p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{mouvement.type}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

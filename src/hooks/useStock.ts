@@ -1,10 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Article, Mouvement, Fournisseur, CreateMouvementData } from '../types';
+import { Article, Mouvement, Fournisseur, CreateMouvementData, User } from '../types';
 import { api } from '../lib/api';
 import { useRealtimeSync } from './useRealtimeSync';
-import type { User } from '../types';
-import { ArticleCard } from '../components/ArticleCard';
-import { Article } from '../entities/Article';
 
 // Type pour le callback de notification
 type StockNotificationCallback = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => void;
@@ -13,93 +10,110 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
   const [articles, setArticles] = useState<Article[]>([]);
   const [mouvements, setMouvements] = useState<Mouvement[]>([]);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
+  const [localisations, setLocalisations] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Debug: Log du user dans useStock
   useEffect(() => {
-    console.log('🔍 useStock - User state changed:', user ? `${user.prenom} ${user.nom} (${user.role})` : 'null/undefined');
+    if (user) {
+      console.log('🔍 useStock - User active:', `${user.prenom} ${user.nom}`);
+    }
   }, [user]);
 
-  // Synchronisation temps réel (utilisé pour ses effets de bord)
-  useRealtimeSync({
-    onArticlesChange: async () => {
-      console.log('🔄 Articles changés - rechargement...');
+  // Refresh functions for realtime sync
+  const refreshArticles = useCallback(async () => {
+    console.log('🔄 Articles changés - rechargement...');
+    try {
+      const response = await api.get<Article[]>('/articles');
+      setArticles(response);
+    } catch (err) {
+      console.error('Erreur lors du rechargement des articles:', err);
+    }
+  }, []);
+
+  const refreshMouvements = useCallback(async () => {
+    console.log('🔄 Mouvements changés - rechargement...');
+    try {
+      const response = await api.get<Mouvement[]>('/mouvements');
+      setMouvements(response);
+    } catch (err) {
+      console.error('Erreur lors du rechargement des mouvements:', err);
+    }
+  }, []);
+
+  const refreshFournisseurs = useCallback(async () => {
+    console.log('🔄 Fournisseurs changés - rechargement...');
+    try {
+      const response = await api.get<Fournisseur[]>('/fournisseurs');
+      setFournisseurs(response);
+    } catch (err) {
+      console.error('Erreur lors du rechargement des fournisseurs:', err);
+    }
+  }, []);
+
+  const refreshUsers = useCallback(async () => {
+    if (user && user.role?.toLowerCase() === 'admin') {
+      console.log('🔄 Utilisateurs changés - rechargement...');
       try {
-        const response = await api.get<Article[]>('/articles');
-        setArticles(response);
+        const response = await api.get<User[]>('/users');
+        setUsers(response);
       } catch (err) {
-        console.error('Erreur lors du rechargement des articles:', err);
-      }
-    },
-    onMouvementsChange: async () => {
-      console.log('🔄 Mouvements changés - rechargement...');
-      try {
-        const response = await api.get<Mouvement[]>('/mouvements');
-        setMouvements(response);
-      } catch (err) {
-        console.error('Erreur lors du rechargement des mouvements:', err);
-      }
-    },
-    onFournisseursChange: async () => {
-      console.log('🔄 Fournisseurs changés - rechargement...');
-      try {
-        const response = await api.get<Fournisseur[]>('/fournisseurs');
-        setFournisseurs(response);
-      } catch (err) {
-        console.error('Erreur lors du rechargement des fournisseurs:', err);
+        console.error('Erreur lors du rechargement des utilisateurs:', err);
       }
     }
+  }, [user]);
+
+  // Synchronisation temps réel
+  useRealtimeSync({
+    onArticlesChange: () => refreshArticles(),
+    onMouvementsChange: () => refreshMouvements(),
+    onFournisseursChange: () => refreshFournisseurs(),
+    onUsersChange: () => refreshUsers()
   });
 
-  // Charger les données initiales UNIQUEMENT si l'utilisateur est authentifié
-  useEffect(() => {
-    console.log('🎯 useStock - useEffect déclenché - User:', user ? `${user.prenom} ${user.nom}` : 'Non défini');
-    
-    // Ne pas charger les données si l'utilisateur n'est pas connecté
+  const fetchData = useCallback(async () => {
     if (!user) {
       console.log('⚠️ useStock - Pas d\'utilisateur, skip du chargement');
       setLoading(false);
       return;
     }
 
-    console.log('✅ useStock - Utilisateur détecté, lancement du chargement des données...');
-    
-    const fetchData = async () => {
-      try {
-        console.log('📦 useStock - Chargement des articles...');
-        const articlesResponse = await api.get<Article[]>('/articles');
-        console.log('📦 useStock - Articles reçus:', articlesResponse.length, 'articles');
-        
-        // Debug: afficher les prix des articles
-        console.log('💰 Prix des articles:', articlesResponse.map(a => ({ 
-          nom: a.nom, 
-          prix: a.prix_unitaire, 
-          qte: a.quantite_stock,
-          valeur: (a.prix_unitaire || 0) * (a.quantite_stock || 0)
-        })));
-        
-        setArticles(articlesResponse);
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('🚀 Lancement du chargement parallèle des données...');
+      
+      const [art, mouv, four, locs] = await Promise.all([
+        api.get<Article[]>('/articles'),
+        api.get<Mouvement[]>('/mouvements'),
+        api.get<Fournisseur[]>('/fournisseurs'),
+        api.getLocalisations().catch(() => []) // Fallback si pas de localisations
+      ]);
 
-        console.log('📋 useStock - Chargement des mouvements...');
-        const mouvementsResponse = await api.get<Mouvement[]>('/mouvements');
-        console.log('📋 useStock - Mouvements reçus:', mouvementsResponse.length, 'mouvements');
-        setMouvements(mouvementsResponse);
-
-        console.log('🏭 useStock - Chargement des fournisseurs...');
-        const fournisseursResponse = await api.get<Fournisseur[]>('/fournisseurs');
-        console.log('🏭 useStock - Fournisseurs reçus:', fournisseursResponse.length, 'fournisseurs');
-        setFournisseurs(fournisseursResponse);
-      } catch (err) {
-        console.error('Erreur lors du chargement des données:', err);
-        setError(err instanceof Error ? err.message : 'Erreur inconnue');
-      } finally {
-        setLoading(false);
+      setArticles(art);
+      setMouvements(mouv);
+      setFournisseurs(four);
+      setLocalisations(locs as any[]);
+      
+      // Charger les utilisateurs seulement si admin
+      if (user.role?.toLowerCase() === 'admin') {
+        const u = await api.getUsers().catch(() => []);
+        setUsers(u as User[]);
       }
-    };
 
+    } catch (err) {
+      console.error('Erreur lors du chargement des données:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
     fetchData();
-  }, [user]); // Ajouter user comme dépendance pour recharger quand l'utilisateur se connecte
+  }, [fetchData]);
 
   // Articles
   const createArticle = useCallback(async (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
@@ -303,62 +317,22 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
     }
   }, []);
 
-  // Fonctions de rafraîchissement
-  const refreshArticles = useCallback(async () => {
-    try {
-      console.log('Rafraîchissement des articles...');
-      const articlesResponse = await api.get<Article[]>('/articles');
-      console.log('Articles rafraîchis:', articlesResponse);
-      setArticles(articlesResponse);
-    } catch (err) {
-      console.error('Erreur lors du rafraîchissement des articles:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-    }
-  }, []);
-
-  const refreshMouvements = useCallback(async () => {
-    try {
-      console.log('Rafraîchissement des mouvements...');
-      const mouvementsResponse = await api.get<Mouvement[]>('/mouvements');
-      console.log('Mouvements rafraîchis:', mouvementsResponse);
-      setMouvements(mouvementsResponse);
-    } catch (err) {
-      console.error('Erreur lors du rafraîchissement des mouvements:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-    }
-  }, []);
-
-  const refreshFournisseurs = useCallback(async () => {
-    try {
-      console.log('Rafraîchissement des fournisseurs...');
-      const fournisseursResponse = await api.get<Fournisseur[]>('/fournisseurs');
-      console.log('Fournisseurs rafraîchis:', fournisseursResponse);
-      setFournisseurs(fournisseursResponse);
-    } catch (err) {
-      console.error('Erreur lors du rafraîchissement des fournisseurs:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-    }
-  }, []);
-
   const refreshAll = useCallback(async () => {
-    try {
-      setLoading(true);
-      await Promise.all([
-        refreshArticles(),
-        refreshMouvements(),
-        refreshFournisseurs()
-      ]);
-    } catch (err) {
-      console.error('Erreur lors du rafraîchissement complet:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [refreshArticles, refreshMouvements, refreshFournisseurs]);
+    await Promise.all([
+      refreshArticles(),
+      refreshMouvements(),
+      refreshFournisseurs(),
+      fetchData(), // refreshLocalisations
+      refreshUsers(),
+    ]);
+  }, [refreshArticles, refreshMouvements, refreshFournisseurs, fetchData, refreshUsers]);
 
   return {
     articles,
     mouvements,
     fournisseurs,
+    localisations,
+    users,
     loading,
     error,
     createArticle,
@@ -371,6 +345,8 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
     refreshArticles,
     refreshMouvements,
     refreshFournisseurs,
+    refreshLocalisations: fetchData,
+    refreshUsers,
     refreshAll,
   };
 }

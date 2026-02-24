@@ -73,7 +73,13 @@ function App() {
     updateFournisseur: updateFournisseurFromHook,
     deleteFournisseur: deleteFournisseurFromHook,
     refreshFournisseurs,
-    refreshAll
+    refreshLocalisations,
+    refreshUsers,
+    refreshAll,
+    localisations,
+    users: usersForComponents,
+    loading,
+    error,
   } = useStock(user, showStockNotification);
 
   const getArticlesWithAlerts = () => {
@@ -104,112 +110,35 @@ function App() {
     await updateFournisseurFromHook(id, updates);
   };
 
-  // Gestion des localisations / entrepôts
-  const [localisations, setLocalisations] = useState<Localisation[]>([]);
-  const [loadingLocalisations, setLoadingLocalisations] = useState(true);
-  const [errorLocalisations, setErrorLocalisations] = useState<string | null>(null);
-
-  const refreshLocalisations = useCallback(async (): Promise<void> => {
-    try {
-      setErrorLocalisations(null);
-      setLoadingLocalisations(true);
-      const response = await api.getLocalisations();
-      setLocalisations(response as Localisation[]);
-    } catch (error) {
-      console.error('Erreur lors du chargement des localisations:', error);
-      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
-      throw error;
-    } finally {
-      setLoadingLocalisations(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      refreshLocalisations().catch(err => {
-        console.error('Erreur lors de l\'initialisation des localisations:', err);
-      });
-    }
-  }, [refreshLocalisations, isAuthenticated]);
-
   const addLocalisation = async (localisation: LocalisationInput): Promise<Localisation> => {
-    try {
-      console.log('Création d\'une nouvelle localisation:', localisation);
-      const newLocalisation = await api.createLocalisation(localisation) as Localisation;
-      setLocalisations(prev => [...prev, newLocalisation]);
-      return newLocalisation;
-    } catch (error) {
-      console.error('Erreur lors de la création de la localisation:', error);
-      throw error;
-    }
+    const newLocalisation = await api.createLocalisation(localisation) as Localisation;
+    await refreshLocalisations();
+    return newLocalisation;
   };
 
   const updateLocalisation = async (id: string, data: Partial<LocalisationInput>): Promise<Localisation> => {
-    try {
-      const updatedLocalisation = await api.updateLocalisation(id, data) as Localisation;
-      setLocalisations(prev => prev.map(loc => loc.id === id ? updatedLocalisation : loc));
-      return updatedLocalisation;
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour de la localisation:', error);
-      throw error;
-    }
+    const updatedLocalisation = await api.updateLocalisation(id, data) as Localisation;
+    await refreshLocalisations();
+    return updatedLocalisation;
   };
 
   const deleteLocalisation = async (id: string): Promise<void> => {
-    try {
-      await api.deleteLocalisation(id);
-      setLocalisations(prev => prev.filter(loc => loc.id !== id));
-    } catch (error) {
-      console.error('Erreur lors de la suppression de la localisation:', error);
-      throw error;
-    }
+    await api.deleteLocalisation(id);
+    await refreshLocalisations();
   };
 
   const refreshAllData = useCallback(async () => {
-    await Promise.allSettled([
-      refreshAll(),
-      refreshLocalisations(),
-    ]);
-  }, [refreshAll, refreshLocalisations]);
-
-  // État et gestion des utilisateurs
-  const [usersForComponents, setUsersForComponents] = useState<User[]>([]);
-
-  useEffect(() => {
-    if (isAuthenticated && user?.role?.toLowerCase() === 'admin') {
-      const fetchUsers = async () => {
-        try {
-          const fetchedUsers = await api.getUsers();
-          setUsersForComponents(fetchedUsers);
-        } catch (error) {
-          console.error('Erreur lors du chargement des utilisateurs:', error);
-        }
-      };
-      void fetchUsers();
-    }
-  }, [user, isAuthenticated]);
+    await refreshAll();
+  }, [refreshAll]);
 
   const updateUser = async (id: string, data: Partial<User>) => {
     await api.updateUser(id, data);
-    setUsersForComponents(prev =>
-      prev.map(u => u.id === id ? { ...u, ...data } : u)
-    );
+    await refreshUsers();
   };
 
   const deleteUser = async (id: string) => {
     await api.deleteUser(id);
-    setUsersForComponents(prev => prev.filter(u => u.id !== id));
-  };
-
-  const refreshUsers = async () => {
-    if (isAuthenticated && user?.role?.toLowerCase() === 'admin') {
-      try {
-        const fetchedUsers = await api.getUsers();
-        setUsersForComponents(fetchedUsers);
-      } catch (error) {
-        console.error('Erreur lors du rechargement des utilisateurs:', error);
-      }
-    }
+    await refreshUsers();
   };
 
   // Fonction de vérification des permissions
@@ -346,7 +275,7 @@ function App() {
         role: userData.role,
         is_active: userData.is_active ?? true
       });
-      setUsersForComponents(prev => [...prev, newUser]);
+      await refreshUsers();
       return newUser;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -440,8 +369,8 @@ function App() {
               return (hasPermission('manage_users') || hasPermission('view_inventory')) && (
                 <Entrepots
                   localisations={localisations}
-                  loading={loadingLocalisations}
-                  error={errorLocalisations}
+                  loading={loading}
+                  error={error}
                   onAddLocalisation={addLocalisation}
                   onUpdateLocalisation={updateLocalisation}
                   onDeleteLocalisation={deleteLocalisation}

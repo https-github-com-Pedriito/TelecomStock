@@ -16,6 +16,8 @@ import {
   Info,
   Trash2,
   X,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -76,9 +78,9 @@ export function Entrepots({
       const matchesSearch = loc.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (loc.description?.toLowerCase() || '').includes(searchTerm.toLowerCase());
       const matchesType = !typeFilter || loc.type === typeFilter;
-      const matchesStatus = 
-        statusFilter === 'all' || 
-        (statusFilter === 'active' && loc.est_active) || 
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'active' && loc.est_active) ||
         (statusFilter === 'inactive' && !loc.est_active);
       return matchesSearch && matchesType && matchesStatus;
     });
@@ -334,99 +336,123 @@ export function Entrepots({
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-blue-400" />
+        <div className="flex justify-center py-20">
+          <Loader2 className="w-10 h-10 animate-spin text-indigo-600 dark:text-indigo-400" />
         </div>
       ) : filteredLocalisations.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            {localisations.length === 0
-              ? 'Aucun lieu de stockage enregistré pour le moment.'
-              : 'Aucun lieu ne correspond à vos filtres.'}
-          </p>
-          <button
-            onClick={openCreateModal}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Créer un nouveau lieu
-          </button>
+        <div className="text-center py-20 glass rounded-[3rem] border border-dashed border-gray-300 dark:border-gray-700">
+          <div className="flex flex-col items-center gap-4">
+            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-full text-gray-300">
+              <Warehouse size={48} />
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 font-bold text-lg">
+              {localisations.length === 0
+                ? "Aucun lieu enregistré."
+                : "Aucun résultat pour cette recherche."}
+            </p>
+            <button
+              onClick={openCreateModal}
+              className="mt-2 text-indigo-600 dark:text-indigo-400 font-black hover:underline underline-offset-8"
+            >
+              Créer un nouveau lieu →
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {filteredLocalisations.map(localisation => {
             const isActionLoading = actionLoadingId === localisation.id;
-            const cardClasses = localisation.est_active
-              ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
-              : 'bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 opacity-75';
+            const isActive = localisation.est_active;
 
             return (
-              <div key={localisation.id} className={`${cardClasses} rounded-lg shadow-md p-6 hover:shadow-lg transition-all`}>
-                <div className="flex justify-between items-start gap-3">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2 text-xs">
-                      {localisation.type && (
-                        <span className="px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
-                          {typeLabels[localisation.type] || localisation.type}
-                        </span>
-                      )}
+              <div
+                key={localisation.id}
+                className={`group relative glass rounded-[2.5rem] border transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 ${isActive
+                  ? 'border-white/40 dark:border-gray-800/50 p-7 shadow-xl shadow-gray-200/50 dark:shadow-none'
+                  : 'border-transparent bg-gray-100/50 dark:bg-gray-900/20 p-7 opacity-70 grayscale'
+                  }`}
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-4 rounded-2xl transition-colors duration-500 ${isActive
+                      ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-600 group-hover:text-white shadow-sm'
+                      : 'bg-gray-200 dark:bg-gray-800 text-gray-500 shadow-none'
+                      }`}>
+                      <Warehouse size={28} strokeWidth={2.5} />
                     </div>
-                    <h3 className={`text-lg font-semibold flex items-center gap-2 ${localisation.est_active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                      <Warehouse className={`w-5 h-5 ${localisation.est_active ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} />
-                      {localisation.nom}
-                    </h3>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border ${isActive
+                          ? 'bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 border-indigo-100 dark:border-indigo-800/50'
+                          : 'bg-gray-100 text-gray-500 border-gray-200 dark:border-gray-800'
+                          }`}>
+                          {typeLabels[localisation.type as keyof typeof typeLabels] || localisation.type}
+                        </span>
+                        {isActive && (
+                          <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest pl-2">
+                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                            Actif
+                          </span>
+                        )}
+                      </div>
+                      <h3 className={`text-xl font-black tracking-tight ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
+                        {localisation.nom}
+                      </h3>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center">
+
+                  <div className="flex gap-2">
                     <button
                       onClick={() => openEditModal(localisation)}
-                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="p-2.5 text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all shadow-sm border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
                       title="Modifier"
-                      disabled={!localisation.est_active}
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <Toggle
-                        checked={localisation.est_active}
-                        disabled={isActionLoading}
-                        onChange={() => {
-                          if (localisation.est_active) {
-                            handleDisableLocalisation(localisation);
-                          } else {
-                            handleReactivateLocalisation(localisation);
-                          }
-                        }}
-                        icons={false}
-                      />
-                    </div>
-                    <button
-                      onClick={() => handleDeleteLocalisation(localisation)}
-                      className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      title="Supprimer définitivement"
                       disabled={isActionLoading}
                     >
-                      <Trash2 size={16} />
+                      <Edit2 size={18} strokeWidth={2.5} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteLocalisation(localisation)}
+                      className="p-2.5 text-gray-400 hover:text-rose-500 hover:bg-white dark:hover:bg-gray-800 rounded-xl transition-all shadow-sm border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+                      title="Supprimer"
+                      disabled={isActionLoading}
+                    >
+                      <Trash2 size={18} strokeWidth={2.5} />
                     </button>
                   </div>
                 </div>
 
                 {localisation.description && (
-                  <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium leading-relaxed mb-6 line-clamp-2">
                     {localisation.description}
                   </p>
                 )}
 
-                <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <span>
-                      {localisation.type ? typeLabels[localisation.type] || localisation.type : 'Type non défini'}
-                    </span>
+                <div className="mt-auto flex items-center justify-between">
+                  <div className="flex items-center gap-6 text-[11px] font-bold text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays size={14} />
+                      <span>{format(new Date(localisation.created_at), 'dd MMM yyyy', { locale: fr })}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} />
+                      <span className="truncate max-w-[80px]">Principal</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                    <span>
-                      Créé le {format(new Date(localisation.created_at), 'dd/MM/yyyy', { locale: fr })}
-                    </span>
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Statut</span>
+                    <Toggle
+                      checked={isActive}
+                      disabled={isActionLoading}
+                      onChange={() => {
+                        if (isActive) {
+                          handleDisableLocalisation(localisation);
+                        } else {
+                          handleReactivateLocalisation(localisation);
+                        }
+                      }}
+                      icons={false}
+                    />
                   </div>
                 </div>
               </div>

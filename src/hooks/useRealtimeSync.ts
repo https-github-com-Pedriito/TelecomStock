@@ -9,6 +9,13 @@ export interface UseRealtimeSyncOptions {
   debug?: boolean;
 }
 
+// Cooldown pour éviter les rechargements inutiles après une action locale
+const lastLocalAction = new Map<string, number>();
+
+export const notifyRealtimeLocalAction = (table: string) => {
+  lastLocalAction.set(table, Date.now());
+};
+
 export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
   const { 
     onArticlesChange, 
@@ -25,8 +32,17 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
 
   // Callback générique pour tous les changements
   const handleDatabaseChange = useCallback((event: any) => {
+    const now = Date.now();
+    const lastLocal = lastLocalAction.get(event.table) || 0;
+    
+    // Si une action locale a eu lieu il y a moins de 2 secondes, on ignore l'event WS
+    if (now - lastLocal < 2000) {
+      if (debug) console.log(`[REALTIME] Ignoring remote event for ${event.table} (recent local action)`);
+      return;
+    }
+
     if (debug) {
-      console.log('🔄 Changement détecté:', event);
+      console.log('🔄 Changement distant détecté:', event);
     }
 
     switch (event.table) {

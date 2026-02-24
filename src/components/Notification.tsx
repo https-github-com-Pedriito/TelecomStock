@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, AlertCircle, X, Package } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { CheckCircle, AlertCircle, X, Trash2, PlusCircle, Info } from 'lucide-react';
 
 interface NotificationProps {
   id: string;
-  type: 'success' | 'warning' | 'info' | 'error';
+  type: 'success' | 'warning' | 'info' | 'error' | 'creation' | 'deletion';
   title: string;
   message: string;
   duration?: number;
@@ -12,95 +12,133 @@ interface NotificationProps {
 
 export function Notification({ id, type, title, message, duration = 5000, onClose }: NotificationProps) {
   const [isLeaving, setIsLeaving] = useState(false);
+  const [progress, setProgress] = useState(100);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLeaving(true);
-      setTimeout(() => onClose(id), 300); // Animation duration
-    }, duration);
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+      if (remaining === 0) {
+        clearInterval(interval);
+        handleClose();
+      }
+    }, 10);
 
-    return () => clearTimeout(timer);
-  }, [id, duration, onClose]);
+    return () => clearInterval(interval);
+  }, [id, duration]);
 
   const handleClose = () => {
     setIsLeaving(true);
-    setTimeout(() => onClose(id), 300);
+    setTimeout(() => onClose(id), 400); // Match animation duration
   };
 
-  const getIcon = () => {
+  const getStyles = () => {
     switch (type) {
+      case 'creation':
+        return {
+          icon: <PlusCircle className="w-6 h-6 text-emerald-500" />,
+          bg: 'bg-emerald-500/10',
+          border: 'border-emerald-500/20',
+          progress: 'bg-emerald-500',
+          shadow: 'shadow-emerald-500/10'
+        };
+      case 'deletion':
+        return {
+          icon: <Trash2 className="w-6 h-6 text-rose-500" />,
+          bg: 'bg-rose-500/10',
+          border: 'border-rose-500/20',
+          progress: 'bg-rose-500',
+          shadow: 'shadow-rose-500/10'
+        };
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return {
+          icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+          bg: 'bg-green-500/10',
+          border: 'border-green-500/20',
+          progress: 'bg-green-500',
+          shadow: 'shadow-green-500/10'
+        };
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-orange-500" />;
-      case 'info':
-        return <Package className="w-5 h-5 text-blue-500" />;
+        return {
+          icon: <AlertCircle className="w-6 h-6 text-amber-500" />,
+          bg: 'bg-amber-500/10',
+          border: 'border-amber-500/20',
+          progress: 'bg-amber-500',
+          shadow: 'shadow-amber-500/10'
+        };
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-500" />;
+        return {
+          icon: <AlertCircle className="w-6 h-6 text-red-500" />,
+          bg: 'bg-red-500/10',
+          border: 'border-red-500/20',
+          progress: 'bg-red-500',
+          shadow: 'shadow-red-500/10'
+        };
+      case 'info':
       default:
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return {
+          icon: <Info className="w-6 h-6 text-blue-500" />,
+          bg: 'bg-blue-500/10',
+          border: 'border-blue-500/20',
+          progress: 'bg-blue-500',
+          shadow: 'shadow-blue-500/10'
+        };
     }
   };
 
-  const getBgColor = () => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-50 border-green-200';
-      case 'warning':
-        return 'bg-orange-50 border-orange-200';
-      case 'info':
-        return 'bg-blue-50 border-blue-200';
-      case 'error':
-        return 'bg-red-50 border-red-200';
-      default:
-        return 'bg-green-50 border-green-200';
-    }
-  };
+  const styles = getStyles();
 
   return (
     <div
       className={`
-        fixed z-50 transition-all duration-300 transform flex justify-center w-full
-        top-4 left-0
-        ${isLeaving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
-        px-2
+        fixed z-[10000] right-4 md:right-8 transition-all duration-500 transform
+        ${isLeaving ? 'opacity-0 translate-x-12 scale-90' : 'opacity-100 translate-x-0 scale-100 animate-slide-in-right'}
       `}
+      style={{ top: '2rem' }}
     >
       <div
-        className={`border rounded-lg shadow-lg p-3 bg-white ${getBgColor()} flex items-start space-x-3`}
-        style={{
-          width: '320px',
-          maxWidth: '90vw',
-        }}
+        className={`relative glass overflow-hidden rounded-[1.25rem] border ${styles.border} ${styles.bg} ${styles.shadow} p-4 flex items-start gap-4 backdrop-blur-xl group`}
+        style={{ width: '380px', maxWidth: 'calc(100vw - 2rem)' }}
       >
-        <div className="flex-shrink-0">
-          {getIcon()}
+        <div className="flex-shrink-0 p-2 bg-white/20 dark:bg-gray-900/20 rounded-xl shadow-inner group-hover:scale-110 transition-transform duration-300">
+          {styles.icon}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900">
+
+        <div className="flex-1 min-w-0 pt-0.5">
+          <p className="text-sm font-black text-gray-900 dark:text-white tracking-tight leading-tight mb-1">
             {title}
           </p>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-xs font-medium text-gray-600 dark:text-gray-400 line-clamp-2">
             {message}
           </p>
         </div>
+
         <button
           onClick={handleClose}
-          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          className="flex-shrink-0 p-1.5 hover:bg-white/30 dark:hover:bg-black/30 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg transition-all active:scale-90"
         >
-          <X className="w-4 h-4" />
+          <X size={16} strokeWidth={3} />
         </button>
+
+        {/* Dynamic Progress Bar */}
+        <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-100 ease-linear ${styles.progress}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-// Hook pour gérer les notifications
 export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
   const addNotification = (notification: Omit<NotificationProps, 'id' | 'onClose'>) => {
-    const id = Date.now().toString();
+    const id = Math.random().toString(36).substr(2, 9);
     const newNotification: NotificationProps = {
       ...notification,
       id,
@@ -120,16 +158,18 @@ export function useNotifications() {
 
     addNotification({
       type: isLowStock ? 'warning' : 'success',
-      title: `${type === 'ENTREE' ? 'Entrée' : 'Sortie'} enregistrée`,
-      message: `${articleNom}: ${nouvelleQuantite} unité${nouvelleQuantite > 1 ? 's' : ''} en stock${isLowStock ? ' ⚠️ Stock faible!' : ''}`,
-      duration: isLowStock ? 8000 : 5000, // Plus long si stock faible
+      title: `${type === 'ENTREE' ? 'Entrée' : 'Sortie'} confirmée`,
+      message: `${articleNom}: ${nouvelleQuantite} unités actuellement en stock.${isLowStock ? ' Attention: Niveau critique !' : ''}`,
+      duration: isLowStock ? 7000 : 4000,
     });
   };
 
   const NotificationContainer = () => (
-    <div className="fixed top-0 right-0 z-50 p-4 space-y-2">
-      {notifications.map(notification => (
-        <Notification key={notification.id} {...notification} />
+    <div className="fixed top-0 right-0 z-[10000] p-4 flex flex-col items-end pointer-events-none">
+      {notifications.map((notification, index) => (
+        <div key={notification.id} className="pointer-events-auto" style={{ top: `${index * 90}px` }}>
+          <Notification {...notification} />
+        </div>
       ))}
     </div>
   );

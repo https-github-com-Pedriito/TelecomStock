@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  ScanLine, 
-  Package, 
-  ClipboardList, 
+import {
+  ScanLine,
+  Package,
+  ClipboardList,
   Users,
   Home
 } from 'lucide-react';
@@ -27,22 +27,16 @@ interface MobileNavItem {
   permission?: string;
 }
 
-export function MobileBottomNav({ 
-  currentView, 
-  onViewChange, 
-  hasPermission,
-  userRole = 'technicien',
-  alertsCount = 0,
-  onQuickAction,
-  className = ''
+export function MobileBottomNav({
+  currentView,
+  onViewChange,
+  userRole = 'technicien'
 }: MobileBottomNavProps) {
-  // Détection du mode dark
-  const isDark = typeof window !== 'undefined' && (document.body.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches);
-  
+
   // Mémoriser les items pour éviter de recalculer à chaque render
   const visibleNavItems = React.useMemo(() => {
     const role = userRole.toLowerCase();
-    
+
     // TECHNICIEN: Articles (lecture seule) et Scanner
     if (role === 'technicien') {
       return [
@@ -59,7 +53,7 @@ export function MobileBottomNav({
         }
       ];
     }
-    
+
     // MANAGER: Stock, Scanner, Inventaire
     if (role === 'manager') {
       return [
@@ -81,7 +75,7 @@ export function MobileBottomNav({
         }
       ];
     }
-    
+
     // ADMIN: Accueil, Stock, Scanner, Inventaire, Utilisateurs
     if (role === 'admin') {
       return [
@@ -113,7 +107,7 @@ export function MobileBottomNav({
         }
       ];
     }
-    
+
     // Par défaut (fallback)
     return [
       {
@@ -124,69 +118,36 @@ export function MobileBottomNav({
     ];
   }, [userRole]);
 
-  // Mémoriser les callbacks pour éviter les re-renders
-  const handleItemClick = React.useCallback((item: MobileNavItem) => {
-    if (item.isQuickAction) {
-      onQuickAction?.('scan');
-    } else {
-      onViewChange(item.id as ViewMode);
-    }
-  }, [onQuickAction, onViewChange]);
-
-  const isActive = React.useCallback((itemId: ViewMode | 'quick-scan') => {
-    if (itemId === 'quick-scan') return false;
-    return currentView === itemId;
-  }, [currentView]);
-
   return (
-    <nav className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 z-50 shadow-lg ${className}`}>
-      <div className="flex items-stretch justify-around h-16 px-2 max-w-screen-sm mx-auto">
+    <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 animate-slide-up">
+      <nav className="glass bg-white/95 dark:bg-gray-950/95 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-800/50 flex items-center justify-around p-2 gap-1 backdrop-blur-2xl">
         {visibleNavItems.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.id);
-          const isScanner = item.id === 'scanner';
+          const active = currentView === item.id;
+
           return (
             <button
               key={item.id}
-              onClick={() => handleItemClick(item)}
-              className={`
-                flex-1 flex flex-col items-center justify-center gap-1 rounded-lg mx-1 my-2
-                transition-colors duration-150 active:scale-95 relative
-                ${isScanner
-                  ? active
-                    ? 'bg-blue-600 text-white shadow-md dark:bg-blue-800 dark:text-white'
-                    : 'bg-blue-500 text-white shadow-sm dark:bg-blue-700 dark:text-white'
-                  : active 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
-                }
-              `}
+              onClick={() => onViewChange(item.id)}
+              className={`flex flex-col items-center justify-center flex-1 py-2 rounded-xl transition-all duration-300 relative ${active
+                ? 'text-blue-600 dark:text-blue-400 font-bold'
+                : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
+                }`}
             >
-              <Icon 
-                size={isScanner ? 24 : 22}
-                strokeWidth={isScanner ? 2.5 : 2}
-                className={
-                  isScanner 
-                    ? 'text-white dark:text-white' 
-                    : active 
-                      ? 'text-blue-600 dark:text-blue-300' 
-                      : 'text-gray-500 dark:text-gray-300'
-                }
-              />
-              <span className="text-[10px] font-medium leading-none">
+              <div className={`p-1.5 rounded-xl transition-all duration-300 ${active ? 'bg-blue-600/10 scale-110' : ''}`}>
+                <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+              </div>
+              <span className="text-[10px] uppercase tracking-widest font-bold mt-1">
                 {item.label}
               </span>
-              {/* Indicateur actif */}
-              {active && !isScanner && (
-                <div className="absolute bottom-1 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+              {active && (
+                <div className="absolute top-0 w-8 h-1 bg-blue-600 dark:bg-blue-400 rounded-full blur-[1px]"></div>
               )}
             </button>
           );
         })}
-      </div>
-      {/* Safe area pour iPhone */}
-      <div className="h-[env(safe-area-inset-bottom)] bg-white dark:bg-gray-900"></div>
-    </nav>
+      </nav>
+    </div>
   );
 }
 

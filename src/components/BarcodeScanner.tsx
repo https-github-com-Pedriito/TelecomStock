@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { X, Camera, Keyboard, Flashlight, RotateCcw, CheckCircle } from "lucide-react";
+import { X, Camera, Keyboard, Flashlight, RotateCcw, CheckCircle, ScanLine } from "lucide-react";
 
 
 interface BarcodeScannerProps {
@@ -257,13 +257,24 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Header Mobile-Optimized */}
-      <div className="bg-gray-900 p-4 safe-area-top">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <Camera className="h-6 w-6 text-white" />
-            <h2 className="text-lg font-semibold text-white">Scanner</h2>
+    <div className="fixed inset-0 bg-gray-950 z-[200] flex flex-col overflow-hidden animate-in fade-in duration-500">
+      {/* Background Glows */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      {/* Header - Glassmorphic HUD */}
+      <div className="relative z-20 p-6 pt-12 md:pt-8 bg-gradient-to-b from-gray-950 via-gray-950/80 to-transparent">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30 ring-1 ring-white/20">
+              <ScanLine size={24} strokeWidth={3} className="animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-white tracking-widest uppercase">Optic <span className="text-blue-500">Scanner</span></h2>
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
+                <p className="text-blue-100/60 text-[10px] font-black tracking-widest uppercase">{cameraError ? 'System Error' : 'Ready to capture'}</p>
+              </div>
+            </div>
           </div>
 
           <button
@@ -271,224 +282,191 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
               await stopScanner();
               onClose();
             }}
-            className="p-3 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 transition-all"
+            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-all active:scale-90 group"
           >
-            <X className="h-5 w-5 text-white" />
+            <X size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
           </button>
         </div>
 
-        {/* Mode Selector - Large Touch Targets */}
-        <div className="flex space-x-2 bg-gray-800 rounded-lg p-1">
+        {/* Mode Selector - Premium Segmented Control */}
+        <div className="max-w-md mx-auto mt-8 p-1.5 bg-gray-900/60 backdrop-blur-md rounded-2xl border border-white/5 flex gap-2">
           <button
             onClick={() => setScanMode('camera')}
-            className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all active:scale-95 ${scanMode === 'camera'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-300 hover:text-white'
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all active:scale-95 ${scanMode === 'camera'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 font-black scale-[1.02]'
+              : 'text-gray-400 hover:text-white font-bold'
               }`}
           >
-            <Camera className="h-5 w-5 mr-2" />
-            <span className="font-medium">Caméra</span>
+            <Camera size={18} strokeWidth={2.5} />
+            <span className="text-xs uppercase tracking-widest">Caméra</span>
           </button>
 
           <button
             onClick={() => setScanMode('manual')}
-            className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all active:scale-95 ${scanMode === 'manual'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-300 hover:text-white'
+            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all active:scale-95 ${scanMode === 'manual'
+              ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 font-black scale-[1.02]'
+              : 'text-gray-400 hover:text-white font-bold'
               }`}
           >
-            <Keyboard className="h-5 w-5 mr-2" />
-            <span className="font-medium">Manuel</span>
+            <Keyboard size={18} strokeWidth={2.5} />
+            <span className="text-xs uppercase tracking-widest">Clavier</span>
           </button>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Scanner Body */}
+      <div className="flex-1 relative flex flex-col items-center justify-center p-8 overflow-hidden">
         {scanMode === 'camera' ? (
-          <>
-            {/* Camera Controls */}
-            {isScanning && (
-              <div className="bg-gray-900 p-4 flex justify-center space-x-4">
-                <button
-                  onClick={toggleTorch}
-                  className={`p-3 rounded-full transition-all active:scale-95 ${torch
-                    ? 'bg-yellow-500 text-black'
-                    : 'bg-gray-700 text-white hover:bg-gray-600'
-                    }`}
-                >
-                  <Flashlight className="h-5 w-5" />
-                </button>
-
-                <button
-                  onClick={restartScanner}
-                  className="p-3 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-all active:scale-95"
-                >
-                  <RotateCcw className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-
-            {/* Camera Error */}
-            {cameraError && (
-              <div className="bg-red-900 border border-red-700 m-4 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <X className="h-5 w-5 text-red-400 mr-2" />
-                  <div>
-                    <p className="text-red-100 font-medium">Erreur de caméra</p>
-                    <p className="text-red-200 text-sm">{cameraError}</p>
-                    <button
-                      onClick={() => setScanMode('manual')}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
-                    >
-                      Utiliser la saisie manuelle
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Success Feedback */}
-            {scanSuccess && (
-              <div className="absolute inset-0 bg-green-600 bg-opacity-90 flex items-center justify-center z-10">
-                <div className="text-center">
-                  <CheckCircle className="h-16 w-16 text-white mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">Code scanné !</h3>
-                  <p className="text-green-100 font-mono text-lg">{lastScanned}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Camera View */}
-            <div className="flex-1 relative">
+          <div className="w-full h-full max-w-2xl flex flex-col items-center justify-center gap-12">
+            {/* Viewfinder Area */}
+            <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-gray-900">
               <div id="reader" className="w-full h-full" />
 
-              {/* Scanning Overlay */}
-              {isScanning && !scanSuccess && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative">
-                    {/* Scanning Frame */}
-                    <div className="w-72 h-72 border-4 border-white border-opacity-30 rounded-lg relative">
-                      {/* Corner indicators */}
-                      <div className="absolute top-0 left-0 w-8 h-8 border-l-4 border-t-4 border-blue-500 rounded-tl-lg"></div>
-                      <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-blue-500 rounded-tr-lg"></div>
-                      <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-blue-500 rounded-bl-lg"></div>
-                      <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-blue-500 rounded-br-lg"></div>
+              {/* HUD Overlays */}
+              <div className="absolute inset-0 pointer-events-none z-10 flex items-center justify-center">
+                {/* Vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/60 via-transparent to-gray-950/60" />
 
-                      {/* Scanning line animation */}
-                      <div className="absolute inset-0 overflow-hidden rounded-lg">
-                        <div className="scanning-line"></div>
-                      </div>
-                    </div>
+                {/* Viewfinder Corners */}
+                <div className="relative w-72 h-72">
+                  <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-blue-500 rounded-tl-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute top-0 right-0 w-12 h-12 border-r-4 border-t-4 border-blue-500 rounded-tr-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute bottom-0 left-0 w-12 h-12 border-l-4 border-b-4 border-blue-500 rounded-bl-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-blue-500 rounded-br-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
 
-                    {/* Instructions */}
-                    <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
-                      <p className="text-white text-sm font-medium">
-                        Centrez le code-barres dans le cadre
-                      </p>
+                  {/* Animated Laser */}
+                  {isScanning && !scanSuccess && (
+                    <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                      <div className="absolute left-0 right-0 h-[2px] bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,1)] animate-scan-hud" />
                     </div>
+                  )}
+                </div>
+
+                {/* Instructions Text */}
+                <div className="absolute bottom-12 left-0 right-0 text-center animate-bounce-subtle">
+                  <p className="text-white font-black text-[10px] uppercase tracking-[0.3em] opacity-80 drop-shadow-lg">
+                    {scanSuccess ? 'Detection Confirmed' : 'Centrez le code-barres'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Success Overlay Card */}
+              {scanSuccess && (
+                <div className="absolute inset-0 z-30 bg-blue-600/90 backdrop-blur-md flex items-center justify-center animate-in zoom-in-95 duration-300">
+                  <div className="text-center p-8">
+                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-white/30 animate-pulse">
+                      <CheckCircle className="h-14 w-14 text-blue-600" strokeWidth={3} />
+                    </div>
+                    <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Code Scanné !</h3>
+                    <p className="text-blue-100 font-mono text-xl bg-white/10 px-6 py-2 rounded-xl border border-white/20 select-all">{lastScanned}</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Bottom Tips */}
-            <div className="bg-gray-900 p-4 safe-area-bottom">
-              <div className="text-center">
-                <p className="text-gray-300 text-sm mb-2">
-                  Conseils : Approchez-vous du code-barres et assurez-vous qu'il soit bien éclairé
-                </p>
-                <button
-                  onClick={() => setScanMode('manual')}
-                  className="text-blue-400 hover:text-blue-300 text-sm underline"
-                >
-                  Problème avec la caméra ? Utilisez la saisie manuelle
-                </button>
-              </div>
+            {/* Quick Actions HUD */}
+            <div className="flex items-center gap-6 p-4 bg-gray-900/60 backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl">
+              <button
+                onClick={toggleTorch}
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-90 ${torch
+                  ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/30'
+                  : 'bg-white/5 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+              >
+                <Flashlight size={24} strokeWidth={2.5} />
+              </button>
+
+              <div className="w-[1px] h-8 bg-white/10" />
+
+              <button
+                onClick={restartScanner}
+                className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-gray-400 hover:text-white border border-white/5 transition-all active:scale-90"
+              >
+                <RotateCcw size={24} strokeWidth={2.5} />
+              </button>
             </div>
-          </>
+          </div>
         ) : (
-          /* Manual Mode */
-          <div className="flex-1 flex flex-col justify-center p-6 bg-gray-900">
-            <div className="max-w-md mx-auto w-full">
-              <div className="text-center mb-8">
-                <Keyboard className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  Saisie Manuelle
-                </h3>
-                <p className="text-gray-300">
-                  Tapez ou collez le code-barres ci-dessous
-                </p>
+          /* Manual Mode Redesign */
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom-8 duration-500">
+            <div className="max-w-md w-full bg-white/5 backdrop-blur-2xl p-10 rounded-[3rem] border border-white/10 shadow-2xl">
+              <div className="text-center mb-10">
+                <div className="w-20 h-20 bg-blue-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+                  <Keyboard className="h-10 w-10 text-blue-500" />
+                </div>
+                <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Saisie Manuelle</h3>
+                <p className="text-gray-400 font-medium">Tapez ou collez le code-barres ci-dessous</p>
               </div>
 
-              <form onSubmit={handleManualSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Code-barres
-                  </label>
+              <form onSubmit={handleManualSubmit} className="space-y-8">
+                <div className="relative group">
                   <input
                     ref={inputRef}
                     type="text"
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
                     placeholder="Saisissez le code-barres..."
-                    className="w-full px-4 py-4 text-lg border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-8 py-6 text-xl border-2 border-white/5 rounded-[1.5rem] bg-gray-950/80 text-white placeholder-gray-600 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center tracking-widest font-mono"
                     autoComplete="off"
-                    autoCapitalize="off"
-                    autoCorrect="off"
                   />
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity">
+                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] bg-gray-950 px-2">Ready for submission</span>
+                  </div>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={!manualCode.trim()}
-                  className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-medium text-lg transition-all active:scale-98"
+                  disabled={!manualCode.trim() || detectedRef.current}
+                  className="w-full py-6 px-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-600 text-white rounded-[1.5rem] font-black text-lg uppercase tracking-widest shadow-2xl shadow-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-4 group"
                 >
-                  Valider le Code
+                  <CheckCircle size={22} strokeWidth={3} />
+                  <span>Valider le Code</span>
                 </button>
               </form>
-
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => setScanMode('camera')}
-                  className="text-blue-400 hover:text-blue-300 text-sm underline"
-                >
-                  Retour à la caméra
-                </button>
-              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* CSS for scanning animation - Version sécurisée */}
-      <style>
-        {`
-        .scanning-line {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #3b82f6, transparent);
-          animation: scan 2s ease-in-out infinite;
+      {/* Camera Error Alert */}
+      {cameraError && (
+        <div className="absolute bottom-12 left-6 right-6 max-w-xl mx-auto z-40 animate-in slide-in-from-bottom duration-500">
+          <div className="bg-red-500/10 backdrop-blur-xl border border-red-500/20 p-6 rounded-3xl flex items-center gap-5">
+            <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
+              <X size={24} strokeWidth={3} />
+            </div>
+            <div className="flex-1">
+              <p className="text-red-500 font-black text-xs uppercase tracking-widest">Hardware Exception</p>
+              <p className="text-red-100/70 text-sm font-medium leading-relaxed">{cameraError}</p>
+            </div>
+            <button
+              onClick={() => setScanMode('manual')}
+              className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95"
+            >
+              Manual Mode
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes scan-hud {
+          0% { top: 10%; opacity: 0; }
+          20% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { top: 90%; opacity: 0; }
         }
-        
-        @keyframes scan {
-          0% { transform: translateY(0); opacity: 1; }
-          50% { transform: translateY(280px); opacity: 0.8; }
-          100% { transform: translateY(0); opacity: 1; }
+        .animate-scan-hud {
+          animation: scan-hud 2.5s ease-in-out infinite;
         }
-        
-        .safe-area-top {
-          padding-top: env(safe-area-inset-top);
+        @keyframes bounce-subtle {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
         }
-        
-        .safe-area-bottom {
-          padding-bottom: env(safe-area-inset-bottom);
+        .animate-bounce-subtle {
+          animation: bounce-subtle 3s ease-in-out infinite;
         }
-        `}
-      </style>
+      `}</style>
     </div>
   );
 }

@@ -15,152 +15,109 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted');
-
-    if (!email || !password) {
-      console.log('Email or password missing');
-      return;
-    }
-
+    if (!email || !password) return;
     try {
-      console.log('LoginForm: Attempting login with email:', email);
-      console.log('LoginForm: Calling onLogin...');
       await onLogin(email, password);
-      console.log('LoginForm: onLogin completed');
     } catch (err) {
-      console.error('LoginForm: Login error:', err);
-      // L'erreur est déjà gérée via le prop error
+      console.error('Login error:', err);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex flex-col lg:flex-row">
-      {/* Bannière Beta moderne avec effet néon */}
-      <div className="fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50 overflow-y-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
-        <div className="relative max-w-7xl mx-auto py-2.5 px-4 flex items-center justify-center gap-3">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <span className="relative inline-flex items-center justify-center">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75 animate-ping"></span>
-              <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs sm:text-sm tracking-widest text-white shadow-lg shadow-purple-500/50 ">
-                BETA
-              </span>
-            </span>
-            <div className="hidden sm:flex items-center gap-2 text-white/90">
-              <span className="text-sm font-medium bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Version de test
-              </span>
-              <span className="text-xs text-white/60">•</span>
-              <span className="text-xs text-white/60">Vos retours comptent</span>
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      <div className="w-full max-w-[440px] z-10 animate-fade-in">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center p-4 bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-blue-500/10 mb-6 group transition-transform hover:scale-105">
+            <img
+              src="/decimalestock.png"
+              alt="Logo Decimale Stock"
+              className="w-16 h-16 object-contain"
+            />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Decimale Stock</h1>
+          <p className="text-gray-500 dark:text-gray-400">Gérez votre inventaire avec précision</p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800/50 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-gray-200/50 dark:shadow-none p-8 sm:p-10 border border-gray-100 dark:border-gray-700/50">
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Bon retour</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Connectez-vous pour commencer</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">
+                Adresse Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white"
+                placeholder="example@mail.com"
+                required
+              />
             </div>
-            <span className="sm:hidden text-xs text-white/70 font-medium overflow-hidden">
-              Test en cours
-            </span>
-          </div>
-        </div>
-      </div>
 
-      {/* Section gauche - Marketing (visible seulement sur desktop) */}
-      <div className="hidden lg:flex lg:w-3/5 bg-gradient-to-br from-blue-600 to-blue-800 flex-col items-start justify-center p-12 text-white">
-        <div className="max-w-lg space-y-12">
-          <div className="flex items-center gap-3">
-            <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-16 h-16 object-contain" />
-            <span className="text-2xl font-bold">Decimale Stock</span>
-          </div>
-
-          <div className="space-y-6">
-            <h1 className="text-6xl font-bold leading-tight">
-              Maîtrisez votre sotck, sans friction.
-            </h1>
-
-            <p className="text-lg text-blue-100 leading-relaxed">
-              Suivi en temps réel , inventaires rapides, scanner intégré. Pensé pour les équipes terrain
-            </p>
-          </div>
-
-          <div className="pt-12">
-            <svg className="w-64 h-64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="40" y="80" width="120" height="80" rx="4" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.5" />
-              <rect x="50" y="90" width="100" height="60" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-              <circle cx="100" cy="60" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
-              <path d="M60 120L70 110M70 120L60 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <path d="M90 120L100 110M100 120L90 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <path d="M120 120L130 110M130 120L120 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Section droite - Formulaire */}
-      <div className="flex-1 lg:w-2/5 flex flex-col items-center justify-center p-6 sm:p-4 pt-56 lg:pt-0 lg:p-8">
-        <div className="w-full max-w-md px-4 sm:px-6 lg:px-0">
-          <p className="text-sm text-gray-400 mb-8 tracking-wide hidden">Login</p>
-
-          <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl shadow-gray-300/40 p-6 sm:p-8 border border-gray-100">
-            <div className="fixed top-24 left-0 right-0 flex justify-center lg:hidden pt-4 z-40">
-              <div className="w-40 h-40 flex items-center justify-center mx-auto mb-6 rounded-full shadow-lg shadow-blue-200 p-6 bg-white">
-                <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-32 h-32 object-contain rounded-full" />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Mot de passe
+                </label>
+                <button type="button" className="text-xs font-medium text-blue-600 hover:text-blue-700">
+                  Oublié ?
+                </button>
               </div>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8">Accedez à votre espace client</h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <h4 className="text-base font-semibold text-gray-800 mb-3">Email</h4>
+              <div className="relative group">
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors bg-white/90 dark:bg-white/10 text-gray-900 dark:text-white"
-                  placeholder="adresse mail"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-5 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all dark:text-white pr-12"
+                  placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
+            </div>
 
-              <div>
-                <h4 className="text-base font-semibold text-gray-800 mb-3">Mot de passe</h4>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors bg-white/90 dark:bg-white/10 text-gray-900 dark:text-white"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 flex items-center gap-3 animate-slide-up">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </div>
+            )}
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-[54px] bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-2xl font-bold text-lg shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Se connecter</span>
+                  <LogIn size={20} className="transition-transform group-hover:translate-x-1" />
+                </>
               )}
+            </button>
+          </form>
+        </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                {isLoading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <LogIn size={20} />
-                    Se connecter
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
+        <div className="mt-8 text-center flex items-center justify-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+          <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">Beta Testing V1.2.0</span>
         </div>
       </div>
     </div>

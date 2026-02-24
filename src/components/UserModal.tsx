@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { X, Users } from 'lucide-react';
+import { X, Users, Mail, Shield, Key, ChevronRight, Fingerprint, Lock, Eye, EyeOff, UserPlus, UserCheck, Save, Smartphone } from 'lucide-react';
+import { Portal } from './Portal';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -21,6 +22,8 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
   });
 
   const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<{
     password?: string;
     confirmPassword?: string;
@@ -28,17 +31,17 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   const validatePasswords = () => {
     const newErrors: typeof errors = {};
-    
+
     if (formData.password || formData.confirmPassword) {
       if (formData.password.length > 0 && formData.password.length < 6) {
         newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
       }
-      
+
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -65,28 +68,26 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
         confirmPassword: '',
       });
     }
-    // Réinitialiser les erreurs et l'état d'affichage des mots de passe
     setErrors({});
     setShowPasswordFields(false);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation des mots de passe
+
     if (!validatePasswords()) {
       return;
     }
-    
-    // Préparer les données à envoyer
+
     const { confirmPassword, password, ...baseData } = formData;
-    
-    // Construire l'objet final
+
     const dataToSend = {
       ...baseData,
       ...(password && password.trim() !== '' ? { password } : {})
     };
-    
+
     onSave(dataToSend);
     onClose();
   };
@@ -94,204 +95,301 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
-          <div className="flex items-center gap-2">
-            <Users size={20} className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {user ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <X size={20} className="text-gray-700 dark:text-gray-300" />
-          </button>
-        </div>
+    <Portal>
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
+          onClick={onClose}
+        />
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nom complet *
-            </label>
-            <input
-              type="text"
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
+        {/* Modal Container */}
+        <div className="relative w-full max-w-lg glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Prénom *
-            </label>
-            <input
-              type="text"
-              value={formData.prenom}
-              onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email *
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Rôle *
-            </label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'manager' | 'technicien' })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-              required
-            >
-              <option value="technicien">Technicien</option>
-              <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is_active"
-              checked={formData.is_active}
-              onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-              className="w-4 h-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-700 rounded focus:ring-blue-500 bg-white dark:bg-gray-900"
-            />
-            <label htmlFor="is_active" className="text-sm text-gray-700 dark:text-gray-300">
-              Compte actif
-            </label>
-          </div>
-
-          {/* Section mot de passe */}
-          <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                {user ? 'Modifier le mot de passe' : 'Mot de passe'}
-              </h3>
-              {user && (
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordFields(!showPasswordFields)}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
-                >
-                  {showPasswordFields ? 'Annuler' : 'Changer le mot de passe'}
-                </button>
-              )}
+          {/* Header */}
+          <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20">
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-blue-600 rounded-3xl shadow-lg shadow-blue-600/20 text-white">
+                {user ? <Users size={28} strokeWidth={2.5} /> : <UserPlus size={28} strokeWidth={2.5} />}
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-0.5">Administration</span>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                  {user ? 'Modifier Profil' : 'Nouvel Utilisateur'}
+                </h2>
+              </div>
             </div>
-
-            {(!user || showPasswordFields) && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {user ? 'Nouveau mot de passe' : 'Mot de passe'} {!user && '*'}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => {
-                      setFormData({ ...formData, password: e.target.value });
-                      // Réinitialiser les erreurs quand l'utilisateur tape
-                      if (errors.password) {
-                        setErrors({ ...errors, password: undefined });
-                      }
-                    }}
-                    onBlur={validatePasswords}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
-                      errors.password ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-700'
-                    }`}
-                    placeholder={user ? 'Laisser vide pour ne pas changer' : ''}
-                    required={!user}
-                    minLength={6}
-                  />
-                  {errors.password && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.password}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Confirmer le mot de passe {!user && '*'}
-                  </label>
-                  <input
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => {
-                      setFormData({ ...formData, confirmPassword: e.target.value });
-                      // Réinitialiser les erreurs quand l'utilisateur tape
-                      if (errors.confirmPassword) {
-                        setErrors({ ...errors, confirmPassword: undefined });
-                      }
-                    }}
-                    onBlur={validatePasswords}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-white ${
-                      errors.confirmPassword ? 'border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-700'
-                    }`}
-                    placeholder={user ? 'Confirmer le nouveau mot de passe' : 'Confirmer le mot de passe'}
-                    required={!user || formData.password !== ''}
-                    minLength={6}
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {user && !showPasswordFields && (
-              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Le mot de passe actuel sera conservé
-                </p>
-              </div>
-            )}
-
-            {!user && (
-              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg mt-3">
-                <p className="text-sm text-blue-800 dark:text-blue-300">
-                  <strong>Exigences :</strong> Au moins 6 caractères
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  L'utilisateur pourra le changer lors de sa première connexion
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3 pt-4">
             <button
-              type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="p-3 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl transition-all text-gray-400 hover:text-gray-900 dark:hover:text-white active:scale-90 border border-transparent hover:border-white/40"
             >
-              Annuler
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white rounded-lg transition-colors"
-            >
-              {user ? 'Modifier' : 'Créer'}
+              <X size={24} strokeWidth={2.5} />
             </button>
           </div>
-        </form>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <form id="user-form" onSubmit={handleSubmit} className="p-5 sm:p-8 space-y-6 sm:space-y-8">
+
+              {/* General Info */}
+              <div className="space-y-5">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Informations Générales</label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Prénom *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.prenom}
+                      onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner"
+                      placeholder="Jean"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Nom *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.nom}
+                      onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner"
+                      placeholder="DUPONT"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Adresse Email *</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner"
+                      placeholder="j.dupont@entreprise.fr"
+                    />
+                    <Mail size={16} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Rôle Système *</label>
+                    <div className="relative">
+                      <select
+                        required
+                        value={formData.role}
+                        onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none appearance-none cursor-pointer font-bold text-gray-900 dark:text-white shadow-inner"
+                      >
+                        <option value="technicien">Technicien</option>
+                        <option value="manager">Manager</option>
+                        <option value="admin">Administrateur</option>
+                      </select>
+                      <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-gray-400 pointer-events-none" />
+                      <Shield size={16} className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none opacity-50" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">État du compte</label>
+                    <label className="flex items-center justify-between px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 rounded-2xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-transparent hover:border-blue-500/20 shadow-inner group">
+                      <span className={`text-xs font-black uppercase tracking-widest ${formData.is_active ? 'text-blue-500' : 'text-gray-400'}`}>
+                        {formData.is_active ? 'Activé' : 'Désactivé'}
+                      </span>
+                      <div className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.is_active}
+                          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 transition-all shadow-inner"></div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Password Section */}
+              <div className="space-y-5 pt-4 border-t border-white/20 dark:border-gray-800/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">
+                      <Lock size={18} />
+                    </div>
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Sécurité</h3>
+                  </div>
+                  {user && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordFields(!showPasswordFields)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${showPasswordFields
+                        ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20'
+                        : 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20'
+                        }`}
+                    >
+                      {showPasswordFields ? 'Annuler modification' : 'Changer mot de passe'}
+                    </button>
+                  )}
+                </div>
+
+                {(!user || showPasswordFields) && (
+                  <div className="space-y-5 animate-slide-up">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
+                          {user ? 'Nouveau password' : 'Mot de passe *'}
+                        </label>
+                        <div className="relative group">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={formData.password}
+                            onChange={(e) => {
+                              setFormData({ ...formData, password: e.target.value });
+                              if (errors.password) setErrors({ ...errors, password: undefined });
+                            }}
+                            onBlur={validatePasswords}
+                            className={`w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner pr-12 ${errors.password ? 'border-red-500/50' : 'border-transparent focus:border-blue-500/50'
+                              }`}
+                            placeholder="••••••••"
+                            required={!user}
+                            minLength={6}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                          >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Confirmation *</label>
+                        <div className="relative group">
+                          <input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={formData.confirmPassword}
+                            onChange={(e) => {
+                              setFormData({ ...formData, confirmPassword: e.target.value });
+                              if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
+                            }}
+                            onBlur={validatePasswords}
+                            className={`w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner pr-12 ${errors.confirmPassword ? 'border-red-500/50' : 'border-transparent focus:border-blue-500/50'
+                              }`}
+                            placeholder="••••••••"
+                            required={!user || formData.password !== ''}
+                            minLength={6}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                          >
+                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Password Feedback */}
+                    {(errors.password || errors.confirmPassword) && (
+                      <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 animate-shake">
+                        <AlertCircle size={20} className="text-red-500 shrink-0" />
+                        <p className="text-xs font-bold text-red-500 tracking-tight">
+                          {errors.password || errors.confirmPassword}
+                        </p>
+                      </div>
+                    )}
+
+                    {!user && (
+                      <div className="glass p-4 rounded-2xl border border-blue-500/10 bg-blue-500/5 flex items-start gap-4 ring-1 ring-blue-500/10">
+                        <div className="p-2 bg-blue-500 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                          <Fingerprint size={16} />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Information Sécurité</p>
+                          <p className="text-[9px] font-bold text-gray-500 dark:text-gray-400 leading-relaxed uppercase tracking-tighter">
+                            Une politique de minimum 6 caractères est requise. L'utilisateur pourra redéfinir son accès ultérieurement.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {user && !showPasswordFields && (
+                  <div className="glass p-5 rounded-2xl border border-white/40 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-4 group hover:bg-white/40 dark:hover:bg-gray-800/20 transition-all opacity-80">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2.5 bg-gray-500/10 rounded-xl text-gray-400 group-hover:bg-blue-500/5 group-hover:text-blue-400 transition-all">
+                        <Key size={18} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Accès actuel</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase">Mot de passe inchangé</span>
+                      </div>
+                    </div>
+                    <Lock size={14} className="text-gray-300" />
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="px-6 sm:px-8 py-4 sm:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+            <div className="hidden sm:flex items-center gap-3">
+              <div className="p-2 bg-gray-500/10 rounded-xl">
+                <UserCheck size={16} className="text-gray-400" />
+              </div>
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Validation de sécurité</span>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-6 py-4 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-[10px] text-gray-500 uppercase tracking-widest hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 flex-1 sm:flex-none"
+              >
+                Annuler
+              </button>
+              <button
+                form="user-form"
+                type="submit"
+                className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3 transition-all group flex-[2] sm:flex-none"
+              >
+                <span>{user ? 'Appliquer' : 'Enregistrer'}</span>
+                <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </Portal>
+  );
+}
+
+// Sub-components helpers
+function AlertCircle({ size, className }: { size?: number; className?: string }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
   );
 }

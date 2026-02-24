@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Fournisseur } from '../types';
-import { X, Truck } from 'lucide-react';
+import { Truck, X, Building2, User, Mail, Phone, MapPin, Globe, CheckCircle, Save, ChevronRight } from 'lucide-react';
+import { Portal } from './Portal';
 
 interface FournisseurModalProps {
   isOpen: boolean;
@@ -21,11 +22,11 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
   useEffect(() => {
     if (fournisseur) {
       setFormData({
-        nom: fournisseur.nom,
-        contact: fournisseur.contact,
-        email: fournisseur.email,
-        telephone: fournisseur.telephone,
-        adresse: fournisseur.adresse,
+        nom: fournisseur.nom || '',
+        contact: fournisseur.contact || '',
+        email: fournisseur.email || '',
+        telephone: fournisseur.telephone || '',
+        adresse: fournisseur.adresse || '',
       });
     } else {
       setFormData({
@@ -47,106 +48,158 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2">
-            <Truck size={20} className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {fournisseur ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-300"
-          >
-            <X size={20} />
-          </button>
-        </div>
+    <Portal>
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
+          onClick={onClose}
+        />
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Nom de l'entreprise *
-            </label>
-            <input
-              type="text"
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
+        {/* Modal Container */}
+        <div className="relative w-full max-w-xl glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[82dvh] sm:max-h-[90vh]">
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Personne de contact *
-            </label>
-            <input
-              type="text"
-              value={formData.contact}
-              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
+          {/* Header */}
+          <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20">
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-blue-600 rounded-3xl shadow-lg shadow-blue-600/20">
+                <Truck size={28} className="text-white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                  {fournisseur ? 'Détails Partenaire' : 'Nouveau Fournisseur'}
+                </h2>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Gestion Logistique</span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-xl transition-all text-gray-400 hover:text-gray-900 dark:hover:text-white active:scale-90"
+            >
+              <X size={24} strokeWidth={2.5} />
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email *
-            </label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 sm:space-y-8 custom-scrollbar">
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* 1. Identity Card */}
+              <div className="glass p-5 sm:p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-4 sm:space-y-5">
+                <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
+                  <Building2 size={18} strokeWidth={3} />
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Identité de l'Entreprise</h3>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Raison Sociale *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.nom}
+                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                    className="w-full px-5 py-4 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 focus:bg-white dark:focus:bg-gray-800 rounded-2xl outline-none transition-all font-bold text-lg text-gray-900 dark:text-white placeholder:text-gray-400 shadow-inner"
+                    placeholder="EX: Telecom Solutions Inc."
+                  />
+                </div>
+              </div>
+
+              {/* 2. Contact Details Card */}
+              <div className="glass p-5 sm:p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-5 sm:space-y-6">
+                <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
+                  <User size={18} strokeWidth={3} />
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Contact & Communication</h3>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Responsable *</label>
+                    <div className="relative group">
+                      <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                      <input
+                        type="text"
+                        required
+                        value={formData.contact}
+                        onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                        className="w-full pl-12 pr-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner"
+                        placeholder="Nom du contact..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Email *</label>
+                      <div className="relative group">
+                        <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                        <input
+                          type="email"
+                          required
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="w-full pl-12 pr-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner"
+                          placeholder="contact@email.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Téléphone *</label>
+                      <div className="relative group">
+                        <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                        <input
+                          type="tel"
+                          required
+                          value={formData.telephone}
+                          onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                          className="w-full pl-12 pr-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner"
+                          placeholder="+33..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Adresse Siège *</label>
+                    <div className="relative group">
+                      <MapPin size={18} className="absolute left-4 top-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                      <textarea
+                        required
+                        value={formData.adresse}
+                        onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                        className="w-full pl-12 pr-5 py-3.5 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-blue-500/50 rounded-2xl outline-none transition-all font-bold text-gray-900 dark:text-white shadow-inner min-h-[100px]"
+                        placeholder="Adresse complète du siège social..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Téléphone *
-            </label>
-            <input
-              type="tel"
-              value={formData.telephone}
-              onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Adresse *
-            </label>
-            <textarea
-              value={formData.adresse}
-              onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              rows={3}
-              required
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
+          {/* Footer Actions */}
+          <div className="px-6 sm:px-8 py-4 sm:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              className="w-full sm:w-auto px-8 py-4 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95"
             >
               Annuler
             </button>
             <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              onClick={handleSubmit}
+              className="w-full sm:w-auto flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-600/20 active:scale-95 transition-all group"
             >
-              {fournisseur ? 'Modifier' : 'Créer'}
+              <span>{fournisseur ? 'Mettre à jour' : 'Enregistrer le Partenaire'}</span>
+              <ChevronRight size={20} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }
