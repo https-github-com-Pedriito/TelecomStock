@@ -108,13 +108,13 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
               <ArrowUp className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Entrée de Stock</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un équipement pour enregistrer une entrée</p>
+              <h2 className="text-xl font-semibold text-green-600 dark:text-white mb-2">JE DEPOSE</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4"> Scannez pour lors d'une livraison ou pour réintégrer un équipement en stock. </p>
               <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
-                <ScanLine size={18} />
-                <span className="text-sm font-medium">Scanner maintenant</span>
+              <ScanLine size={60}  className="mx-auto" />
               </div>
             </div>
+  
           </div>
         </button>
 
@@ -127,11 +127,10 @@ export function Scanner({ getArticleByCodeBarres, onAddMouvement, onAddArticle, 
               <ArrowDown className="w-8 h-8 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Sortie de Stock</h2>
+              <h2 className="text-xl font-semibold text-orange-600 dark:text-white mb-2">JE RETIRE</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">Scanner un équipement pour enregistrer une sortie</p>
               <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                <ScanLine size={18} />
-                <span className="text-sm font-medium">Scanner maintenant</span>
+                <ScanLine size={60} className='mx-auto' />
               </div>
             </div>
           </div>
