@@ -191,7 +191,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               Tableau de bord
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
-              Vue d'ensemble complète de votre stock télécoms
+              Vue d'ensemble complète de votre stock 
             </p>
           </div>
           <button

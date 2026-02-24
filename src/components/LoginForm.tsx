@@ -34,7 +34,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex flex-col lg:flex-row">
       {/* Bannière Beta moderne avec effet néon */}
       <div className="fixed top-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-b border-purple-500/30 z-50 overflow-y-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-pink-600/10 to-blue-600/10 animate-pulse"></div>
@@ -148,7 +148,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-white hover:bg-gray-100 disabled:bg-gray-200 text-blue-600 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

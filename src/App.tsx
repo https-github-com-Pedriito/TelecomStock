@@ -11,6 +11,7 @@ import { LoginForm } from './components/LoginForm';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UserProfileModal } from './components/UserProfileModal';
+import { Analytics } from "@vercel/analytics/next";
 
 // Lazy load pages for better performance
 const Dashboard = React.lazy(() => import('./pages/DashboardMT').then(module => ({ default: module.Dashboard })));
@@ -22,7 +23,6 @@ const Fournisseurs = React.lazy(() => import('./pages/Fournisseurs').then(module
 const Entrepots = React.lazy(() => import('./pages/Entrepots').then(module => ({ default: module.Entrepots })));
 const Utilisateurs = React.lazy(() => import('./pages/Utilisateurs').then(module => ({ default: module.Utilisateurs })));
 const Inventory = React.lazy(() => import('./pages/Inventory').then(module => ({ default: module.Inventory })));
-// const AdminPortal = React.lazy(() => import('./pages/AdminPortal').then(module => ({ default: module.AdminPortal })));
 
 // Loading component for Suspense
 const PageLoader = () => (
@@ -100,10 +100,6 @@ function App() {
     }
   };
 
-  // Utiliser les fournisseurs du hook useStock
-  // Pas besoin de gestion locale, tout est géré dans le hook
-
-  // Adapter le type de updateFournisseur pour correspondre à l'interface attendue
   const updateFournisseurAdapter = async (id: string, updates: Partial<Fournisseur>): Promise<void> => {
     await updateFournisseurFromHook(id, updates);
   };
@@ -129,7 +125,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Ne charger les localisations que si l'utilisateur est authentifié
     if (isAuthenticated) {
       refreshLocalisations().catch(err => {
         console.error('Erreur lors de l\'initialisation des localisations:', err);
@@ -145,33 +140,27 @@ function App() {
       return newLocalisation;
     } catch (error) {
       console.error('Erreur lors de la création de la localisation:', error);
-      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
       throw error;
     }
   };
 
   const updateLocalisation = async (id: string, data: Partial<LocalisationInput>): Promise<Localisation> => {
     try {
-      console.log('Mise à jour de la localisation:', id, data);
       const updatedLocalisation = await api.updateLocalisation(id, data) as Localisation;
       setLocalisations(prev => prev.map(loc => loc.id === id ? updatedLocalisation : loc));
       return updatedLocalisation;
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la localisation:', error);
-      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
       throw error;
     }
   };
 
   const deleteLocalisation = async (id: string): Promise<void> => {
     try {
-      console.log('Suppression définitive de la localisation:', id);
       await api.deleteLocalisation(id);
-      // Supprimer complètement de la liste locale
       setLocalisations(prev => prev.filter(loc => loc.id !== id));
     } catch (error) {
       console.error('Erreur lors de la suppression de la localisation:', error);
-      setErrorLocalisations(error instanceof Error ? error.message : 'Erreur inconnue');
       throw error;
     }
   };
@@ -196,7 +185,6 @@ function App() {
           console.error('Erreur lors du chargement des utilisateurs:', error);
         }
       };
-
       void fetchUsers();
     }
   }, [user, isAuthenticated]);
@@ -224,19 +212,16 @@ function App() {
     }
   };
 
-
   // Fonction de vérification des permissions
   const hasPermission = (permission: string) => {
     if (!user) return false;
-
     const role = user.role.toLowerCase();
-
     switch (permission) {
       case 'view_dashboard':
       case 'manage_users':
         return role === 'admin';
       case 'edit_articles':
-        return role === 'admin';
+        return role === 'admin' || role === 'manager';
       case 'delete_articles':
         return role === 'admin';
       case 'view_articles':
@@ -244,7 +229,7 @@ function App() {
       case 'view_prices':
         return role === 'admin' || role === 'manager';
       case 'manage_articles':
-        return role === 'admin';
+        return role === 'admin' || role === 'manager';
       case 'view_mouvements':
       case 'view_historique':
       case 'view_inventory':
@@ -268,28 +253,19 @@ function App() {
     is_active: user.is_active
   } : null;
 
-  // const [users, setUsers] = useState<User[]>([]); // Non utilisé
-
   const handleLogin = async (email: string, password: string) => {
-    console.log('=== DÉBUT DE LA TENTATIVE DE CONNEXION ===');
     try {
       setLoginError('');
-      console.log('App: Attempting to sign in...');
       await signIn(email, password);
-      console.log('App: Sign in successful');
-
-      // Rediriger vers la première page autorisée
       if (hasPermission('view_dashboard')) {
-        console.log('App: User has dashboard permission, redirecting...');
         setCurrentView('dashboard');
       } else if (hasPermission('use_scanner')) {
-        console.log('App: User has scanner permission, redirecting...');
         setCurrentView('scanner');
       }
     } catch (error) {
       console.error('App: Login error:', error);
       setLoginError(error instanceof Error ? error.message : 'Erreur de connexion');
-      throw error; // Propager l'erreur pour que LoginForm puisse la traiter
+      throw error;
     }
   };
 
@@ -329,24 +305,20 @@ function App() {
   }, [currentView, isAuthenticated, hasPermission]);
 
   const handleAddArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>): Article => {
-    // Track article addition in Google Analytics
     const articleName = articleData.nom || 'Article inconnu';
     const articleCategory = articleData.categorie || 'Article';
     trackAddArticle(articleName, articleCategory);
-    // Return a temporary article object while the real one is being created
     const tempArticle: Article = {
       id: 'temp_' + new Date().getTime(),
       ...articleData,
       created_at: new Date(),
       updated_at: new Date()
     };
-    // Start creation in background
     void addArticle(articleData);
     return tempArticle;
   };
 
   const handleAddMouvement = (mouvementData: CreateMouvementData): Mouvement => {
-    // Return a temporary mouvement object while the real one is being created
     const tempMouvement: Mouvement = {
       id: 'temp_' + new Date().getTime(),
       article: articles.find(a => a.id === mouvementData.article_id)!,
@@ -359,7 +331,6 @@ function App() {
       dateHeure: new Date(),
       created_at: new Date()
     };
-    // Start creation in background
     void addMouvement(mouvementData);
     return tempMouvement;
   };
@@ -367,7 +338,6 @@ function App() {
   type UserFormData = Omit<User, 'id' | 'created_at' | 'updated_at'>;
 
   const handleAddUser = async (userData: UserFormData): Promise<User> => {
-    // Create the new user via the API
     try {
       const newUser = await api.createUser({
         nom: userData.nom,
@@ -395,7 +365,6 @@ function App() {
       });
     } catch (error: any) {
       console.error('Error changing password:', error);
-      // Propager l'erreur avec un message plus clair
       if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
         throw new Error('Mot de passe actuel incorrect');
       } else if (error.message?.includes('400')) {
@@ -458,7 +427,7 @@ function App() {
                 />
               );
             case 'fournisseurs':
-              return hasPermission('manage_users') && (
+              return (hasPermission('manage_users') || hasPermission('view_inventory')) && (
                 <Fournisseurs
                   fournisseurs={fournisseursFromHook}
                   onAddFournisseur={createFournisseur}
@@ -468,7 +437,7 @@ function App() {
                 />
               );
             case 'entrepots':
-              return hasPermission('manage_users') && (
+              return (hasPermission('manage_users') || hasPermission('view_inventory')) && (
                 <Entrepots
                   localisations={localisations}
                   loading={loadingLocalisations}
@@ -508,7 +477,6 @@ function App() {
     );
   };
 
-  // Afficher une page de chargement pendant la vérification de l'authentification
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -531,17 +499,13 @@ function App() {
     );
   }
 
-  // Détection mobile
   const isMobile = window.innerWidth < 768;
 
-  // Interface mobile avec nouvelle UX
   if (isMobile && useNewUX) {
     return (
       <FeedbackProvider>
-        {/* Header mobile fixe avec déconnexion */}
         <div className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-50 overflow-hidden">
           <div className="flex items-center space-x-3 min-w-0 flex-1">
-            {/* Pastille utilisateur cliquable */}
             <button
               onClick={() => setShowProfileModal(true)}
               className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0 hover:scale-105 transition-transform shadow-lg"
@@ -561,7 +525,6 @@ function App() {
             </div>
           </div>
 
-          {/* Bouton mode sombre */}
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0 mr-2"
@@ -578,7 +541,6 @@ function App() {
             )}
           </button>
 
-          {/* Badge BETA visible sur mobile */}
           <div className="relative inline-flex items-center justify-center mr-3 flex-shrink-0 pointer-events-none ">
             <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50 pointer-events-none overflow-hidden">
               BETA
@@ -598,14 +560,12 @@ function App() {
         </div>
 
         <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden max-w-full pt-[72px]">
-          {/* Contenu principal - avec overflow contrôlé et padding généreux */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
             <div className="px-6 py-6 max-w-full">
               {renderCurrentView()}
             </div>
           </div>
 
-          {/* Navigation mobile en bas */}
           <MobileBottomNav
             currentView={currentView}
             onViewChange={setCurrentView}
@@ -614,7 +574,7 @@ function App() {
             alertsCount={getArticlesWithAlerts().length}
           />
         </div>
-        {/* Modale profil utilisateur */}
+
         <UserProfileModal
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
@@ -626,7 +586,6 @@ function App() {
     );
   }
 
-  // Interface desktop standard
   return (
     <FeedbackProvider>
       <Layout
