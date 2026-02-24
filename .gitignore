@@ -23,6 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables - NEVER commit these files!
+.env
 .env*.local
+.env.production
+
+# Deployment
 .vercel
 account.md

@@ -227,6 +227,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
                 placeholder="Rechercher par nom, code-barres ou fournisseur..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label="Rechercher des équipements"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               />
             </div>
@@ -238,6 +239,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
+                  aria-label="Filtrer par catégorie"
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
                 >
                   <option value="">Toutes catégories</option>
@@ -267,15 +269,28 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       </div>
 
       {/* Articles Grid */}
-      {filteredArticles.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">
+      {articles.length === 0 && !barcodesLoaded ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 space-y-4 animate-pulse-subtle">
+              <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-xl" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+            </div>
+          ))}
+        </div>
+      ) : filteredArticles.length === 0 ? (
+        <div className="text-center py-12 animate-fade-in">
+          <div className="w-32 h-32 bg-gray-50 dark:bg-gray-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-800">
+            <Search className="w-12 h-12 text-gray-300 dark:text-gray-600" />
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 font-medium">
             {articles.length === 0 ? 'Aucun article enregistré' : 'Aucun article trouvé'}
           </p>
           {articles.length === 0 && canManageArticles && (
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all active:scale-95 shadow-lg shadow-blue-500/20"
             >
               Créer votre premier article
             </button>
@@ -283,16 +298,17 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {filteredArticles.map(article => (
-            <ArticleCard
-              key={article.id}
-              article={article}
-              onEdit={hasPermission('edit_articles') ? handleEditArticle : undefined}
-              onDelete={hasPermission('delete_articles') ? handleDeleteArticle : undefined}
-              onPrintLabel={handlePrintLabel}
-              canDelete={hasPermission('delete_articles')}
-              canViewPrice={hasPermission('view_prices')}
-            />
+          {filteredArticles.map((article, index) => (
+            <div key={article.id} className="animate-slide-up" style={{ animationDelay: `${index * 50}ms` }}>
+              <ArticleCard
+                article={article}
+                onEdit={hasPermission('edit_articles') ? handleEditArticle : undefined}
+                onDelete={hasPermission('delete_articles') ? handleDeleteArticle : undefined}
+                onPrintLabel={handlePrintLabel}
+                canDelete={hasPermission('delete_articles')}
+                canViewPrice={hasPermission('view_prices')}
+              />
+            </div>
           ))}
         </div>
       )}

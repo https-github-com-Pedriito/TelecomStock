@@ -8,6 +8,12 @@
     <meta name="description" content="Application de gestion de stock pour entreprises" />
     <meta name="theme-color" content="#003f7f" />
     <link rel="manifest" href="/manifest.json" />
+    
+    <!-- CSP désactivé en dev - actif en production via vercel.json -->
+    <!-- Headers de sécurité additionnels -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
     <title>Decimale Stock - Gestion de Stock</title>
   </head>
   <body>

@@ -1,4 +1,6 @@
 import { User } from '../types';
+import { logger, logApiRequest, logApiResponse, logApiError } from './logger';
+import { getToken, setToken, clearToken } from './tokenManager';
 
 class ApiService {
   private baseUrl: string;
@@ -9,9 +11,9 @@ class ApiService {
     this.baseUrl = import.meta.env.VITE_API_URL;
 
     if (!import.meta.env.VITE_API_URL) {
-      console.warn('⚠️ VITE_API_URL non trouvé dans .env, utilisation du fallback');
+      logger.warn('⚠️ VITE_API_URL non trouvé dans .env, utilisation du fallback');
     }
-    this.token = localStorage.getItem('auth_token');
+    this.token = getToken();
   }
 
   private async requestWithFallback(endpoint: string, options: RequestInit = {}): Promise<any> {
@@ -47,10 +49,9 @@ class ApiService {
           errorData = { message: errorText || `Erreur HTTP ${response.status}` };
         }
 
-        console.error('[DEBUG] API Error:', {
+        logger.error('API Error:', {
           status: response.status,
           statusText: response.statusText,
-          data: errorData,
           url
         });
 
@@ -81,17 +82,13 @@ class ApiService {
         //console.log('[DEBUG] Response data:', jsonData);
         return jsonData;
       } catch (error) {
-        console.warn('Failed to parse response as JSON:', text);
+        logger.warn('Failed to parse response as JSON:', text);
         return text;
       }
     } catch (error) {
-      console.error('❌ Request failed:', {
+      logger.error('Request failed:', {
         endpoint,
-        baseUrl: this.baseUrl,
-        fullUrl: `${this.baseUrl}${endpoint}`,
-        error: error instanceof Error ? error.message : 'Unknown error',
-        errorType: error instanceof TypeError ? 'Network Error (CORS/SSL?)' : 'Other Error',
-        stack: error instanceof Error ? error.stack : undefined
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
 
       // Si c'est une erreur réseau (TypeError), donner plus de détails
@@ -114,7 +111,7 @@ class ApiService {
     });
 
     this.token = response.token;
-    localStorage.setItem('auth_token', response.token);
+    setToken(response.token);
     return response;
   }
 
@@ -124,7 +121,7 @@ class ApiService {
   }
 
   async post<T>(endpoint: string, data: any) {
-    console.log('API POST request:', { endpoint, data });
+    logApiRequest('POST', endpoint, data);
     return this.requestWithFallback(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -148,7 +145,7 @@ class ApiService {
 
   async logout() {
     this.token = null;
-    localStorage.removeItem('auth_token');
+    clearToken();
   }
 
   async getProfile() {

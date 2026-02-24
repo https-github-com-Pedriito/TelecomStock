@@ -1,4 +1,4 @@
-import React,{ useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { X, Camera, Keyboard, Flashlight, RotateCcw, CheckCircle } from "lucide-react";
 
@@ -10,6 +10,8 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const isMounted = useRef(true);
+  const streamRef = useRef<MediaStream | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
   const detectedRef = useRef(false);
@@ -20,10 +22,12 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [cameraError, setCameraError] = useState<string>('');
 
   useEffect(() => {
+    isMounted.current = true;
     if (scanMode === 'camera') {
       startScanner();
     }
     return () => {
+      isMounted.current = false;
       stopScanner();
     };
   }, [scanMode]);
@@ -39,45 +43,54 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const startScanner = async () => {
     setCameraError('');
     try {
+      // SÉCURITÉ : Arrêter toute instance précédente avant de commencer
+      if (scannerRef.current) {
+        await stopScanner();
+      }
+
       // Allow new detections when (re)starting the scanner
       detectedRef.current = false;
       scannerRef.current = new Html5Qrcode("reader");
 
       const qrCodeSuccessCallback = (decodedText: string) => {
-        if (detectedRef.current) return; // already handled one detection
+        if (detectedRef.current) return;
         detectedRef.current = true;
-        console.log("📸 Code détecté:", decodedText);
-        
+
         setLastScanned(decodedText);
         setScanSuccess(true);
-        
+
         // Vibration feedback pour mobile
         if ('vibrate' in navigator) {
-          navigator.vibrate(200);
+          navigator.vibrate([100, 50, 100]);
         }
-        
-        // Audio feedback
+
+        // Audio feedback (Beep synthétisé)
         try {
-          const audio = new Audio();
-          audio.play().catch(() => {}); // Simple beep
-        } catch (audioErr) {
-          // Ignore audio errors
-        }
-        
-        setTimeout(() => {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+          gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+          oscillator.start();
+          gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+          oscillator.stop(audioCtx.currentTime + 0.1);
+        } catch (e) { }
+
+        setTimeout(async () => {
+          // IMPORTANT: Stop the scanner BEFORE triggering onScan to release camera promptly
+          await stopScanner();
           onScan(decodedText);
-          if (scannerRef.current) {
-            scannerRef.current.stop().then(() => {
-              setIsScanning(false);
-            }).catch(err => {
-              console.error("❌ Erreur lors de l'arrêt du scanner:", err);
-            });
-          }
         }, 500); // Délai pour voir le feedback
       };
 
       await scannerRef.current.start(
-        { facingMode: "environment" }, 
+        { facingMode: "environment" },
         {
           fps: 30,
           qrbox: { width: 300, height: 300 }, // Zone plus grande pour mobile
@@ -90,70 +103,77 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         }
       );
 
+      // CAPTURE DU FLUX MEDIA (Crucial pour Mac)
+      const videoElem = document.querySelector("#reader video") as HTMLVideoElement;
+      if (videoElem && videoElem.srcObject instanceof MediaStream) {
+        streamRef.current = videoElem.srcObject;
+        console.log("📹 Flux média capturé");
+      }
+
       setIsScanning(true);
       console.log("✅ Scanner démarré");
     } catch (err: any) {
-      console.error("❌ Erreur démarrage html5-qrcode:", err);
+      console.error("❌ Erreur démarrage:", err);
       setCameraError(err.message || 'Impossible d\'accéder à la caméra');
       setScanMode('manual'); // Fallback vers manuel
     }
   };
 
-  const stopScanner = async () => {
-    // mark as detected to avoid any callbacks triggering onScan after we stop
-    detectedRef.current = true;
-    if (!scannerRef.current) return;
+  // NETTOYAGE SYNCHRONE (Crucial pour MacOS/Safari)
+  const stopTracksSync = () => {
+    console.log("�️ Nettoyage synchrone des tracks...");
 
-    try {
-      // 1. Arrêter le scan s'il est actif
+    // 1. Arrêt via streamRef
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+      streamRef.current = null;
+    }
+
+    // 2. Recherche sauvage de tous les éléments vidéo
+    const videos = document.getElementsByTagName('video');
+    for (let i = 0; i < videos.length; i++) {
+      const v = videos[i];
+      v.pause();
+      if (v.srcObject instanceof MediaStream) {
+        v.srcObject.getTracks().forEach(t => {
+          t.stop();
+          t.enabled = false;
+        });
+        v.srcObject = null;
+      }
+    }
+  };
+
+  const stopScanner = async () => {
+    console.log("🛑 Arrêt du scanner...");
+    detectedRef.current = true;
+
+    // Étape 1 : Libération immédiate et synchrone du matériel
+    stopTracksSync();
+
+    // Étape 2 : Nettoyage de la librairie (asynchrone)
+    if (scannerRef.current) {
       try {
-        if (isScanning && (scannerRef.current as any).isScanning) {
+        const state = (scannerRef.current as any).getState?.() || (scannerRef.current as any).state;
+        if (state === 2 || (scannerRef.current as any).isScanning === true) {
           await scannerRef.current.stop();
         }
-      } catch (stopErr) {
-        console.warn(`⚠️ Erreur lors de l'arrêt (stop) du scanner — continuer le nettoyage:`, stopErr);
-      }
-
-      // 2. Nettoyer l'instance du scanner
-      try {
         await scannerRef.current.clear();
-      } catch (clearErr: any) {
-        const isNotFound = clearErr && (clearErr.name === 'NotFoundError' || (clearErr.message && clearErr.message.includes('removeChild')));
-        if (isNotFound) {
-          console.warn(`⚠️ Ignored NotFoundError during scanner.clear():`, clearErr?.message || clearErr);
-        } else {
-          throw clearErr;
-        }
+      } catch (err) {
+        console.warn("⚠️ scanner.stop/clear a échoué (normal si déjà disposé)", err);
       }
+      scannerRef.current = null;
+    }
 
-      // 3. S'assurer que tous les flux médias sont arrêtés
-      try {
-        const videoElem = document.querySelector("#reader video") as HTMLVideoElement;
-        if (videoElem?.srcObject) {
-          const stream = videoElem.srcObject as MediaStream;
-          stream.getTracks().forEach(track => track.stop());
-          videoElem.srcObject = null;
-        }
-      } catch (mediaErr) {
-        console.warn("⚠️ Erreur lors de la libération du flux média:", mediaErr);
-      }
+    // Étape 3 : Nettoyage final du DOM
+    const reader = document.getElementById('reader');
+    if (reader) reader.innerHTML = '';
 
-      // 4. Nettoyer les références
-      try {
-        scannerRef.current = null;
-        setIsScanning(false);
-        console.log('✅ Scanner nettoyé et arrêté');
-      } catch (refErr) {
-        console.warn(`⚠️ Erreur lors du nettoyage des références du scanner:`, refErr);
-      }
-    } catch (err) {
-      console.error(`❌ Erreur lors de l'arrêt du scanner:`, err);
-      try {
-        scannerRef.current = null;
-        setIsScanning(false);
-      } catch (forceErr) {
-        console.warn(`⚠️ Erreur lors du nettoyage forcé du scanner:`, forceErr);
-      }
+    if (isMounted.current) {
+      setIsScanning(false);
     }
   };
 
@@ -162,7 +182,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       try {
         // Obtenir la caméra rendue depuis le scanner
         const cameras = await (scannerRef.current as any).getRunningTrackCameraCapabilities();
-        
+
         if (!cameras) {
           console.warn("❌ Impossible d'obtenir les capacités de la caméra");
           return;
@@ -171,7 +191,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         // Utiliser la nouvelle API CameraCapabilities
         const cameraCapabilities = cameras.getCapabilities();
         const torchFeature = cameraCapabilities.torchFeature();
-        
+
         if (torchFeature.isSupported()) {
           // Appliquer la nouvelle valeur de torch
           await torchFeature.apply(!torch);
@@ -182,17 +202,17 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         }
       } catch (err) {
         console.warn("❌ Erreur lors du toggle de la lampe torche:", err);
-        
+
         // Fallback vers l'ancienne méthode si la nouvelle API échoue
         try {
           const videoElement = document.querySelector("#reader video") as HTMLVideoElement;
           if (videoElement && videoElement.srcObject) {
             const stream = videoElement.srcObject as MediaStream;
             const track = stream.getVideoTracks()[0];
-            
+
             if (track) {
               const capabilities = track.getCapabilities();
-              
+
               if ('torch' in capabilities) {
                 await track.applyConstraints({
                   // @ts-ignore - torch n'est pas dans les types TypeScript standard
@@ -215,13 +235,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualCode.trim() || detectedRef.current) return;
-    
+
     detectedRef.current = true;
     console.log('⌨️ Code manuel soumis:', manualCode);
-    
+
     setLastScanned(manualCode);
     setScanSuccess(true);
-    
+
     setTimeout(() => {
       onScan(manualCode);
     }, 300);
@@ -245,10 +265,10 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             <Camera className="h-6 w-6 text-white" />
             <h2 className="text-lg font-semibold text-white">Scanner</h2>
           </div>
-          
+
           <button
-            onClick={() => {
-              stopScanner();
+            onClick={async () => {
+              await stopScanner();
               onClose();
             }}
             className="p-3 rounded-full bg-red-600 hover:bg-red-700 active:scale-95 transition-all"
@@ -261,23 +281,21 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         <div className="flex space-x-2 bg-gray-800 rounded-lg p-1">
           <button
             onClick={() => setScanMode('camera')}
-            className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all active:scale-95 ${
-              scanMode === 'camera'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:text-white'
-            }`}
+            className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all active:scale-95 ${scanMode === 'camera'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-300 hover:text-white'
+              }`}
           >
             <Camera className="h-5 w-5 mr-2" />
             <span className="font-medium">Caméra</span>
           </button>
-          
+
           <button
             onClick={() => setScanMode('manual')}
-            className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all active:scale-95 ${
-              scanMode === 'manual'
-                ? 'bg-blue-600 text-white'
-                : 'text-gray-300 hover:text-white'
-            }`}
+            className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md transition-all active:scale-95 ${scanMode === 'manual'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-300 hover:text-white'
+              }`}
           >
             <Keyboard className="h-5 w-5 mr-2" />
             <span className="font-medium">Manuel</span>
@@ -294,15 +312,14 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
               <div className="bg-gray-900 p-4 flex justify-center space-x-4">
                 <button
                   onClick={toggleTorch}
-                  className={`p-3 rounded-full transition-all active:scale-95 ${
-                    torch
-                      ? 'bg-yellow-500 text-black'
-                      : 'bg-gray-700 text-white hover:bg-gray-600'
-                  }`}
+                  className={`p-3 rounded-full transition-all active:scale-95 ${torch
+                    ? 'bg-yellow-500 text-black'
+                    : 'bg-gray-700 text-white hover:bg-gray-600'
+                    }`}
                 >
                   <Flashlight className="h-5 w-5" />
                 </button>
-                
+
                 <button
                   onClick={restartScanner}
                   className="p-3 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-all active:scale-95"
@@ -345,7 +362,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             {/* Camera View */}
             <div className="flex-1 relative">
               <div id="reader" className="w-full h-full" />
-              
+
               {/* Scanning Overlay */}
               {isScanning && !scanSuccess && (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -357,13 +374,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                       <div className="absolute top-0 right-0 w-8 h-8 border-r-4 border-t-4 border-blue-500 rounded-tr-lg"></div>
                       <div className="absolute bottom-0 left-0 w-8 h-8 border-l-4 border-b-4 border-blue-500 rounded-bl-lg"></div>
                       <div className="absolute bottom-0 right-0 w-8 h-8 border-r-4 border-b-4 border-blue-500 rounded-br-lg"></div>
-                      
+
                       {/* Scanning line animation */}
                       <div className="absolute inset-0 overflow-hidden rounded-lg">
                         <div className="scanning-line"></div>
                       </div>
                     </div>
-                    
+
                     {/* Instructions */}
                     <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2 text-center">
                       <p className="text-white text-sm font-medium">
@@ -444,9 +461,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         )}
       </div>
 
-      {/* CSS for scanning animation */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      {/* CSS for scanning animation - Version sécurisée */}
+      <style>
+        {`
         .scanning-line {
           position: absolute;
           top: 0;
@@ -470,8 +487,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         .safe-area-bottom {
           padding-bottom: env(safe-area-inset-bottom);
         }
-        `
-      }} />
+        `}
+      </style>
     </div>
   );
 }

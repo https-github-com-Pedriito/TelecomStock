@@ -47,7 +47,7 @@ interface MouvementModalProps {
 
 export function MouvementModal({ isOpen, onClose, onSave, article, type, currentUser, fournisseurs = [] }: MouvementModalProps) {
   const isNewArticle = article?.id === 'new';
-  
+
   const [formData, setFormData] = useState({
     // Champs pour nouvel article
     nom: '',
@@ -307,27 +307,42 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
                       <input
                         type="number"
                         min="1"
-                        max={type === 'SORTIE' ? article?.quantiteStock : undefined}
+                        max={type === 'SORTIE' ? article?.quantite_stock : undefined}
                         value={formData.quantite}
                         onChange={(e) => setFormData(prev => ({ ...prev, quantite: parseInt(e.target.value) || 1 }))}
-                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-xl ${
-                          !isStockSufficient ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-xl ${!isStockSufficient ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                          }`}
                         required
                       />
                       <p className="text-sm text-gray-500 text-center mt-1">
-                        Stock actuel: {article?.quantiteStock}
-                        {type === 'ENTREE' && article?.quantiteStock !== undefined && ` → ${article.quantiteStock + formData.quantite}`}
-                        {type === 'SORTIE' && article?.quantiteStock !== undefined && ` → ${article.quantiteStock - formData.quantite}`}
+                        Stock actuel: {article?.quantite_stock}
+                        {type === 'ENTREE' && article?.quantite_stock !== undefined && ` → ${article.quantite_stock + formData.quantite}`}
+                        {type === 'SORTIE' && article?.quantite_stock !== undefined && ` → ${article.quantite_stock - formData.quantite}`}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, quantite: prev.quantite + 1 }))}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xl font-bold"
+                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors text-xl font-bold active:scale-95"
                     >
                       +
                     </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, quantite: prev.quantite + 5 }))}
+                        className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-xs font-bold hover:bg-blue-100 transition-colors"
+                      >
+                        +5
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, quantite: prev.quantite + 10 }))}
+                        className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-xs font-bold hover:bg-blue-100 transition-colors"
+                      >
+                        +10
+                      </button>
+                    </div>
                   </div>
                   {!isStockSufficient && (
                     <p className="text-sm text-red-600 mt-1">Stock insuffisant</p>
@@ -374,11 +389,10 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
               <button
                 type="submit"
                 disabled={!isNewArticle && !isStockSufficient}
-                className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
-                  (isNewArticle || isStockSufficient)
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
+                className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${(isNewArticle || isStockSufficient)
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+                  }`}
               >
                 {isNewArticle ? 'Créer l\'article' : `Confirmer le ${type === 'ENTREE' ? 'dépôt' : 'retrait'}`}
               </button>

@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { api } from '../lib/api';
 import { User } from '../types';
+import { logger } from '../lib/logger';
+import { setToken, getToken, clearToken, hasValidToken, startTokenExpiryCheck } from '../lib/tokenManager';
 
 interface AuthState {
   user: User | null;
@@ -15,7 +17,7 @@ let authPromise: Promise<User | null> | null = null;
 
 export function useAuth() {
   const [state, setState] = useState<AuthState>(() => {
-    const token = localStorage.getItem('auth_token');
+    const token = getToken();
     return {
       user: null,
       loading: !!token,
@@ -24,10 +26,24 @@ export function useAuth() {
     };
   });
 
+  // Surveillance automatique de l'expiration du token
+  useEffect(() => {
+    const stopCheck = startTokenExpiryCheck(() => {
+      logger.warn('Token expiré - déconnexion automatique');
+      setState({
+        user: null,
+        loading: false,
+        error: 'Session expirée',
+        isAuthenticated: false
+      });
+    });
+    return stopCheck;
+  }, []);
+
   const checkAuth = useCallback(async () => {
     // Si une vérification est déjà en cours, attendre le résultat
     if (authPromise) {
-      console.log('[DEBUG] checkAuth - Attente de la vérification en cours...');
+      logger.debug('checkAuth - Attente de la vérification en cours...');
       try {
         const user = await authPromise;
         if (user) {
@@ -52,11 +68,11 @@ export function useAuth() {
     }
 
     if (isCheckingAuth) {
-      console.log('[DEBUG] checkAuth - Vérification déjà en cours, ignore');
+      logger.debug('checkAuth - Vérification déjà en cours, ignore');
       return;
     }
 
-    console.log('[DEBUG] checkAuth - Début de la vérification');
+    logger.debug('checkAuth - Début de la vérification');
     isCheckingAuth = true;
 
     // Timeout spécial pour mobile
@@ -65,15 +81,15 @@ export function useAuth() {
 
     authPromise = (async (): Promise<User | null> => {
       try {
-        const token = localStorage.getItem('auth_token');
-        console.log('checkAuth - Token trouvé:', token ? 'Oui' : 'Non');
-        console.log('checkAuth - Plateforme:', isMobile ? 'Mobile' : 'Desktop');
+        const token = getToken();
+        logger.debug('checkAuth - Token trouvé:', token ? 'Oui' : 'Non');
+        logger.debug('checkAuth - Plateforme:', isMobile ? 'Mobile' : 'Desktop');
         
         if (!token) {
           return null;
         }
 
-        console.log(`checkAuth - Vérification du profil (timeout: ${timeout}ms)...`);
+        logger.debug(`checkAuth - Vérification du profil (timeout: ${timeout}ms)...`);
         
         // Promise avec timeout
         const profilePromise = api.getProfile();
@@ -84,9 +100,9 @@ export function useAuth() {
         const profile = await Promise.race([profilePromise, timeoutPromise]);
         return profile;
       } catch (error: any) {
-        console.error('Error checking auth:', error);
-        console.log('checkAuth - Suppression du token invalide');
-        localStorage.removeItem('auth_token');
+        logger.error('Error checking auth:', error);
+        logger.debug('checkAuth - Suppression du token invalide');
+        clearToken();
         
         // Messages d'erreur spécifiques pour mobile
         if (isMobile) {
@@ -129,11 +145,11 @@ export function useAuth() {
 
   const signIn = useCallback(async (email: string, password: string) => {
     try {
-      console.log('[DEBUG] signIn - Tentative de connexion pour:', email);
+      logger.debug('signIn - Tentative de connexion pour:', email);
       setState(prev => ({ ...prev, loading: true, error: null }));
       const { token, user } = await api.login(email, password);
-      localStorage.setItem('auth_token', token);
-      console.log('[DEBUG] signIn - Connexion réussie pour:', user.email);
+      setToken(token);
+      logger.info('signIn - Connexion réussie pour:', user.email);
       setState({
         user,
         loading: false,
@@ -145,7 +161,7 @@ export function useAuth() {
       authPromise = null;
       return { token, user };
     } catch (error) {
-      console.error('[DEBUG] Error signing in:', error);
+      logger.error('Error signing in:', error);
       setState({
         user: null,
         loading: false,
@@ -159,7 +175,7 @@ export function useAuth() {
   const signOut = useCallback(async () => {
     try {
       await api.logout();
-      localStorage.removeItem('auth_token');
+      clearToken();
       setState({
         user: null,
         loading: false,
@@ -170,7 +186,7 @@ export function useAuth() {
       isCheckingAuth = false;
       authPromise = null;
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
       setState({
         user: null,
         loading: false,
@@ -185,8 +201,7 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    if (token && !state.isAuthenticated && !isCheckingAuth) {
+    if (hasValidToken() && !state.isAuthenticated && !isCheckingAuth) {
       checkAuth();
     }
   }, [checkAuth, state.isAuthenticated]);

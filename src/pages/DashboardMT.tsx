@@ -58,31 +58,31 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
   const generateChartData = () => {
     const days = 14; // 14 derniers jours (2 semaines)
     const data: { date: string; Entrees: number; Sorties: number }[] = [];
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0); // Reset à minuit
       const label = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
-      
+
       const dayMovements = mouvements.filter((m: Mouvement) => {
         const movDate = new Date(m.dateHeure);
         return movDate.getDate() === date.getDate() &&
-               movDate.getMonth() === date.getMonth() &&
-               movDate.getFullYear() === date.getFullYear();
+          movDate.getMonth() === date.getMonth() &&
+          movDate.getFullYear() === date.getFullYear();
       });
-      
+
       const entreesCount = dayMovements
         .filter((m: Mouvement) => m.type === 'ENTREE')
         .reduce((sum: number, m: Mouvement) => sum + m.quantite, 0);
-      
+
       const sortiesCount = dayMovements
         .filter((m: Mouvement) => m.type === 'SORTIE')
         .reduce((sum: number, m: Mouvement) => sum + m.quantite, 0);
-      
+
       data.push({ date: label, Entrees: entreesCount, Sorties: sortiesCount });
     }
-    
+
     setChartData(data);
   };
 
@@ -92,7 +92,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
 
   const totalArticles = articles.length;
   const totalStock = articles.reduce((sum, article) => sum + (Number(article.quantite_stock) || 0), 0);
-  
+
   const totalValue = articles.reduce((sum, a) => {
     const prix = Number(a.prix_unitaire) || 0;
     const qte = Number(a.quantite_stock) || 0;
@@ -106,15 +106,15 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
     const today = new Date();
     const checkDate = new Date(date);
     return checkDate.getDate() === today.getDate() &&
-           checkDate.getMonth() === today.getMonth() &&
-           checkDate.getFullYear() === today.getFullYear();
+      checkDate.getMonth() === today.getMonth() &&
+      checkDate.getFullYear() === today.getFullYear();
   };
 
-  const entreesDuJour = mouvements.filter(m => 
+  const entreesDuJour = mouvements.filter(m =>
     m.type === 'ENTREE' && isToday(m.dateHeure)
   ).reduce((sum, m) => sum + m.quantite, 0);
-  
-  const sortiesDuJour = mouvements.filter(m => 
+
+  const sortiesDuJour = mouvements.filter(m =>
     m.type === 'SORTIE' && isToday(m.dateHeure)
   ).reduce((sum, m) => sum + m.quantite, 0);
 
@@ -124,7 +124,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
   }, {} as Record<string, number>);
 
   const maxValue = Math.max(...chartData.map(d => Math.max(d.Entrees, d.Sorties)), 1);
-  
+
   // Calculer le pourcentage pour les barres de progression d'aujourd'hui
   const maxDailyMovement = Math.max(entreesDuJour, sortiesDuJour, 1);
   const entreesPercentage = (entreesDuJour / maxDailyMovement) * 100;
@@ -151,11 +151,11 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
     },
     {
       title: "Valeur Stock",
-      value: totalValue > 0 
+      value: totalValue > 0
         ? totalValue.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })
         : '0 €',
-      subtitle: articlesWithPrice.length > 0 
-        ? "Valeur totale" 
+      subtitle: articlesWithPrice.length > 0
+        ? "Valeur totale"
         : "Aucun prix défini",
       icon: Euro,
       bgColor: "bg-purple-50 dark:bg-purple-900/30",
@@ -174,12 +174,20 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
   ];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 md:pb-8">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-950 pb-20 md:pb-8 overflow-x-hidden">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-in fade-in duration-700">
+        {/* Pull-to-refresh indicator (Simulation) */}
+        <div className={`overflow-hidden transition-all duration-300 flex justify-center items-center ${refreshing ? 'h-16 opacity-100' : 'h-0 opacity-0'}`}>
+          <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400 font-medium">
+            <RefreshCw className="w-6 h-6 animate-spin" />
+            <span className="text-sm">Mise à jour du dashboard...</span>
+          </div>
+        </div>
+
         {/* Header avec bouton refresh */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <div className="transform transition-all active:scale-[0.98]">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
               Tableau de bord
             </h1>
             <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
@@ -189,10 +197,10 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
           >
-            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
-            <span className="font-medium">Actualiser</span>
+            <RefreshCw className={`w-5 h-5 group-hover:rotate-180 transition-transform duration-500 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="font-semibold">Actualiser</span>
           </button>
         </div>
 
@@ -271,7 +279,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Entrées et sorties quotidiennes</p>
             </div>
-            
+
             <div className="flex gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -283,7 +291,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               </div>
             </div>
 
-            <div 
+            <div
               ref={(el) => {
                 // Auto-scroll vers la droite (jours les plus récents) sur mobile
                 if (el && window.innerWidth < 1024) {
@@ -295,11 +303,11 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               {chartData.map((data, idx) => {
                 const entreesHeight = (data.Entrees / maxValue) * 100;
                 const sortiesHeight = (data.Sorties / maxValue) * 100;
-                
+
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center gap-1 min-w-[30px] lg:min-w-[20px] max-w-[50px]">
                     <div className="w-full flex flex-col-reverse items-center gap-1 flex-1">
-                      <div 
+                      <div
                         className="w-full bg-green-500 dark:bg-green-400 rounded-t transition-all hover:bg-green-600 relative group"
                         style={{ height: `${entreesHeight}%`, minHeight: data.Entrees > 0 ? '4px' : '0' }}
                       >
@@ -307,7 +315,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                           {data.Entrees}
                         </span>
                       </div>
-                      <div 
+                      <div
                         className="w-full bg-red-500 dark:bg-red-400 rounded-t transition-all hover:bg-red-600 relative group"
                         style={{ height: `${sortiesHeight}%`, minHeight: data.Sorties > 0 ? '4px' : '0' }}
                       >
@@ -337,13 +345,13 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
 
             <div className="space-y-4">
               {Object.entries(categoriesStats)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .slice(0, 8)
                 .map(([categorie, quantite], idx) => {
                   const maxQuantite = Math.max(...Object.values(categoriesStats));
                   const percentage = (quantite / maxQuantite) * 100;
                   const color = COLORS[idx % COLORS.length];
-                  
+
                   return (
                     <div key={categorie}>
                       <div className="flex justify-between items-center mb-2">
@@ -382,12 +390,16 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
             </div>
             <div className="p-6 max-h-96 overflow-y-auto">
               {articlesWithAlerts.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Package className="w-8 h-8 text-green-600 dark:text-green-400" />
+                <div className="text-center py-10 md:py-16">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-100 dark:border-green-800">
+                    <img
+                      src="/empty-state.png"
+                      alt="Aucune alerte"
+                      className="w-16 h-16 sm:w-24 sm:h-24 opacity-60 mix-blend-multiply dark:mix-blend-normal dark:filter dark:brightness-200"
+                    />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Aucune alerte stock critique</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Aucun équipement n'est en rupture de stock</p>
+                  <p className="text-gray-900 dark:text-white text-sm md:text-base font-semibold">Tout est sous contrôle !</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">Aucune alerte stock critique à signaler.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -398,11 +410,10 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                       className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${
-                          article.quantite_stock === 0 
-                            ? 'text-red-600 dark:text-red-400' 
-                            : 'text-orange-600 dark:text-orange-400'
-                        }`} />
+                        <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${article.quantite_stock === 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-orange-600 dark:text-orange-400'
+                          }`} />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {article.nom}
@@ -412,11 +423,10 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                           </p>
                         </div>
                       </div>
-                      <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
-                        article.quantite_stock === 0
-                          ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
-                          : 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
-                      }`}>
+                      <span className={`ml-2 px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${article.quantite_stock === 0
+                        ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
+                        : 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
+                        }`}>
                         {article.quantite_stock} / {article.seuil_minimum}
                       </span>
                     </div>
@@ -438,29 +448,28 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
             </div>
             <div className="p-6 max-h-96 overflow-y-auto">
               {recentMouvements.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Clock className="w-8 h-8 text-gray-400" />
+                <div className="text-center py-10 md:py-16">
+                  <div className="w-20 h-20 sm:w-28 sm:h-28 bg-gray-50 dark:bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
+                    <Clock className="w-10 h-10 sm:w-14 sm:h-14 text-gray-300 dark:text-gray-600" />
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">Aucun Flux de Stock</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Les Flux de Stock apparaîtront ici</p>
+                  <p className="text-gray-900 dark:text-white text-sm md:text-base font-semibold">Calme plat sur les flux</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm mt-1">Les derniers mouvements de stock apparaîtront ici.</p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {recentMouvements.map((mouvement) => {
                     const article = mouvement.article;
-                    
+
                     return (
                       <div
                         key={mouvement.id}
                         className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${
-                            mouvement.type === 'ENTREE'
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                              : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                          }`}>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full flex-shrink-0 ${mouvement.type === 'ENTREE'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                            }`}>
                             {mouvement.type === 'ENTREE' ? '↑' : '↓'} {mouvement.quantite}
                           </span>
                           <div className="min-w-0 flex-1">
@@ -504,8 +513,8 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               {/* Image */}
               {selectedAlertArticle.image_url && (
                 <div className="w-full h-32 sm:h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
-                  <img 
-                    src={selectedAlertArticle.image_url} 
+                  <img
+                    src={selectedAlertArticle.image_url}
                     alt={selectedAlertArticle.nom}
                     className="w-full h-full object-cover"
                   />

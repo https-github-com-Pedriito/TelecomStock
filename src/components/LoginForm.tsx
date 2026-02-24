@@ -16,12 +16,12 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted');
-    
+
     if (!email || !password) {
       console.log('Email or password missing');
       return;
     }
-    
+
     try {
       console.log('LoginForm: Attempting login with email:', email);
       console.log('LoginForm: Calling onLogin...');
@@ -32,12 +32,6 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
       // L'erreur est déjà gérée via le prop error
     }
   };
-
-  const demoAccounts = [
-    { email: 'admin@telecom.com', role: 'Admin - Accès complet', password: 'admin123' },
-    { email: 'manager@telecom.com', role: 'Manager - Inventaire et scanner', password: 'manager123' },
-    { email: 'tech@telecom.com', role: 'Technicien - Scanner uniquement', password: 'tech123' },
-  ];
 
   return (
     <div className="min-h-screen bg-white flex flex-col lg:flex-row">
@@ -65,7 +59,7 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Section gauche - Marketing (visible seulement sur desktop) */}
       <div className="hidden lg:flex lg:w-3/5 bg-gradient-to-br from-blue-600 to-blue-800 flex-col items-start justify-center p-12 text-white">
         <div className="max-w-lg space-y-12">
@@ -73,42 +67,42 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
             <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-16 h-16 object-contain" />
             <span className="text-2xl font-bold">Decimale Stock</span>
           </div>
-          
+
           <div className="space-y-6">
             <h1 className="text-6xl font-bold leading-tight">
               Maîtrisez votre sotck, sans friction.
             </h1>
-            
+
             <p className="text-lg text-blue-100 leading-relaxed">
               Suivi en temps réel , inventaires rapides, scanner intégré. Pensé pour les équipes terrain
             </p>
           </div>
-          
+
           <div className="pt-12">
             <svg className="w-64 h-64" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="40" y="80" width="120" height="80" rx="4" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.5"/>
-              <rect x="50" y="90" width="100" height="60" rx="4" stroke="currentColor" strokeWidth="2" fill="none"/>
-              <circle cx="100" cy="60" r="8" stroke="currentColor" strokeWidth="2" fill="none"/>
-              <path d="M60 120L70 110M70 120L60 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M90 120L100 110M100 120L90 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M120 120L130 110M130 120L120 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <rect x="40" y="80" width="120" height="80" rx="4" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.5" />
+              <rect x="50" y="90" width="100" height="60" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
+              <circle cx="100" cy="60" r="8" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M60 120L70 110M70 120L60 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M90 120L100 110M100 120L90 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M120 120L130 110M130 120L120 110" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
         </div>
       </div>
-      
+
       {/* Section droite - Formulaire */}
       <div className="flex-1 lg:w-2/5 flex flex-col items-center justify-center p-6 sm:p-4 pt-56 lg:pt-0 lg:p-8">
         <div className="w-full max-w-md px-4 sm:px-6 lg:px-0">
           <p className="text-sm text-gray-400 mb-8 tracking-wide hidden">Login</p>
-          
-            <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl shadow-gray-300/40 p-6 sm:p-8 border border-gray-100">
+
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-3xl shadow-xl shadow-gray-300/40 p-6 sm:p-8 border border-gray-100">
             <div className="fixed top-24 left-0 right-0 flex justify-center lg:hidden pt-4 z-40">
               <div className="w-40 h-40 flex items-center justify-center mx-auto mb-6 rounded-full shadow-lg shadow-blue-200 p-6 bg-white">
                 <img src="/decimalestock.png" alt="Logo Decimale Stock" className="w-32 h-32 object-contain rounded-full" />
               </div>
             </div>
-            
+
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8">Accedez à votre espace client</h2>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -166,28 +160,6 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
                 )}
               </button>
             </form>
-
-            <div className="hidden mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600 mb-3 text-center">Comptes de démonstration :</p>
-              <div className="space-y-2">
-                {demoAccounts.map((account) => (
-                  <button
-                    key={account.email}
-                    onClick={() => {
-                      setEmail(account.email);
-                      setPassword(account.password);
-                    }}
-                    className="w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <p className="text-sm font-medium text-gray-900">{account.email}</p>
-                    <p className="text-xs text-gray-600">{account.role}</p>
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 text-center mt-3">
-                Cliquez sur un compte pour remplir automatiquement les champs
-              </p>
-            </div>
           </div>
         </div>
       </div>

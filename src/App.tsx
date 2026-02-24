@@ -1,4 +1,4 @@
-import React,{ useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { initAnalytics, trackPageView, trackAddArticle } from './lib/analytics';
 import { ViewMode, Article, Mouvement, User, Fournisseur, Localisation, LocalisationInput, CreateMouvementData } from './types';
 import { useStock } from './hooks/useStock';
@@ -8,19 +8,28 @@ import { useNotifications } from './components/Notification';
 import { api } from './lib/api';
 import { Layout } from './components/Layout';
 import { LoginForm } from './components/LoginForm';
-import { Dashboard } from './pages/DashboardMT';
-import { Articles } from './pages/Articles';
-import { Mouvements } from './pages/Mouvements';
-import { Scanner } from './pages/Scanner';
-import { Historique } from './pages/Historique';
-import { Fournisseurs } from './pages/Fournisseurs';
-import { Entrepots } from './pages/Entrepots';
-import { Utilisateurs } from './pages/Utilisateurs';
-import { Inventory } from './pages/Inventory';
-import { AdminPortal } from './pages/AdminPortal';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UserProfileModal } from './components/UserProfileModal';
+
+// Lazy load pages for better performance
+const Dashboard = React.lazy(() => import('./pages/DashboardMT').then(module => ({ default: module.Dashboard })));
+const Articles = React.lazy(() => import('./pages/Articles').then(module => ({ default: module.Articles })));
+const Mouvements = React.lazy(() => import('./pages/Mouvements').then(module => ({ default: module.Mouvements })));
+const Scanner = React.lazy(() => import('./pages/Scanner').then(module => ({ default: module.Scanner })));
+const Historique = React.lazy(() => import('./pages/Historique').then(module => ({ default: module.Historique })));
+const Fournisseurs = React.lazy(() => import('./pages/Fournisseurs').then(module => ({ default: module.Fournisseurs })));
+const Entrepots = React.lazy(() => import('./pages/Entrepots').then(module => ({ default: module.Entrepots })));
+const Utilisateurs = React.lazy(() => import('./pages/Utilisateurs').then(module => ({ default: module.Utilisateurs })));
+const Inventory = React.lazy(() => import('./pages/Inventory').then(module => ({ default: module.Inventory })));
+// const AdminPortal = React.lazy(() => import('./pages/AdminPortal').then(module => ({ default: module.AdminPortal })));
+
+// Loading component for Suspense
+const PageLoader = () => (
+  <div className="flex items-center justify-center p-12">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+  </div>
+);
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
@@ -37,10 +46,10 @@ function App() {
   }, [currentView]);
   const [loginError, setLoginError] = useState('');
   const [useNewUX] = useState(true); // Toggle pour la nouvelle UX
-  
+
   // Mode sombre
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  
+
   // Système de notifications centralisé
   const { showStockNotification, addNotification, NotificationContainer } = useNotifications();
 
@@ -93,7 +102,7 @@ function App() {
 
   // Utiliser les fournisseurs du hook useStock
   // Pas besoin de gestion locale, tout est géré dans le hook
-  
+
   // Adapter le type de updateFournisseur pour correspondre à l'interface attendue
   const updateFournisseurAdapter = async (id: string, updates: Partial<Fournisseur>): Promise<void> => {
     await updateFournisseurFromHook(id, updates);
@@ -187,7 +196,7 @@ function App() {
           console.error('Erreur lors du chargement des utilisateurs:', error);
         }
       };
-      
+
       void fetchUsers();
     }
   }, [user, isAuthenticated]);
@@ -219,9 +228,9 @@ function App() {
   // Fonction de vérification des permissions
   const hasPermission = (permission: string) => {
     if (!user) return false;
-    
+
     const role = user.role.toLowerCase();
-    
+
     switch (permission) {
       case 'view_dashboard':
       case 'manage_users':
@@ -268,7 +277,7 @@ function App() {
       console.log('App: Attempting to sign in...');
       await signIn(email, password);
       console.log('App: Sign in successful');
-      
+
       // Rediriger vers la première page autorisée
       if (hasPermission('view_dashboard')) {
         console.log('App: User has dashboard permission, redirecting...');
@@ -400,97 +409,103 @@ function App() {
   const renderCurrentView = () => {
     const articlesWithAlerts = getArticlesWithAlerts();
 
-    switch (currentView) {
-      case 'dashboard':
-        return hasPermission('view_dashboard') && (
-          <Dashboard
-            articles={articles}
-            mouvements={mouvements}
-            articlesWithAlerts={articlesWithAlerts}
-            onRefreshData={refreshAllData}
-          />
-        );
-      case 'articles':
-        return hasPermission('view_articles') && (
-          <Articles
-            articles={articles}
-            hasPermission={hasPermission}
-            fournisseurs={fournisseursFromHook}
-            onAddArticle={handleAddArticle}
-            onUpdateArticle={updateArticle}
-            onDeleteArticle={deleteArticle}
-            addNotification={addNotification}
-          />
-        );
-      case 'mouvements':
-        return hasPermission('view_mouvements') && (
-          <Mouvements
-            mouvements={mouvements}
-          />
-        );
-      case 'scanner':
-        return hasPermission('use_scanner') && (
-          <Scanner
-            articles={articles}
-            getArticleByCodeBarres={getArticleByCodeBarres}
-            onAddMouvement={handleAddMouvement}
-            onAddArticle={handleAddArticle}
-            fournisseurs={fournisseursFromHook}
-            currentUser={currentUserForComponents!}
-          />
-        );
-      case 'historique':
-        return hasPermission('view_historique') && (
-          <Historique
-            mouvements={mouvements}
-          />
-        );
-      case 'fournisseurs':
-        return hasPermission('manage_users') && (
-          <Fournisseurs
-            fournisseurs={fournisseursFromHook}
-            onAddFournisseur={createFournisseur}
-            onUpdateFournisseur={updateFournisseurAdapter}
-            onDeleteFournisseur={deleteFournisseurFromHook}
-            onRefreshFournisseurs={refreshFournisseurs}
-          />
-        );
-        case 'entrepots':
-          return hasPermission('manage_users') && (
-            <Entrepots
-              localisations={localisations}
-              loading={loadingLocalisations}
-              error={errorLocalisations}
-              onAddLocalisation={addLocalisation}
-              onUpdateLocalisation={updateLocalisation}
-              onDeleteLocalisation={deleteLocalisation}
-              onRefreshLocalisations={refreshLocalisations}
-            />
-          );
-      case 'utilisateurs':
-        return hasPermission('manage_users') && (
-          <Utilisateurs
-            users={usersForComponents}
-            currentUser={currentUserForComponents!}
-            onAddUser={handleAddUser}
-            onUpdateUser={updateUser}
-            onDeleteUser={deleteUser}
-            onRefreshUsers={refreshUsers}
-            addNotification={addNotification}
-          />
-        );
-      case 'inventory':
-        return hasPermission('view_inventory') && (
-          <Inventory
-            articles={articles}
-            users={usersForComponents}
-            currentUser={currentUserForComponents!}
-            getArticleByCodeBarres={getArticleByCodeBarres}
-          />
-        );
-      default:
-        return null;
-    }
+    return (
+      <React.Suspense fallback={<PageLoader />}>
+        {(() => {
+          switch (currentView) {
+            case 'dashboard':
+              return hasPermission('view_dashboard') && (
+                <Dashboard
+                  articles={articles}
+                  mouvements={mouvements}
+                  articlesWithAlerts={articlesWithAlerts}
+                  onRefreshData={refreshAllData}
+                />
+              );
+            case 'articles':
+              return hasPermission('view_articles') && (
+                <Articles
+                  articles={articles}
+                  hasPermission={hasPermission}
+                  fournisseurs={fournisseursFromHook}
+                  onAddArticle={handleAddArticle}
+                  onUpdateArticle={updateArticle}
+                  onDeleteArticle={deleteArticle}
+                  addNotification={addNotification}
+                />
+              );
+            case 'mouvements':
+              return hasPermission('view_mouvements') && (
+                <Mouvements
+                  mouvements={mouvements}
+                />
+              );
+            case 'scanner':
+              return hasPermission('use_scanner') && (
+                <Scanner
+                  articles={articles}
+                  getArticleByCodeBarres={getArticleByCodeBarres}
+                  onAddMouvement={handleAddMouvement}
+                  onAddArticle={handleAddArticle}
+                  fournisseurs={fournisseursFromHook}
+                  currentUser={currentUserForComponents!}
+                />
+              );
+            case 'historique':
+              return hasPermission('view_historique') && (
+                <Historique
+                  mouvements={mouvements}
+                />
+              );
+            case 'fournisseurs':
+              return hasPermission('manage_users') && (
+                <Fournisseurs
+                  fournisseurs={fournisseursFromHook}
+                  onAddFournisseur={createFournisseur}
+                  onUpdateFournisseur={updateFournisseurAdapter}
+                  onDeleteFournisseur={deleteFournisseurFromHook}
+                  onRefreshFournisseurs={refreshFournisseurs}
+                />
+              );
+            case 'entrepots':
+              return hasPermission('manage_users') && (
+                <Entrepots
+                  localisations={localisations}
+                  loading={loadingLocalisations}
+                  error={errorLocalisations}
+                  onAddLocalisation={addLocalisation}
+                  onUpdateLocalisation={updateLocalisation}
+                  onDeleteLocalisation={deleteLocalisation}
+                  onRefreshLocalisations={refreshLocalisations}
+                />
+              );
+            case 'utilisateurs':
+              return hasPermission('manage_users') && (
+                <Utilisateurs
+                  users={usersForComponents}
+                  currentUser={currentUserForComponents!}
+                  onAddUser={handleAddUser}
+                  onUpdateUser={updateUser}
+                  onDeleteUser={deleteUser}
+                  onRefreshUsers={refreshUsers}
+                  addNotification={addNotification}
+                />
+              );
+            case 'inventory':
+              return hasPermission('view_inventory') && (
+                <Inventory
+                  articles={articles}
+                  users={usersForComponents}
+                  currentUser={currentUserForComponents!}
+                  getArticleByCodeBarres={getArticleByCodeBarres}
+                />
+              );
+            default:
+              return null;
+          }
+        })()}
+      </React.Suspense>
+    );
   };
 
   // Afficher une page de chargement pendant la vérification de l'authentification
@@ -545,7 +560,7 @@ function App() {
               </span>
             </div>
           </div>
-          
+
           {/* Bouton mode sombre */}
           <button
             onClick={toggleDarkMode}
@@ -562,14 +577,14 @@ function App() {
               </svg>
             )}
           </button>
-          
+
           {/* Badge BETA visible sur mobile */}
           <div className="relative inline-flex items-center justify-center mr-3 flex-shrink-0 pointer-events-none ">
             <span className="relative inline-flex items-center justify-center px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full font-bold text-xs tracking-widest text-white shadow-lg shadow-purple-500/50 pointer-events-none overflow-hidden">
               BETA
             </span>
           </div>
-          
+
           <button
             onClick={signOut}
             className="flex items-center space-x-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex-shrink-0 ml-2"
@@ -581,7 +596,7 @@ function App() {
             <span className="text-sm font-medium hidden sm:inline">Quitter</span>
           </button>
         </div>
-        
+
         <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden max-w-full pt-[72px]">
           {/* Contenu principal - avec overflow contrôlé et padding généreux */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden pb-20">
@@ -589,7 +604,7 @@ function App() {
               {renderCurrentView()}
             </div>
           </div>
-          
+
           {/* Navigation mobile en bas */}
           <MobileBottomNav
             currentView={currentView}
@@ -599,14 +614,14 @@ function App() {
             alertsCount={getArticlesWithAlerts().length}
           />
         </div>
-                {/* Modale profil utilisateur */}
+        {/* Modale profil utilisateur */}
         <UserProfileModal
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
           currentUser={currentUserForComponents}
           onChangePassword={handleChangePassword}
         />
-                <NotificationContainer />
+        <NotificationContainer />
       </FeedbackProvider>
     );
   }
@@ -625,7 +640,7 @@ function App() {
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
       >
-        {renderCurrentView({ addNotification })}
+        {renderCurrentView()}
       </Layout>
       <NotificationContainer />
     </FeedbackProvider>

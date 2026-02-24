@@ -3,7 +3,7 @@ import { CheckCircle, AlertCircle, X, Package } from 'lucide-react';
 
 interface NotificationProps {
   id: string;
-  type: 'success' | 'warning' | 'info';
+  type: 'success' | 'warning' | 'info' | 'error';
   title: string;
   message: string;
   duration?: number;
@@ -35,6 +35,8 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
         return <AlertCircle className="w-5 h-5 text-orange-500" />;
       case 'info':
         return <Package className="w-5 h-5 text-blue-500" />;
+      case 'error':
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
       default:
         return <CheckCircle className="w-5 h-5 text-green-500" />;
     }
@@ -48,6 +50,8 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
         return 'bg-orange-50 border-orange-200';
       case 'info':
         return 'bg-blue-50 border-blue-200';
+      case 'error':
+        return 'bg-red-50 border-red-200';
       default:
         return 'bg-green-50 border-green-200';
     }
@@ -102,7 +106,7 @@ export function useNotifications() {
       id,
       onClose: removeNotification,
     };
-    
+
     setNotifications(prev => [...prev, newNotification]);
     return id;
   };
@@ -113,7 +117,7 @@ export function useNotifications() {
 
   const showStockNotification = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => {
     const isLowStock = seuilMinimum !== undefined && nouvelleQuantite <= seuilMinimum;
-    
+
     addNotification({
       type: isLowStock ? 'warning' : 'success',
       title: `${type === 'ENTREE' ? 'Entrée' : 'Sortie'} enregistrée`,
