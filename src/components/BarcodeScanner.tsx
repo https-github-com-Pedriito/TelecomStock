@@ -257,22 +257,22 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-950 z-[200] flex flex-col overflow-hidden animate-in fade-in duration-500">
+    <div className="fixed top-[40px] left-0 right-0 bottom-0 md:top-20 bg-gray-950 z-40 flex flex-col overflow-hidden animate-in fade-in duration-500">
       {/* Background Glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Header - Glassmorphic HUD */}
-      <div className="relative z-20 p-6 pt-12 md:pt-8 bg-gradient-to-b from-gray-950 via-gray-950/80 to-transparent">
+      <div className="relative z-20 p-3 pt-2 md:pt-4 bg-gradient-to-b from-gray-950 via-gray-950/80 to-transparent">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30 ring-1 ring-white/20">
-              <ScanLine size={24} strokeWidth={3} className="animate-pulse" />
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-600/30 ring-1 ring-white/20">
+              <ScanLine size={18} strokeWidth={3} className="animate-pulse" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-white tracking-widest uppercase">Optic <span className="text-blue-500">Scanner</span></h2>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                <p className="text-blue-100/60 text-[10px] font-black tracking-widest uppercase">{cameraError ? 'System Error' : 'Ready to capture'}</p>
+              <h2 className="text-base font-black text-white tracking-widest uppercase">Optic <span className="text-blue-500">Scanner</span></h2>
+              <div className="flex items-center gap-1.5">
+                <span className="w-1 h-1 bg-emerald-500 rounded-full animate-ping" />
+                <p className="text-blue-100/60 text-[9px] font-black tracking-widest uppercase">{cameraError ? 'System Error' : 'Ready'}</p>
               </div>
             </div>
           </div>
@@ -282,44 +282,44 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
               await stopScanner();
               onClose();
             }}
-            className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-all active:scale-90 group"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-all active:scale-90 group"
           >
-            <X size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
+            <X size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
           </button>
         </div>
 
         {/* Mode Selector - Premium Segmented Control */}
-        <div className="max-w-md mx-auto mt-8 p-1.5 bg-gray-900/60 backdrop-blur-md rounded-2xl border border-white/5 flex gap-2">
+        <div className="max-w-md mx-auto mt-4 p-1 bg-gray-900/60 backdrop-blur-md rounded-xl border border-white/5 flex gap-1">
           <button
             onClick={() => setScanMode('camera')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all active:scale-95 ${scanMode === 'camera'
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg transition-all active:scale-95 ${scanMode === 'camera'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 font-black scale-[1.02]'
               : 'text-gray-400 hover:text-white font-bold'
               }`}
           >
-            <Camera size={18} strokeWidth={2.5} />
-            <span className="text-xs uppercase tracking-widest">Caméra</span>
+            <Camera size={16} strokeWidth={2.5} />
+            <span className="text-[10px] uppercase tracking-widest">Caméra</span>
           </button>
 
           <button
             onClick={() => setScanMode('manual')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl transition-all active:scale-95 ${scanMode === 'manual'
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg transition-all active:scale-95 ${scanMode === 'manual'
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 font-black scale-[1.02]'
               : 'text-gray-400 hover:text-white font-bold'
               }`}
           >
-            <Keyboard size={18} strokeWidth={2.5} />
-            <span className="text-xs uppercase tracking-widest">Clavier</span>
+            <Keyboard size={16} strokeWidth={2.5} />
+            <span className="text-[10px] uppercase tracking-widest">Clavier</span>
           </button>
         </div>
       </div>
 
       {/* Main Scanner Body */}
-      <div className="flex-1 relative flex flex-col items-center justify-center p-8 overflow-hidden">
+      <div className="flex-1 relative flex flex-col items-center justify-center p-3 pb-24 overflow-hidden">
         {scanMode === 'camera' ? (
-          <div className="w-full h-full max-w-2xl flex flex-col items-center justify-center gap-12">
+          <div className="w-full h-full max-w-lg flex flex-col items-center justify-center gap-4">
             {/* Viewfinder Area */}
-            <div className="relative w-full aspect-[1/1] sm:aspect-[4/3] rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-gray-900">
+            <div className="relative w-full max-w-[280px] aspect-square rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl bg-gray-900">
               <div id="reader" className="w-full h-full" />
 
               {/* HUD Overlays */}
@@ -328,24 +328,24 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950/60 via-transparent to-gray-950/60" />
 
                 {/* Viewfinder Corners */}
-                <div className="relative w-72 h-72">
-                  <div className="absolute top-0 left-0 w-12 h-12 border-l-4 border-t-4 border-blue-500 rounded-tl-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-                  <div className="absolute top-0 right-0 w-12 h-12 border-r-4 border-t-4 border-blue-500 rounded-tr-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-                  <div className="absolute bottom-0 left-0 w-12 h-12 border-l-4 border-b-4 border-blue-500 rounded-bl-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-                  <div className="absolute bottom-0 right-0 w-12 h-12 border-r-4 border-b-4 border-blue-500 rounded-br-3xl shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                <div className="relative w-48 h-48">
+                  <div className="absolute top-0 left-0 w-8 h-8 border-l-3 border-t-3 border-blue-500 rounded-tl-2xl shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-r-3 border-t-3 border-blue-500 rounded-tr-2xl shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-l-3 border-b-3 border-blue-500 rounded-bl-2xl shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-r-3 border-b-3 border-blue-500 rounded-br-2xl shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
 
                   {/* Animated Laser */}
                   {isScanning && !scanSuccess && (
-                    <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                    <div className="absolute inset-0 overflow-hidden rounded-xl">
                       <div className="absolute left-0 right-0 h-[2px] bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,1)] animate-scan-hud" />
                     </div>
                   )}
                 </div>
 
                 {/* Instructions Text */}
-                <div className="absolute bottom-12 left-0 right-0 text-center animate-bounce-subtle">
-                  <p className="text-white font-black text-[10px] uppercase tracking-[0.3em] opacity-80 drop-shadow-lg">
-                    {scanSuccess ? 'Detection Confirmed' : 'Centrez le code-barres'}
+                <div className="absolute bottom-6 left-0 right-0 text-center animate-bounce-subtle">
+                  <p className="text-white font-black text-[9px] uppercase tracking-[0.2em] opacity-80 drop-shadow-lg">
+                    {scanSuccess ? 'Détecté' : 'Centrez le code'}
                   </p>
                 </div>
               </div>
@@ -353,74 +353,71 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
               {/* Success Overlay Card */}
               {scanSuccess && (
                 <div className="absolute inset-0 z-30 bg-blue-600/90 backdrop-blur-md flex items-center justify-center animate-in zoom-in-95 duration-300">
-                  <div className="text-center p-8">
-                    <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-white/30 animate-pulse">
-                      <CheckCircle className="h-14 w-14 text-blue-600" strokeWidth={3} />
+                  <div className="text-center p-4">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-2xl shadow-white/30 animate-pulse">
+                      <CheckCircle className="h-10 w-10 text-blue-600" strokeWidth={3} />
                     </div>
-                    <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Code Scanné !</h3>
-                    <p className="text-blue-100 font-mono text-xl bg-white/10 px-6 py-2 rounded-xl border border-white/20 select-all">{lastScanned}</p>
+                    <h3 className="text-lg font-black text-white mb-2 uppercase tracking-tight">Scanné !</h3>
+                    <p className="text-blue-100 font-mono text-sm bg-white/10 px-3 py-1.5 rounded-lg border border-white/20 select-all">{lastScanned}</p>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Quick Actions HUD */}
-            <div className="flex items-center gap-6 p-4 bg-gray-900/60 backdrop-blur-xl rounded-3xl border border-white/10 shadow-xl">
+            <div className="flex items-center gap-3 p-2 bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/10 shadow-xl">
               <button
                 onClick={toggleTorch}
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all active:scale-90 ${torch
+                className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90 ${torch
                   ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/30'
                   : 'bg-white/5 text-gray-400 hover:text-white border border-white/5'
                   }`}
               >
-                <Flashlight size={24} strokeWidth={2.5} />
+                <Flashlight size={20} strokeWidth={2.5} />
               </button>
 
-              <div className="w-[1px] h-8 bg-white/10" />
+              <div className="w-[1px] h-6 bg-white/10" />
 
               <button
                 onClick={restartScanner}
-                className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-gray-400 hover:text-white border border-white/5 transition-all active:scale-90"
+                className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center text-gray-400 hover:text-white border border-white/5 transition-all active:scale-90"
               >
-                <RotateCcw size={24} strokeWidth={2.5} />
+                <RotateCcw size={20} strokeWidth={2.5} />
               </button>
             </div>
           </div>
         ) : (
           /* Manual Mode Redesign */
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 animate-in slide-in-from-bottom-8 duration-500">
-            <div className="max-w-md w-full bg-white/5 backdrop-blur-2xl p-10 rounded-[3rem] border border-white/10 shadow-2xl">
-              <div className="text-center mb-10">
-                <div className="w-20 h-20 bg-blue-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
-                  <Keyboard className="h-10 w-10 text-blue-500" />
+          <div className="w-full h-full flex flex-col items-center justify-center p-4 animate-in slide-in-from-bottom-8 duration-500">
+            <div className="max-w-md w-full bg-white/5 backdrop-blur-2xl p-6 rounded-2xl border border-white/10 shadow-2xl">
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                  <Keyboard className="h-8 w-8 text-blue-500" />
                 </div>
-                <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Saisie Manuelle</h3>
-                <p className="text-gray-400 font-medium">Tapez ou collez le code-barres ci-dessous</p>
+                <h3 className="text-lg font-black text-white mb-1.5 uppercase tracking-tight">Saisie Manuelle</h3>
+                <p className="text-gray-400 text-sm font-medium">Tapez ou collez le code</p>
               </div>
 
-              <form onSubmit={handleManualSubmit} className="space-y-8">
+              <form onSubmit={handleManualSubmit} className="space-y-4">
                 <div className="relative group">
                   <input
                     ref={inputRef}
                     type="text"
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
-                    placeholder="Saisissez le code-barres..."
-                    className="w-full px-8 py-6 text-xl border-2 border-white/5 rounded-[1.5rem] bg-gray-950/80 text-white placeholder-gray-600 focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center tracking-widest font-mono"
+                    placeholder="Code-barres..."
+                    className="w-full px-4 py-3 text-base border-2 border-white/5 rounded-xl bg-gray-950/80 text-white placeholder-gray-600 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-center tracking-wider font-mono"
                     autoComplete="off"
                   />
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity">
-                    <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em] bg-gray-950 px-2">Ready for submission</span>
-                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={!manualCode.trim() || detectedRef.current}
-                  className="w-full py-6 px-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-600 text-white rounded-[1.5rem] font-black text-lg uppercase tracking-widest shadow-2xl shadow-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-4 group"
+                  className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-600 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 group"
                 >
-                  <CheckCircle size={22} strokeWidth={3} />
-                  <span>Valider le Code</span>
+                  <CheckCircle size={18} strokeWidth={3} />
+                  <span>Valider</span>
                 </button>
               </form>
             </div>
@@ -430,20 +427,20 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
       {/* Camera Error Alert */}
       {cameraError && (
-        <div className="absolute bottom-12 left-6 right-6 max-w-xl mx-auto z-40 animate-in slide-in-from-bottom duration-500">
-          <div className="bg-red-500/10 backdrop-blur-xl border border-red-500/20 p-6 rounded-3xl flex items-center gap-5">
-            <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center text-red-500">
-              <X size={24} strokeWidth={3} />
+        <div className="absolute bottom-32 left-4 right-4 max-w-xl mx-auto z-40 animate-in slide-in-from-bottom duration-500">
+          <div className="bg-red-500/10 backdrop-blur-xl border border-red-500/20 p-3 rounded-2xl flex items-center gap-3">
+            <div className="w-9 h-9 bg-red-500/20 rounded-xl flex items-center justify-center text-red-500">
+              <X size={18} strokeWidth={3} />
             </div>
             <div className="flex-1">
-              <p className="text-red-500 font-black text-xs uppercase tracking-widest">Hardware Exception</p>
-              <p className="text-red-100/70 text-sm font-medium leading-relaxed">{cameraError}</p>
+              <p className="text-red-500 font-black text-[10px] uppercase tracking-wide">Erreur Caméra</p>
+              <p className="text-red-100/70 text-xs font-medium leading-tight">{cameraError}</p>
             </div>
             <button
               onClick={() => setScanMode('manual')}
-              className="px-6 py-3 bg-red-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95"
+              className="px-3 py-2 bg-red-600 text-white rounded-lg font-black text-[10px] uppercase tracking-wide hover:bg-red-700 transition-all active:scale-95 whitespace-nowrap"
             >
-              Manual Mode
+              Manuel
             </button>
           </div>
         </div>
