@@ -383,7 +383,8 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         </div>
 
         {/* Footer Actions */}
-        <div className="px-4 py-8 md:px-8 md:py-8 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-center gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+        <div className="px-4 py-8
+         md:px-8 md:py-8 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-center gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
           <button
             type="button"
             onClick={onClose}

@@ -120,7 +120,7 @@ export function MobileBottomNav({
 
   return (
     <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 animate-slide-up">
-      <nav className="glass bg-white/95 dark:bg-gray-950/95 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-800/50 flex items-center justify-around p-2 gap-1 backdrop-blur-2xl">
+      <nav className="glass bg-white/95 dark:bg-gray-950/95 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-800/50 flex items-center justify-around p-2 sm:p-3 gap-0.5 sm:gap-1 backdrop-blur-2xl">
         {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const active = currentView === item.id;
@@ -129,15 +129,15 @@ export function MobileBottomNav({
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
-              className={`flex flex-col items-center justify-center flex-1 py-2 rounded-xl transition-all duration-300 relative ${active
+              className={`flex flex-col items-center justify-center flex-1 py-2.5 sm:py-3 rounded-xl transition-all duration-300 relative ${active
                 ? 'text-blue-600 dark:text-blue-400 font-bold'
                 : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-300 ${active ? 'bg-blue-600/10 scale-110' : ''}`}>
+              <div className={`p-1.5 sm:p-2 rounded-xl transition-all duration-300 ${active ? 'bg-blue-600/10 scale-110' : ''}`}>
                 <Icon size={22} strokeWidth={active ? 2.5 : 2} />
               </div>
-              <span className="text-[10px] uppercase tracking-widest font-bold mt-1">
+              <span className={`text-[8px] sm:text-[10px] uppercase tracking-wide sm:tracking-widest font-bold mt-1 sm:mt-1.5 ${visibleNavItems.length > 4 ? 'hidden min-[420px]:block' : ''}`}>
                 {item.label}
               </span>
               {active && (
