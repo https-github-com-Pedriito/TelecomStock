@@ -140,15 +140,15 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
   const themeColor = type === 'ENTREE' ? 'emerald' : 'orange';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed top-[80px] left-0 right-0 bottom-0 md:top-20 z-40 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-gray-950/40 backdrop-blur-md">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
+        className="fixed inset-0 bg-transparent transition-opacity animate-fade-in"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-lg glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+      <div className="relative z-[41] w-full max-w-lg glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[85vh]">
 
         {/* Header */}
         <div className={`relative px-8 pt-8 pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-${themeColor}-500/5 dark:bg-${themeColor}-950/20`}>
