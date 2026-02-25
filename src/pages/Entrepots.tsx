@@ -252,18 +252,44 @@ export function Entrepots({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-lg border border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-4">
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Total</p>
-          <p className="mt-2 text-2xl font-semibold text-blue-900 dark:text-blue-100">{totalLocalisations}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Total Card */}
+        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-sm">
+              <Building2 size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Total Lieux</p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{totalLocalisations}</p>
+            </div>
+          </div>
         </div>
-        <div className="rounded-lg border border-emerald-100 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 p-4">
-          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Actifs</p>
-          <p className="mt-2 text-2xl font-semibold text-emerald-900 dark:text-emerald-100">{activeLocalisations}</p>
+
+        {/* Active Card */}
+        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm">
+              <CheckCircle size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Lieux Actifs</p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{activeLocalisations}</p>
+            </div>
+          </div>
         </div>
-        <div className="rounded-lg border border-amber-100 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-4">
-          <p className="text-sm font-medium text-amber-700 dark:text-amber-300">Inactifs</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-900 dark:text-amber-100">{inactiveLocalisations}</p>
+
+        {/* Inactive Card */}
+        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl shadow-sm">
+              <XCircle size={24} strokeWidth={2.5} />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Lieux Inactifs</p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{inactiveLocalisations}</p>
+            </div>
+          </div>
         </div>
       </div>
 
