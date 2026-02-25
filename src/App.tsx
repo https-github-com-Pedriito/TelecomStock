@@ -11,7 +11,7 @@ import { LoginForm } from './components/LoginForm';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UserProfileModal } from './components/UserProfileModal';
-import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 // Lazy load pages for better performance
 const Dashboard = React.lazy(() => import('./pages/DashboardMT').then(module => ({ default: module.Dashboard })));

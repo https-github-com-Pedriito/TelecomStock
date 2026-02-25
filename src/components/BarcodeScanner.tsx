@@ -36,6 +36,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (scanMode === 'manual') {
+      detectedRef.current = false; // Réinitialiser pour permettre la saisie manuelle
       inputRef.current?.focus();
     }
   }, [scanMode]);
@@ -251,6 +252,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     setScanSuccess(false);
     setLastScanned('');
     setCameraError('');
+    detectedRef.current = false; // Réinitialiser pour permettre une nouvelle détection
     if (scanMode === 'camera') {
       startScanner();
     }
