@@ -11,7 +11,7 @@ import { LoginForm } from './components/LoginForm';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UserProfileModal } from './components/UserProfileModal';
-import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Analytics } from "@vercel/analytics/react"
 
 // Lazy load pages for better performance
 const Dashboard = React.lazy(() => import('./pages/DashboardMT').then(module => ({ default: module.Dashboard })));
@@ -517,6 +517,7 @@ function App() {
 
   return (
     <FeedbackProvider>
+      <Analytics/>
       <Layout
         currentView={currentView}
         onViewChange={setCurrentView}
