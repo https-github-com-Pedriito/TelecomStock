@@ -142,7 +142,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
 
   return (
     <Portal>
-      <div className="fixed top-[73px] left-0 right-0 bottom-0 md:top-20 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-gray-950/40 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-gray-950/40 backdrop-blur-md">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-transparent transition-opacity animate-fade-in z-[100]"
@@ -150,16 +150,16 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
       />
 
       {/* Modal Container */}
-      <div className="relative z-[110] w-full max-w-lg glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[85vh]">
+      <div className="relative z-[110] w-full max-w-lg glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
 
         {/* Header */}
-        <div className={`relative px-8 pt-8 pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-${themeColor}-500/5 dark:bg-${themeColor}-950/20`}>
-          <div className="flex items-center gap-4">
-            <div className={`p-3 bg-${themeColor}-600 rounded-2xl shadow-lg shadow-${themeColor}-600/20 text-white`}>
-              <ArrowUpDown size={24} strokeWidth={2.5} />
+        <div className={`relative px-4 pt-4 pb-3 md:px-8 md:pt-8 md:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-${themeColor}-500/5 dark:bg-${themeColor}-950/20`}>
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className={`p-2 md:p-3 bg-${themeColor}-600 rounded-xl md:rounded-2xl shadow-lg shadow-${themeColor}-600/20 text-white`}>
+              <ArrowUpDown size={20} strokeWidth={2.5} className="md:w-6 md:h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+              <h2 className="text-lg md:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
                 {type === 'ENTREE' ? 'Entrée de Stock' : 'Sortie de Stock'}
               </h2>
               <div className="flex items-center gap-1.5 mt-0.5">
@@ -177,7 +177,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8 custom-scrollbar">
 
           {/* Article Identity Card */}
           <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm relative overflow-hidden group">
@@ -383,7 +383,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         </div>
 
         {/* Footer Actions */}
-        <div className="px-8 py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-end gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+        <div className="px-4 py-8 md:px-8 md:py-8 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-center gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
           <button
             type="button"
             onClick={onClose}
