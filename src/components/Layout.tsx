@@ -119,14 +119,14 @@ export function Layout({
               <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <img
                 src="/decimalestock.png"
-                alt="Logo Decimale Stock"
+                alt="Logo Telecom Stock"
                 className="relative w-12 h-12 object-contain rounded-2xl bg-white p-1.5 shadow-md border border-gray-100 dark:border-gray-800"
               />
             </div>
 
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Decimale Stock</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Telecom Stock</h1>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold tracking-widest border border-purple-500/20">
                   BETA
                 </span>

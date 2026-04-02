@@ -5,9 +5,10 @@ import { useAuth } from '../hooks/useAuth';
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<void>;
   error: string | null;
+  onBack?: () => void;
 }
 
-export function LoginForm({ onLogin, error }: LoginFormProps) {
+export function LoginForm({ onLogin, error, onBack }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,16 +30,26 @@ export function LoginForm({ onLogin, error }: LoginFormProps) {
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
+      {onBack && (
+        <button 
+          onClick={onBack}
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors z-20"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          <span className="font-medium text-sm">Retour à l'accueil</span>
+        </button>
+      )}
+
       <div className="w-full max-w-[440px] z-10 animate-fade-in">
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center p-4 bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-blue-500/10 mb-6 group transition-transform hover:scale-105">
             <img
               src="/decimalestock.png"
-              alt="Logo Decimale Stock"
+              alt="Logo Telecom Stock"
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Decimale Stock</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Telecom Stock</h1>
           <p className="text-gray-500 dark:text-gray-400">Gérez votre inventaire avec précision</p>
         </div>
 

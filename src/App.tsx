@@ -11,7 +11,15 @@ import { LoginForm } from './components/LoginForm';
 import { FeedbackProvider } from './components/UXFeedback';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { UserProfileModal } from './components/UserProfileModal';
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/react";
+import { CookieBanner } from './components/CookieBanner';
+import { LandingPage } from './pages/LandingPage';
+import { PricingPage } from './pages/PricingPage';
+import { FAQPage } from './pages/FAQPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
+
+type PublicView = 'landing' | 'login' | 'pricing' | 'faq' | 'privacy' | 'terms';
 
 // Lazy load pages for better performance
 const Dashboard = React.lazy(() => import('./pages/DashboardMT').then(module => ({ default: module.Dashboard })));
@@ -34,10 +42,25 @@ const PageLoader = () => (
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [publicView, setPublicView] = useState<PublicView>('landing');
+  const [hasCookieConsent, setHasCookieConsent] = useState<boolean | null>(() => {
+    const consent = localStorage.getItem('telecomstock-cookie-consent');
+    if (consent === 'accepted') return true;
+    if (consent === 'declined') return false;
+    return null;
+  });
 
-  // Initialiser Google Analytics une seule fois
   useEffect(() => {
-    initAnalytics();
+    if (hasCookieConsent) {
+      initAnalytics();
+    }
+  }, [hasCookieConsent]);
+
+  // Initialiser Google Analytics au montage si déjà consenti
+  useEffect(() => {
+    if (hasCookieConsent) {
+      initAnalytics();
+    }
   }, []);
 
   // Tracker chaque changement de page
@@ -304,6 +327,26 @@ function App() {
     }
   };
 
+  const handleAcceptCookies = () => {
+    localStorage.setItem('telecomstock-cookie-consent', 'accepted');
+    setHasCookieConsent(true);
+  };
+
+  const handleDeclineCookies = () => {
+    localStorage.setItem('telecomstock-cookie-consent', 'declined');
+    setHasCookieConsent(false);
+  };
+
+  const handleViewPrivacy = () => {
+    if (isAuthenticated) {
+      // Si l'utilisateur est connecté, on peut éventuellement lui montrer une modale 
+      // ou changer de vue, mais ici on va juste changer la vue publique si non connecté
+      // ou ne rien faire si déjà dans l'app pour éviter de casser le flux
+    } else {
+      setPublicView('privacy');
+    }
+  };
+
   const renderCurrentView = () => {
     const articlesWithAlerts = getArticlesWithAlerts();
 
@@ -420,11 +463,41 @@ function App() {
   }
 
   if (!isAuthenticated || !currentUserForComponents) {
+    const renderPublicPage = () => {
+      switch (publicView) {
+        case 'landing':
+          return <LandingPage onLoginClick={() => setPublicView('login')} onNavigate={setPublicView} />;
+        case 'pricing':
+          return <PricingPage onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />;
+        case 'faq':
+          return <FAQPage onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />;
+        case 'privacy':
+          return <PrivacyPage onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />;
+        case 'terms':
+          return <TermsPage onBack={() => setPublicView('landing')} onLogin={() => setPublicView('login')} />;
+        case 'login':
+          return (
+            <FeedbackProvider>
+              <LoginForm onLogin={handleLogin} error={loginError} onBack={() => setPublicView('landing')} />
+              <NotificationContainer />
+            </FeedbackProvider>
+          );
+        default:
+          return <LandingPage onLoginClick={() => setPublicView('login')} onNavigate={setPublicView} />;
+      }
+    };
+
     return (
-      <FeedbackProvider>
-        <LoginForm onLogin={handleLogin} error={loginError} />
-        <NotificationContainer />
-      </FeedbackProvider>
+      <>
+        {renderPublicPage()}
+        {hasCookieConsent === null && (
+          <CookieBanner 
+            onAccept={handleAcceptCookies} 
+            onDecline={handleDeclineCookies} 
+            onViewPrivacy={handleViewPrivacy} 
+          />
+        )}
+      </>
     );
   }
 
@@ -511,6 +584,13 @@ function App() {
           onChangePassword={handleChangePassword}
         />
         <NotificationContainer />
+        {hasCookieConsent === null && (
+          <CookieBanner 
+            onAccept={handleAcceptCookies} 
+            onDecline={handleDeclineCookies} 
+            onViewPrivacy={handleViewPrivacy} 
+          />
+        )}
       </FeedbackProvider>
     );
   }
@@ -532,6 +612,13 @@ function App() {
         {renderCurrentView()}
       </Layout>
       <NotificationContainer />
+      {hasCookieConsent === null && (
+        <CookieBanner 
+          onAccept={handleAcceptCookies} 
+          onDecline={handleDeclineCookies} 
+          onViewPrivacy={handleViewPrivacy} 
+        />
+      )}
     </FeedbackProvider>
   );
 }
