@@ -2,10 +2,12 @@ import 'dotenv/config';
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import http from 'http';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './swagger';
 import { AppDataSource } from './data-source';
+import { allowedOrigins } from './config/corsOrigins';
 import { authRouter } from './routes/auth';
 import { articlesRouter } from './routes/articles';
 import { mouvementsRouter } from './routes/mouvements';
@@ -20,19 +22,11 @@ const httpPort = process.env.API_PORT || 3001;
 const httpsPort = process.env.API_HTTPS_PORT || 3443;
 
 // Middleware
-// Configuration CORS
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',  // Vite dev local (port alternatif)
-  'http://localhost:3000',  // Alternative dev port
-  'http://localhost:3080',  // API locale
-  'https://decimale-api-production.up.railway.app', // API Railway (pour Swagger UI)
-  'https://telecom-stock-7uz7fmkw4-pedriitos-projects.vercel.app', // Vercel production (ancienne)
-  'https://telecom-stock-4apw0y9i5-pedriitos-projects.vercel.app', // Vercel production (nouvelle)
-  'https://telecom-stock.vercel.app', // Vercel custom domain (si configuré)
-];
+// CSP et CORP désactivés : la doc Swagger charge des scripts depuis unpkg.com
+// et les images d'articles sont chargées cross-origin par le frontend.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: false }));
 
+// Configuration CORS
 const corsOptions = {
   origin: (origin: any, callback: any) => {
     console.log('CORS Origin:', origin);

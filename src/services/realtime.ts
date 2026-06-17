@@ -1,5 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server } from 'http';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../middleware/auth';
+import { allowedOrigins } from '../config/corsOrigins';
 
 // Types pour les événements Socket.IO
 export interface DatabaseChangeEvent {
@@ -8,12 +11,12 @@ export interface DatabaseChangeEvent {
   data?: any;
   id?: number | string;
   timestamp: Date;
-  userId?: number;
+  userId?: string;
 }
 
 export interface SocketUser {
   id: string;
-  userId?: number;
+  userId?: string;
   role?: string;
   connectedAt: Date;
 }
@@ -29,7 +32,7 @@ class RealtimeService {
   init(server: Server) {
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: "*", // En production, spécifier les domaines autorisés
+        origin: allowedOrigins,
         methods: ["GET", "POST"],
         credentials: true
       }
@@ -43,36 +46,39 @@ class RealtimeService {
     this.io.on('connection', (socket) => {
       console.log(`🔗 Nouvelle connexion WebSocket: ${socket.id}`);
 
-      // Authentification du socket
-      socket.on('authenticate', (data: { token?: string, userId?: number, role?: string }) => {
-        // Pour les tests, accepter le token "test-token"
-        let userId = data.userId;
-        let role = data.role || 'user';
-        
-        if (data.token === 'test-token') {
-          userId = 999; // ID de test
-          role = 'admin';
+      // Authentification du socket : le rôle/userId viennent du JWT vérifié,
+      // jamais de ce que le client affirme, pour empêcher l'usurpation de rôle.
+      socket.on('authenticate', (data: { token?: string }) => {
+        if (!data.token) {
+          socket.emit('authenticated', { success: false, message: 'Token manquant' });
+          return;
+        }
+
+        let decoded: { userId: string; role: string };
+        try {
+          decoded = jwt.verify(data.token, JWT_SECRET) as { userId: string; role: string };
+        } catch {
+          socket.emit('authenticated', { success: false, message: 'Token invalide' });
+          return;
         }
 
         const user: SocketUser = {
           id: socket.id,
-          userId: userId,
-          role: role,
+          userId: decoded.userId,
+          role: decoded.role,
           connectedAt: new Date()
         };
 
         this.connectedUsers.set(socket.id, user);
-        if (userId) {
-          socket.join(`user_${userId}`); // Rejoindre une room personnelle
-        }
-        
-        console.log(`👤 Utilisateur authentifié: ${userId} (${role})`);
-        
+        socket.join(`user_${decoded.userId}`); // Rejoindre une room personnelle
+
+        console.log(`👤 Utilisateur authentifié: ${decoded.userId} (${decoded.role})`);
+
         // Envoyer le statut de connexion
         socket.emit('authenticated', {
           success: true,
-          userId: userId,
-          role: role,
+          userId: decoded.userId,
+          role: decoded.role,
           connectedUsers: this.connectedUsers.size
         });
       });
@@ -89,18 +95,6 @@ class RealtimeService {
       // Ping/Pong pour maintenir la connexion
       socket.on('ping', () => {
         socket.emit('pong');
-      });
-
-      // Handler de test pour notre page de test
-      socket.on('testDatabaseChange', (data) => {
-        console.log('🧪 Test changement BDD reçu:', data);
-        // Simuler une notification de changement
-        this.io.emit('databaseChange', {
-          table: data.table,
-          action: data.action,
-          data: data.data,
-          timestamp: new Date()
-        });
       });
     });
   }
@@ -135,7 +129,7 @@ class RealtimeService {
   }
 
   // Notifier un utilisateur spécifique
-  notifyUser(userId: number, event: any) {
+  notifyUser(userId: string, event: any) {
     this.io.to(`user_${userId}`).emit('user_notification', event);
   }
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { AppDataSource } from '../data-source';
 import { Article } from '../entities/Article';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
 import { QueryFailedError } from 'typeorm';
 import { realtimeService } from '../services/realtime';
 
@@ -177,7 +177,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
  *       409:
  *         description: La référence existe déjà
  */
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', authMiddleware, requireRole('ADMIN', 'MANAGER'), async (req, res) => {
   try {
     console.log('Création d\'un nouvel article:', req.body);
     const articleRepository = AppDataSource.getRepository(Article);
@@ -242,7 +242,7 @@ router.post('/', authMiddleware, async (req, res) => {
  *       404:
  *         description: Article non trouvé
  */
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', authMiddleware, requireRole('ADMIN', 'MANAGER'), async (req, res) => {
   try {
     const { id } = req.params;
     const articleRepository = AppDataSource.getRepository(Article);
@@ -294,7 +294,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
  *         description: Article non trouvé
  */
 // Delete article
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', authMiddleware, requireRole('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const { force } = req.query; // Paramètre pour forcer la suppression

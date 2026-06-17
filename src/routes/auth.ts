@@ -1,12 +1,31 @@
 import { Router } from 'express';
 import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
 import { User } from '../entities/User';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, JWT_SECRET } from '../middleware/auth';
 import { AppDataSource } from '../data-source';
 import { sendPasswordResetRequestEmail } from '../services/mailer';
 
 const router = Router();
+
+// Limite les tentatives de connexion pour freiner le brute-force
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Trop de tentatives de connexion, réessayez plus tard.' },
+});
+
+// Limite les demandes de réinitialisation pour éviter le spam de l'email admin
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Trop de demandes, réessayez plus tard.' },
+});
 
 /**
  * @swagger
@@ -52,7 +71,7 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     const userRepository = AppDataSource.getRepository(User);
@@ -76,8 +95,8 @@ router.post('/login', async (req, res) => {
         // iat (issued at) est automatiquement ajouté par jwt.sign()
         // Cela garantit que chaque token est unique
       },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { 
+      JWT_SECRET,
+      {
         expiresIn: '24h',  // Le token expire après 24h
         // jti: crypto.randomUUID() // Optionnel : identifiant unique du token
       }
@@ -123,7 +142,7 @@ router.post('/login', async (req, res) => {
  *                 message:
  *                   type: string
  */
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', forgotPasswordLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {

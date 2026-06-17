@@ -2,9 +2,16 @@ import { Router } from 'express';
 import { AppDataSource } from '../data-source';
 import bcryptjs from 'bcryptjs';
 import { User, UserRole } from '../entities/User';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
 
 const router = Router();
+
+// La gestion des utilisateurs (lecture, création, modification, suppression)
+// est réservée aux administrateurs : c'est ce que le frontend impose déjà
+// (permission "manage_users"), on l'applique maintenant côté serveur aussi.
+router.use(authMiddleware, requireRole('ADMIN'));
+
+const MIN_PASSWORD_LENGTH = 6;
 
 /**
  * @swagger
@@ -24,7 +31,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
     const users = await userRepository.find();
@@ -63,7 +70,7 @@ router.get('/', authMiddleware, async (req, res) => {
  *       404:
  *         description: Utilisateur non trouvé
  */
-router.get('/:id', authMiddleware, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const userRepository = AppDataSource.getRepository(User);
@@ -128,9 +135,12 @@ router.get('/:id', authMiddleware, async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/User'
  */
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { password = 'password', ...userData } = req.body;
+    const { password, ...userData } = req.body;
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+      return res.status(400).json({ message: `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères` });
+    }
     const userRepository = AppDataSource.getRepository(User);
 
     // Hash du mot de passe
@@ -153,7 +163,7 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // Update user
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { password, ...userData } = req.body;
@@ -166,6 +176,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     // Si un nouveau mot de passe est fourni, le hasher et lever la demande de réinitialisation
     if (password) {
+      if (typeof password !== 'string' || password.length < MIN_PASSWORD_LENGTH) {
+        return res.status(400).json({ message: `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères` });
+      }
       const salt = await bcryptjs.genSalt(10);
       const password_hash = await bcryptjs.hash(password, salt);
       userData.password_hash = password_hash;
@@ -184,7 +197,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 });
 
 // Delete user
-router.delete('/:id', authMiddleware, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const userRepository = AppDataSource.getRepository(User);
