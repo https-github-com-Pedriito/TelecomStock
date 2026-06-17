@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { X, Users, Mail, Shield, Key, ChevronRight, Fingerprint, Lock, Eye, EyeOff, UserPlus, UserCheck, Save, Smartphone } from 'lucide-react';
+import { X, Users, Mail, Shield, Key, ChevronRight, Fingerprint, Lock, Eye, EyeOff, UserPlus, UserCheck, Save, Smartphone, BellRing } from 'lucide-react';
 import { Portal } from './Portal';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -69,7 +71,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
       });
     }
     setErrors({});
-    setShowPasswordFields(false);
+    setShowPasswordFields(!!user?.reset_requested_at);
     setShowPassword(false);
     setShowConfirmPassword(false);
   }, [user]);
@@ -216,6 +218,19 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
               {/* Password Section */}
               <div className="space-y-5 pt-4 border-t border-white/20 dark:border-gray-800/50">
+                {user?.reset_requested_at && (
+                  <div className="glass p-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 flex items-start gap-4 ring-1 ring-amber-500/20 animate-slide-up">
+                    <div className="p-2 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-500/20">
+                      <BellRing size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Demande de réinitialisation</p>
+                      <p className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                        Envoyée le {format(new Date(user.reset_requested_at), 'dd MMM yyyy à HH:mm', { locale: fr })}. Définissez un nouveau mot de passe ci-dessous pour la résoudre.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500">

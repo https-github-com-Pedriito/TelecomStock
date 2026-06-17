@@ -221,6 +221,14 @@ function App() {
     }
   };
 
+  const handleForgotPassword = async (email: string) => {
+    try {
+      await api.forgotPassword(email);
+    } catch (error) {
+      console.error('App: Forgot password error:', error);
+    }
+  };
+
   // Vérifier les permissions pour la vue actuelle
   const canAccessCurrentView = () => {
     switch (currentView) {
@@ -478,7 +486,7 @@ function App() {
         case 'login':
           return (
             <FeedbackProvider>
-              <LoginForm onLogin={handleLogin} error={loginError} onBack={() => setPublicView('landing')} />
+              <LoginForm onLogin={handleLogin} onForgotPassword={handleForgotPassword} error={loginError} onBack={() => setPublicView('landing')} />
               <NotificationContainer />
             </FeedbackProvider>
           );

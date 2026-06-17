@@ -152,6 +152,14 @@ class ApiService {
     return this.request('/auth/profile');
   }
 
+  // Demande de réinitialisation de mot de passe (transmise à un administrateur)
+  async forgotPassword(email: string) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  }
+
   // Users
   async getUsers() {
     return this.request('/users');

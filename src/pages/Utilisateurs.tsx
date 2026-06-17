@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User } from '../types';
 import { UserModal } from '../components/UserModal';
-import { Plus, Search, Edit2, Trash2, Users, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Users, Shield, CheckCircle, XCircle, BellRing } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -302,7 +302,15 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
                         {user.prenom[0]}{user.nom[0]}
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-bold text-gray-900 dark:text-white leading-tight">{user.prenom} {user.nom}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-gray-900 dark:text-white leading-tight">{user.prenom} {user.nom}</span>
+                          {user.reset_requested_at && (
+                            <span title="Demande de réinitialisation de mot de passe en attente" className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50">
+                              <BellRing size={10} />
+                              Reset
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{user.email}</span>
                       </div>
                     </div>
@@ -371,7 +379,15 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
                       {user.prenom[0]}{user.nom[0]}
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-black text-gray-900 dark:text-white leading-tight">{user.prenom} {user.nom}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-gray-900 dark:text-white leading-tight">{user.prenom} {user.nom}</span>
+                        {user.reset_requested_at && (
+                          <span title="Demande de réinitialisation de mot de passe en attente" className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50">
+                            <BellRing size={10} />
+                            Reset
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{user.email}</span>
                     </div>
                   </div>

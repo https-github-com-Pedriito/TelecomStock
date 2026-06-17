@@ -75,6 +75,7 @@ export interface User {
   created_at: string;
   updated_at: string;
   is_active: boolean;
+  reset_requested_at?: string | null;
 }
 
 export type Fournisseur = {
