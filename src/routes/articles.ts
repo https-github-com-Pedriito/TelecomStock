@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { AppDataSource } from '../data-source';
 import { Article } from '../entities/Article';
 import { authMiddleware, requireRole } from '../middleware/auth';
@@ -6,6 +7,17 @@ import { QueryFailedError } from 'typeorm';
 import { realtimeService } from '../services/realtime';
 
 const router = Router();
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Le fichier doit être une image'));
+    }
+    cb(null, true);
+  },
+});
 
 /**
  * @swagger
@@ -121,6 +133,73 @@ router.get('/:id', authMiddleware, async (req, res) => {
       message: 'Erreur lors de la récupération de l\'article',
       error: error instanceof Error ? error.message : 'Erreur inconnue'
     });
+  }
+});
+
+/**
+ * @swagger
+ * /articles/upload-image:
+ *   post:
+ *     summary: Uploader une image d'article
+ *     description: Relaie l'image vers ImgBB sans jamais exposer la clé d'API au client.
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Image uploadée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *       400:
+ *         description: Fichier manquant ou invalide
+ *       502:
+ *         description: Échec de l'upload vers le service externe
+ */
+router.post('/upload-image', authMiddleware, requireRole('ADMIN', 'MANAGER'), upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Aucune image fournie' });
+    }
+
+    const apiKey = process.env.IMGBB_API_KEY;
+    if (!apiKey) {
+      console.error('IMGBB_API_KEY non configurée');
+      return res.status(502).json({ message: 'Service d\'upload d\'image non configuré' });
+    }
+
+    const body = new URLSearchParams();
+    body.append('image', req.file.buffer.toString('base64'));
+
+    const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      method: 'POST',
+      body,
+    });
+
+    if (!imgbbResponse.ok) {
+      console.error('Échec upload ImgBB:', imgbbResponse.status, await imgbbResponse.text());
+      return res.status(502).json({ message: 'Échec de l\'upload de l\'image' });
+    }
+
+    const data = await imgbbResponse.json() as { data: { url: string } };
+    res.json({ url: data.data.url });
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ message: 'Erreur lors de l\'upload de l\'image' });
   }
 });
 
