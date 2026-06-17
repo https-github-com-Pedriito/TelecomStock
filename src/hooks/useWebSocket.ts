@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './useAuth';
+import { getToken } from '../lib/tokenManager';
 
 export interface DatabaseChangeEvent {
   type: 'create' | 'update' | 'delete';
@@ -8,7 +9,7 @@ export interface DatabaseChangeEvent {
   data?: any;
   id?: number | string;
   timestamp: Date;
-  userId?: number;
+  userId?: string;
 }
 
 export interface UseWebSocketOptions {
@@ -70,11 +71,12 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
       setIsConnected(true);
       setConnectionAttempts(0);
       
-      // Authentifier immédiatement
-      socket.emit('authenticate', {
-        userId: user.id,
-        role: user.role
-      });
+      // Authentifier immédiatement avec le vrai JWT (le serveur vérifie le
+      // token plutôt que de faire confiance à un userId/role envoyé par le client)
+      const token = getToken();
+      if (token) {
+        socket.emit('authenticate', { token });
+      }
     });
 
     socket.on('disconnect', (reason) => {
