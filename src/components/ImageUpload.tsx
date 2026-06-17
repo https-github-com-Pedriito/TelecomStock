@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { api } from '../lib/api';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -12,26 +13,6 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Configuration ImgBB (vous pouvez aussi utiliser Cloudinary)
-  const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || ''; // À configurer dans .env
-
-  const uploadToImgBB = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Erreur lors de l\'upload de l\'image');
-    }
-
-    const data = await response.json();
-    return data.data.url;
-  };
 
   const handleFile = async (file: File) => {
     // Vérifications
@@ -49,8 +30,8 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
     setIsUploading(true);
 
     try {
-      const imageUrl = await uploadToImgBB(file);
-      onImageChange(imageUrl);
+      const { url } = await api.uploadImage(file);
+      onImageChange(url);
     } catch (err) {
       console.error('Erreur upload:', err);
       setError('Erreur lors de l\'upload de l\'image');

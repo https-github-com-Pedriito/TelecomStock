@@ -200,6 +200,35 @@ class ApiService {
     return this.request('/articles');
   }
 
+  // Upload d'image relayé par le backend (la clé ImgBB reste côté serveur)
+  async uploadImage(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await fetch(`${this.baseUrl}/articles/upload-image`, {
+      method: 'POST',
+      headers: {
+        ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
+      },
+      body: formData,
+      mode: 'cors',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { message: errorText || 'Erreur lors de l\'upload de l\'image' };
+      }
+      throw new Error(errorData.message || 'Erreur lors de l\'upload de l\'image');
+    }
+
+    return response.json();
+  }
+
   async createArticle(article: any) {
     return this.request('/articles', {
       method: 'POST',
