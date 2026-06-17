@@ -164,11 +164,12 @@ router.put('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    // Si un nouveau mot de passe est fourni, le hasher
+    // Si un nouveau mot de passe est fourni, le hasher et lever la demande de réinitialisation
     if (password) {
       const salt = await bcryptjs.genSalt(10);
       const password_hash = await bcryptjs.hash(password, salt);
       userData.password_hash = password_hash;
+      userData.reset_requested_at = null;
     }
 
     user = userRepository.merge(user, userData);

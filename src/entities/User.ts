@@ -38,4 +38,7 @@ export class User {
 
   @Column({ default: true })
   is_active!: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  reset_requested_at!: Date | null;
 }

@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { User } from '../entities/User';
 import { authMiddleware } from '../middleware/auth';
 import { AppDataSource } from '../data-source';
+import { sendPasswordResetRequestEmail } from '../services/mailer';
 
 const router = Router();
 
@@ -88,6 +89,65 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Erreur lors de la connexion' });
+  }
+});
+
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Demander la réinitialisation de son mot de passe
+ *     description: Envoie un email à l'adresse administrateur configurée (ADMIN_RESET_EMAIL) signalant la demande. Un administrateur doit ensuite définir un nouveau mot de passe via la gestion des utilisateurs.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: admin@telecom.com
+ *     responses:
+ *       200:
+ *         description: Demande prise en compte (réponse générique, que le compte existe ou non)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email requis' });
+    }
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
+    if (user) {
+      user.reset_requested_at = new Date();
+      await userRepository.save(user);
+
+      try {
+        await sendPasswordResetRequestEmail(user.email);
+      } catch (emailError) {
+        console.error('Erreur lors de l\'envoi de l\'email de notification:', emailError);
+      }
+    }
+
+    // Réponse générique pour ne pas révéler si l'email existe
+    res.json({ message: 'Si ce compte existe, une demande a été transmise à votre administrateur.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ message: 'Erreur lors de la demande de réinitialisation' });
   }
 });
 
