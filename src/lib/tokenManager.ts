@@ -13,15 +13,18 @@
 
 const TOKEN_KEY = 'auth_token';
 const TOKEN_EXPIRY_KEY = 'auth_token_expiry';
-const TOKEN_LIFETIME = 30 * 60 * 1000; // 30 minutes en millisecondes
+const TOKEN_LIFETIME = 30 * 60 * 1000; // Repli si le JWT n'a pas de claim "exp" décodable
 
 
 /**
  * Stocke un token avec une date d'expiration
+ * L'expiration est alignée sur le claim "exp" du JWT (durée réelle côté serveur),
+ * avec un repli sur TOKEN_LIFETIME si le token ne peut pas être décodé.
  */
 export const setToken = (token: string): void => {
   try {
-    const expiresAt = Date.now() + TOKEN_LIFETIME;
+    const payload = decodeJWT(token);
+    const expiresAt = payload?.exp ? payload.exp * 1000 : Date.now() + TOKEN_LIFETIME;
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(TOKEN_EXPIRY_KEY, expiresAt.toString());
   } catch (error) {

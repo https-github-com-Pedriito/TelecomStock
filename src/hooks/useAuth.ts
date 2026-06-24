@@ -101,9 +101,16 @@ export function useAuth() {
         return profile;
       } catch (error: any) {
         logger.error('Error checking auth:', error);
-        logger.debug('checkAuth - Suppression du token invalide');
-        clearToken();
-        
+
+        // Ne purger le token que si le serveur l'a explicitement rejeté
+        // (401/403). Une erreur réseau/timeout ne doit pas déconnecter
+        // un utilisateur dont le token est toujours valide.
+        const status = error?.response?.status;
+        if (status === 401 || status === 403) {
+          logger.debug('checkAuth - Suppression du token invalide');
+          clearToken();
+        }
+
         // Messages d'erreur spécifiques pour mobile
         if (isMobile) {
           if (error.message?.includes('Timeout')) {
