@@ -34,7 +34,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
       onImageChange(url);
     } catch (err) {
       console.error('Erreur upload:', err);
-      setError('Erreur lors de l\'upload de l\'image');
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'upload de l\'image');
     } finally {
       setIsUploading(false);
     }
