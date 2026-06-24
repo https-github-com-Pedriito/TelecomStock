@@ -1,6 +1,6 @@
 {
-  "name": "Decimale Stock",
-  "short_name": "DecimaleStock",
+  "name": "TelecomStock",
+  "short_name": "TelcomStock",
   "description": "Application de gestion de stock pour entreprises",
   "start_url": "/",
   "display": "standalone",
