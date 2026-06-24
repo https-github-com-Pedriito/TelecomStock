@@ -88,10 +88,12 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     // Génération d'un token JWT unique à chaque connexion
     const token = jwt.sign(
-      { 
+      {
         userId: user.id,
         email: user.email,
         role: user.role,
+        nom: user.nom,
+        prenom: user.prenom,
         // iat (issued at) est automatiquement ajouté par jwt.sign()
         // Cela garantit que chaque token est unique
       },
