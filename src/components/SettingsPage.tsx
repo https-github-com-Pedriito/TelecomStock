@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Settings, 
-  Users, 
   Bell, 
   Database, 
   Shield, 
@@ -9,8 +8,6 @@ import {
   Smartphone,
   Save, 
   RotateCcw, 
-  Plus,
-  Trash2,
   AlertTriangle,
   Info
 } from 'lucide-react';
@@ -63,17 +60,8 @@ interface SystemSettings {
   enableAdvancedReporting: boolean;
 }
 
-interface User {
-  id: string;
-  nom: string;
-  email: string;
-  role: 'admin' | 'manager' | 'user';
-  active: boolean;
-  lastLogin?: Date;
-}
-
 export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'users' | 'notifications' | 'security' | 'data'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'security' | 'data'>('general');
   const [settings, setSettings] = useState<SystemSettings>({
     defaultStockThreshold: 10,
     criticalStockThreshold: 5,
@@ -106,23 +94,6 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
     ...initialSettings
   });
   
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      nom: 'Administrateur',
-      email: 'admin@telecomstock.com',
-      role: 'admin',
-      active: true,
-      lastLogin: new Date()
-    }
-  ]);
-  
-  const [newUser, setNewUser] = useState({
-    nom: '',
-    email: '',
-    role: 'user' as User['role'],
-    password: ''
-  });
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
   
@@ -130,7 +101,7 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
 
   useEffect(() => {
     setHasChanges(true);
-  }, [settings, users]);
+  }, [settings]);
 
   const handleSettingChange = (key: keyof SystemSettings, value: any) => {
     setSettings(prev => ({
@@ -193,51 +164,6 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
       enableAdvancedReporting: false
     } as SystemSettings);
     setHasChanges(false);
-  };
-
-  const addUser = () => {
-    if (!newUser.nom || !newUser.email) {
-      showFeedback({
-        type: 'error',
-        title: 'Informations manquantes',
-        message: 'Veuillez remplir tous les champs obligatoires'
-      });
-      return;
-    }
-
-    const user: User = {
-      id: Math.random().toString(36).substr(2, 9),
-      nom: newUser.nom,
-      email: newUser.email,
-      role: newUser.role,
-      active: true
-    };
-
-    setUsers(prev => [...prev, user]);
-    setNewUser({ nom: '', email: '', role: 'user', password: '' });
-    
-    showFeedback({
-      type: 'success',
-      title: 'Utilisateur ajouté',
-      message: `${user.nom} a été ajouté avec succès`
-    });
-  };
-
-  const deleteUser = (userId: string) => {
-    setUsers(prev => prev.filter(u => u.id !== userId));
-    showFeedback({
-      type: 'success',
-      title: 'Utilisateur supprimé',
-      message: 'L\'utilisateur a été retiré du système'
-    });
-  };
-
-  const toggleUserStatus = (userId: string) => {
-    setUsers(prev => prev.map(user => 
-      user.id === userId 
-        ? { ...user, active: !user.active }
-        : user
-    ));
   };
 
   const tabs = [

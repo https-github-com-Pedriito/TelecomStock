@@ -48,7 +48,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     }
 
     // Déterminer l'URL du WebSocket selon l'environnement
-    const apiUrl = import.meta.env.VITE_API_URL ;
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
+      log('VITE_API_URL non configuree, connexion WebSocket annulee');
+      return;
+    }
     const wsUrl = apiUrl.replace('/api', ''); // Enlever /api si présent
     
     log(`🔗 Connexion WebSocket vers: ${wsUrl}`);

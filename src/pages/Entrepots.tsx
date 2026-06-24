@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Localisation, LocalisationInput } from '../types';
 import { EntrepotModal } from '../components/EntrepotModal';
 import Toggle from 'react-toggle';

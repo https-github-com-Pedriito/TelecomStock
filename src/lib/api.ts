@@ -8,10 +8,10 @@ class ApiService {
 
   constructor() {
     // Utiliser la variable d'environnement avec fallback temporaire
-    this.baseUrl = import.meta.env.VITE_API_URL;
+    this.baseUrl = import.meta.env.VITE_API_URL || '/api';
 
     if (!import.meta.env.VITE_API_URL) {
-      logger.warn('⚠️ VITE_API_URL non trouvé dans .env, utilisation du fallback');
+      logger.warn('VITE_API_URL non trouve dans .env, utilisation du fallback /api');
     }
     this.token = getToken();
   }

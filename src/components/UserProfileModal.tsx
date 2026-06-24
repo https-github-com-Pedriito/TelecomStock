@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, User, Mail, Shield, Eye, EyeOff, Key, Fingerprint, ChevronRight, Loader2, CheckCircle2, AlertCircle, Calendar, Edit2, LogOut, CheckCircle, AlertTriangle, Camera, MapPin, Building, Smartphone, SmartphoneIcon } from 'lucide-react';
+import { X, Lock, User, Mail, Shield, Eye, EyeOff, Key, Fingerprint, ChevronRight, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Portal } from './Portal';
 
 interface UserProfileModalProps {

@@ -4,9 +4,7 @@ import {
   Package,
   AlertTriangle,
   Activity,
-  RefreshCw,
-  ArrowUp,
-  ArrowDown,
+  RefreshCw
 } from 'lucide-react';
 
 import { Article, Mouvement, Inventaire } from '../types';
@@ -55,8 +53,7 @@ const COLORS = ['#2563eb', '#22c55e', '#f59e42', '#ef4444', '#a855f7', '#eab308'
 export function AdminDashboard({
   articles,
   mouvements,
-  inventaires,
-  onNavigate
+  inventaires
 }: AdminDashboardProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({

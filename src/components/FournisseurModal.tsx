@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Fournisseur } from '../types';
-import { Truck, X, Building2, User, Mail, Phone, MapPin, Globe, CheckCircle, Save, ChevronRight } from 'lucide-react';
+import { Truck, X, Building2, User, Mail, Phone, MapPin, ChevronRight } from 'lucide-react';
 import { Portal } from './Portal';
 
 interface FournisseurModalProps {

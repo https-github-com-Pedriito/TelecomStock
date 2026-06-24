@@ -18,15 +18,6 @@ interface MobileBottomNavProps {
   className?: string;
 }
 
-interface MobileNavItem {
-  id: ViewMode | 'quick-scan';
-  icon: React.ComponentType<any>;
-  label: string;
-  isQuickAction?: boolean;
-  badge?: number;
-  permission?: string;
-}
-
 export function MobileBottomNav({
   currentView,
   onViewChange,
@@ -164,4 +155,6 @@ export function useIsMobile() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  return isMobile;
 }

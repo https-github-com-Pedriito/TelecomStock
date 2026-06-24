@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { User } from '../types';
 import { UserModal } from '../components/UserModal';
-import { Plus, Search, Edit2, Trash2, Users, Shield, CheckCircle, XCircle, BellRing } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Users, Shield, BellRing } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

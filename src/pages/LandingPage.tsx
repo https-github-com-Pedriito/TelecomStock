@@ -1,5 +1,4 @@
-import React from 'react';
-import { Shield, Zap, Smartphone, ArrowRight, CheckCircle2, ChevronRight, BarChart3, Database, HeadphonesIcon } from 'lucide-react';
+import { Shield, Zap, Smartphone, ArrowRight, BarChart3, Database, HeadphonesIcon } from 'lucide-react';
 
 interface LandingPageProps {
   onLoginClick: () => void;

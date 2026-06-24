@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Fournisseur } from '../types';
 import { FournisseurModal } from '../components/FournisseurModal';
 import { Plus, Search, Edit2, Trash2, Truck, Mail, Phone, MapPin, Building2, User } from 'lucide-react';
@@ -14,7 +14,7 @@ interface FournisseursProps {
   addNotification?: (notif: { type: 'success' | 'warning' | 'info' | 'error'; title: string; message: string; duration?: number }) => void;
 }
 
-export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisseur, onDeleteFournisseur, onRefreshFournisseurs, addNotification }: FournisseursProps) {
+export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisseur, onDeleteFournisseur, addNotification }: FournisseursProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | undefined>();
   const [searchTerm, setSearchTerm] = useState('');

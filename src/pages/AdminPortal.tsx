@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Article, Mouvement, User } from '../types';
 import { AdminDashboard } from '../components/AdminDashboard';
 import { SettingsPage } from '../components/SettingsPage';
@@ -433,7 +433,6 @@ export function AdminPortal({
                   }
                 }}
                 user={selectedUser}
-                addNotification={addNotification}
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { X, Users, Mail, Shield, Key, ChevronRight, Fingerprint, Lock, Eye, EyeOff, UserPlus, UserCheck, Save, Smartphone, BellRing } from 'lucide-react';
+import { X, Users, Mail, Shield, Key, ChevronRight, Fingerprint, Lock, Eye, EyeOff, UserPlus, UserCheck, BellRing } from 'lucide-react';
 import { Portal } from './Portal';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
