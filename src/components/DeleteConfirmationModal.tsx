@@ -25,7 +25,7 @@ export function DeleteConfirmationModal({
   const themeColor = hasMovements ? 'red' : 'orange';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"

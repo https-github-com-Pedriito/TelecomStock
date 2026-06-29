@@ -142,7 +142,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-gray-950/40 backdrop-blur-md">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] bg-gray-950/40 backdrop-blur-md">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-transparent transition-opacity animate-fade-in z-[100]"
@@ -177,7 +177,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8 custom-scrollbar">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8 custom-scrollbar">
 
           {/* Article Identity Card */}
           <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm relative overflow-hidden group">
@@ -383,22 +383,21 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         </div>
 
         {/* Footer Actions */}
-        <div className="px-4 py-8
-         md:px-8 md:py-8 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-center gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+        <div className="px-4 py-3 md:px-8 md:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-row items-center justify-between gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
           <button
             type="button"
             onClick={onClose}
-            className="w-full sm:w-auto px-6 py-3.5 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95"
+            className="px-5 md:px-6 py-3 md:py-3.5 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 shrink-0"
           >
             Annuler
           </button>
           <button
             onClick={handleSubmit}
             disabled={(!isNewArticle && !isStockSufficient) || submitting}
-            className={`w-full sm:w-auto flex items-center justify-center gap-3 px-10 py-3.5 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white font-black rounded-2xl shadow-xl shadow-${themeColor}-600/20 active:scale-95 transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`flex items-center justify-center gap-2 px-6 md:px-10 py-3 md:py-3.5 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-${themeColor}-600/20 active:scale-95 transition-all group disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             <span>{isNewArticle ? 'Créer le Produit' : `Valider ${type === 'ENTREE' ? 'l\'Entrée' : 'la Sortie'}`}</span>
-            <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+            <ChevronRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform shrink-0" />
           </button>
         </div>
       </div>

@@ -98,7 +98,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
@@ -109,7 +109,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
         <div className="relative w-full max-w-lg glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
 
           {/* Header */}
-          <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20">
+          <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20 overflow-hidden">
             <div className="flex items-center gap-5">
               <div className="p-4 bg-blue-600 rounded-3xl shadow-lg shadow-blue-600/20 text-white">
                 {user ? <Users size={28} strokeWidth={2.5} /> : <UserPlus size={28} strokeWidth={2.5} />}
@@ -357,25 +357,27 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
           </div>
 
           {/* Footer Actions */}
-          <div className="px-6 sm:px-8 py-4 sm:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+          <div className="px-4 sm:px-8 py-3 sm:py-4 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl overflow-hidden h-24">
             <div className="hidden sm:flex items-center gap-3">
               <div className="p-2 bg-gray-500/10 rounded-xl">
                 <UserCheck size={16} className="text-gray-400" />
               </div>
               <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Validation de sécurité</span>
             </div>
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+
+           
+            <div className="flex items-center gap-3 w-full sm:w-[320px] h-full overflow-hidden">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-4 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-[10px] text-gray-500 uppercase tracking-widest hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 flex-1 sm:flex-none"
+                className="p-3 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-[10px] text-gray-500 uppercase tracking-widest hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 flex-1"
               >
                 Annuler
               </button>
               <button
                 form="user-form"
                 type="submit"
-                className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3 transition-all group flex-[2] sm:flex-none"
+                className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3 transition-all group flex-1 overflow-hidden"
               >
                 <span>{user ? 'Appliquer' : 'Enregistrer'}</span>
                 <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />

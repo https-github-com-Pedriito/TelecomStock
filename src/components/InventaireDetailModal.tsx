@@ -176,7 +176,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"

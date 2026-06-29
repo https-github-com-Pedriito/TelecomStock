@@ -49,7 +49,7 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-6 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         {/* Backdrop */}
         <div
           className="fixed inset-0 bg-gray-950/40 backdrop-blur-md transition-opacity animate-fade-in"
@@ -84,7 +84,7 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 sm:space-y-8 custom-scrollbar">
+          <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-8 space-y-6 sm:space-y-8 custom-scrollbar">
             <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* 1. Identity Card */}
@@ -182,20 +182,20 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
           </div>
 
           {/* Footer Actions */}
-          <div className="px-6 sm:px-8 py-4 sm:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
+          <div className="px-4 sm:px-8 py-3 sm:py-6 border-t border-white/20 dark:border-gray-800/50 flex flex-row items-center justify-between gap-3 bg-white/20 dark:bg-gray-950/20 backdrop-blur-xl">
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-8 py-4 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95"
+              className="px-5 sm:px-8 py-3 sm:py-4 glass border border-white/40 dark:border-gray-800/50 rounded-2xl font-black text-sm sm:text-base text-gray-500 hover:text-gray-900 dark:hover:text-white transition-all active:scale-95 shrink-0"
             >
               Annuler
             </button>
             <button
               onClick={handleSubmit}
-              className="w-full sm:w-auto flex items-center justify-center gap-3 px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-600/20 active:scale-95 transition-all group"
+              className="flex items-center justify-center gap-2 px-5 sm:px-10 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-blue-600/20 active:scale-95 transition-all group"
             >
               <span>{fournisseur ? 'Mettre à jour' : 'Enregistrer le Partenaire'}</span>
-              <ChevronRight size={20} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+              <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform shrink-0" />
             </button>
           </div>
         </div>

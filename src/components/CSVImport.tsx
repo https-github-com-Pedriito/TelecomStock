@@ -175,7 +175,7 @@ export function CSVImport({ isOpen, onClose, onImport, addNotification }: CSVImp
     const invalidCount = parsedRows.filter(r => !r.isValid).length;
 
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <div className="fixed inset-0 bg-gray-950/60 backdrop-blur-md animate-fade-in" onClick={onClose} />
 
             <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20 dark:border-gray-800/50 animate-scale-in">
