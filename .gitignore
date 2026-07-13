@@ -28,6 +28,10 @@ dist-ssr
 .env*.local
 .env.production
 
+# Next.js build output
+.next/
+out/
+
 # Deployment
 .vercel
 account.md
