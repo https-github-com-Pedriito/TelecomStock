@@ -56,7 +56,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
         nom: user.nom,
         prenom: user.prenom,
         email: user.email,
-        role: user.role,
+        role: user.role as 'admin' | 'manager' | 'technicien',
         is_active: user.is_active,
         password: '',
         confirmPassword: '',

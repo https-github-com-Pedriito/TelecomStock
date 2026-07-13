@@ -59,7 +59,7 @@ export interface UserProfile {
   nom: string;
   prenom: string;
   email: string;
-  role: 'admin' | 'manager' | 'technicien';
+  role: string;
   created_at: string;
   updated_at: string;
   is_active: boolean;
@@ -71,7 +71,7 @@ export interface User {
   email: string;
   nom: string;
   prenom: string;
-  role: 'admin' | 'manager' | 'technicien';
+  role: string;
   created_at: string;
   updated_at: string;
   is_active: boolean;
