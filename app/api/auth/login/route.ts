@@ -35,6 +35,9 @@ export async function POST(request: NextRequest) {
     return Response.json({ token, user: userWithoutPassword });
   } catch (err) {
     console.error('Login error:', err);
-    return Response.json({ message: 'Erreur lors de la connexion' }, { status: 500 });
+    return Response.json({
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack?.split('\n').slice(0, 4).join(' | ') : undefined,
+    }, { status: 500 });
   }
 }

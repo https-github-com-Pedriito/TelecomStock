@@ -6,12 +6,15 @@ import { Fournisseur } from '@/entities/Fournisseur';
 export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
   const db = await getDb();
-  const fournisseurs = await db.getRepository(Fournisseur).find({ where: { tenant_id: tenantId } });
+  const fournisseurs = await db.getRepository(Fournisseur).find({
+    where: tenantId ? { tenant_id: tenantId } : {},
+  });
   return Response.json(fournisseurs);
 });
 
 export const POST = withAuth(async (request: NextRequest, auth) => {
   const tenantId = requireTenant(auth);
+  if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
   const body = await request.json();
   const { nom, contact, email, telephone, adresse } = body;
   if (!nom) return Response.json({ message: 'Le nom est requis' }, { status: 400 });

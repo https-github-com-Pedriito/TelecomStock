@@ -41,9 +41,10 @@ class ApiService {
 
         if (!response.ok) {
           const errorText = await response.text();
+          console.error('[API] Raw error response:', errorText.slice(0, 500));
           let errorData;
           try { errorData = JSON.parse(errorText); } catch { errorData = { message: errorText || `Erreur HTTP ${response.status}` }; }
-          const error = new Error(errorData.message || 'Une erreur est survenue');
+          const error = new Error(errorData.message || errorData.stack || 'Une erreur est survenue');
           (error as any).response = { status: response.status, data: errorData };
           throw error;
         }

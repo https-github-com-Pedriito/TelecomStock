@@ -6,7 +6,7 @@ const redis = new Redis({
 });
 
 export async function publishChange(
-  tenantId: string,
+  tenantId: string | null,
   table: string,
   type: 'create' | 'update' | 'delete',
   data?: unknown

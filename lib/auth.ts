@@ -50,12 +50,14 @@ export function requireAuth(request: NextRequest): JwtPayload {
 }
 
 export function requireRole(payload: JwtPayload, ...roles: UserRole[]): void {
+  if (payload.role === UserRole.SUPER_ADMIN) return;
   if (!roles.includes(payload.role)) {
     throw new AuthError('Permissions insuffisantes', 403);
   }
 }
 
-export function requireTenant(payload: JwtPayload): string {
+export function requireTenant(payload: JwtPayload): string | null {
+  if (payload.role === UserRole.SUPER_ADMIN) return null;
   if (!payload.tenantId) throw new AuthError('Aucun tenant associé', 403);
   return payload.tenantId;
 }

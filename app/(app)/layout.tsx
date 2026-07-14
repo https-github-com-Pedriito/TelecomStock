@@ -12,6 +12,7 @@ import { api } from '@/lib/api';
 
 const hasPermissionFn = (role: string, permission: string): boolean => {
   const r = role.toLowerCase();
+  if (r === 'super_admin') return true;
   switch (permission) {
     case 'view_dashboard':
     case 'manage_users':
@@ -59,8 +60,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => { setIsMounted(true); }, []);
 
   useEffect(() => {
+    if (!isMounted) return;
     if (!loading && !user) router.replace('/login');
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted]);
 
   if (loading || !isMounted) {
     return (

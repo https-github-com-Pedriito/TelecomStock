@@ -8,7 +8,9 @@ export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
   const db = await getDb();
   const inventaire = await db.getRepository(Inventaire).findOne({
-    where: { tenant_id: tenantId, statut: InventoryStatus.EN_COURS },
+    where: tenantId
+      ? { tenant_id: tenantId, statut: InventoryStatus.EN_COURS }
+      : { statut: InventoryStatus.EN_COURS },
     relations: { created_by: true },
     order: { created_at: 'DESC' },
   });

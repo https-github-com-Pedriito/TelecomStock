@@ -11,7 +11,7 @@ export const PUT = withAuth<Ctx>(async (_request, auth, { params }) => {
   const { id } = await params;
   const db = await getDb();
   const repo = db.getRepository(Inventaire);
-  const inventaire = await repo.findOne({ where: { id, tenant_id: tenantId } });
+  const inventaire = await repo.findOne({ where: tenantId ? { id, tenant_id: tenantId } : { id } });
   if (!inventaire) return Response.json({ message: 'Inventaire introuvable' }, { status: 404 });
   if (inventaire.statut !== InventoryStatus.EN_COURS) {
     return Response.json({ message: 'Inventaire déjà finalisé' }, { status: 409 });

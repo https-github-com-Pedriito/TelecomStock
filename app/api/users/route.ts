@@ -9,7 +9,9 @@ export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
 
   const db = await getDb();
-  const users = await db.getRepository(User).find({ where: { tenant_id: tenantId } });
+  const users = await db.getRepository(User).find({
+    where: tenantId ? { tenant_id: tenantId } : {},
+  });
 
   return Response.json(users.map(({ password_hash: _, ...u }) => u));
 });
@@ -17,6 +19,7 @@ export const GET = withAuth(async (_request, auth) => {
 export const POST = withAuth(async (request: NextRequest, auth) => {
   requireRole(auth, UserRole.ADMIN, UserRole.SUPER_ADMIN);
   const tenantId = requireTenant(auth);
+  if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
 
   const { nom, prenom, email, role, is_active } = await request.json();
   if (!nom || !prenom || !email || !role) {

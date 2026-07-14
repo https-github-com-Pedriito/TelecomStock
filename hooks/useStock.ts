@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Article, Mouvement, Fournisseur, CreateMouvementData, User } from '@/types';
 import { api } from '@/lib/api';
+import { useRealtime } from '@/hooks/useRealtime';
 
 type StockNotificationCallback = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => void;
 
@@ -80,6 +81,14 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleRealtimeEvent = useCallback((event: { table: string; type: string }) => {
+    if (event.table === 'articles') refreshArticles();
+    else if (event.table === 'mouvements') { refreshArticles(); refreshMouvements(); }
+    else if (event.table === 'fournisseurs') refreshFournisseurs();
+  }, [refreshArticles, refreshMouvements, refreshFournisseurs]);
+
+  useRealtime(handleRealtimeEvent);
 
   const createArticle = useCallback(async (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
     try {

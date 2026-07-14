@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   }
 
   const tenantId = requireTenant(auth);
-  const listKey = `tenant:${tenantId}:events`;
+  const listKey = tenantId ? `tenant:${tenantId}:events` : `super_admin:events`;
 
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,

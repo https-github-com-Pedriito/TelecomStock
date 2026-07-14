@@ -8,13 +8,16 @@ import { publishChange } from '@/lib/realtime';
 export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
   const db = await getDb();
-  const articles = await db.getRepository(Article).find({ where: { tenant_id: tenantId } });
+  const articles = await db.getRepository(Article).find({
+    where: tenantId ? { tenant_id: tenantId } : {},
+  });
   return Response.json(articles);
 });
 
 export const POST = withAuth(async (request: NextRequest, auth) => {
   requireRole(auth, UserRole.ADMIN, UserRole.MANAGER);
   const tenantId = requireTenant(auth);
+  if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
 
   const body = await request.json();
   if (!body.nom) return Response.json({ message: 'Le nom est requis' }, { status: 400 });

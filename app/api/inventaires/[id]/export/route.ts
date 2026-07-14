@@ -12,11 +12,13 @@ export const GET = withAuth<Ctx>(async (_request, auth, { params }) => {
   const { id } = await params;
   const db = await getDb();
 
-  const inventaire = await db.getRepository(Inventaire).findOne({ where: { id, tenant_id: tenantId } });
+  const inventaire = await db.getRepository(Inventaire).findOne({
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
+  });
   if (!inventaire) return Response.json({ message: 'Inventaire introuvable' }, { status: 404 });
 
   const entries = await db.getRepository(InventaireEntry).find({
-    where: { inventaire_id: id, tenant_id: tenantId },
+    where: tenantId ? { inventaire_id: id, tenant_id: tenantId } : { inventaire_id: id },
     relations: { article: true },
   });
 

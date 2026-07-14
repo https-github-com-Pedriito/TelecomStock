@@ -10,7 +10,9 @@ async function resolve(request: NextRequest, context: Context) {
   const tenantId = requireTenant(auth);
   const { id } = await context.params;
   const db = await getDb();
-  const localisation = await db.getRepository(Localisation).findOne({ where: { id, tenant_id: tenantId } });
+  const localisation = await db.getRepository(Localisation).findOne({
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
+  });
   return { localisation, db };
 }
 

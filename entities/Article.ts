@@ -6,7 +6,7 @@ export class Article {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true })
   tenant_id!: string;
 
   @Column()

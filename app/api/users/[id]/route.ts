@@ -12,7 +12,9 @@ async function resolveUser(request: NextRequest, context: Context) {
   const tenantId = requireTenant(auth);
   const { id } = await context.params;
   const db = await getDb();
-  const user = await db.getRepository(User).findOne({ where: { id, tenant_id: tenantId } });
+  const user = await db.getRepository(User).findOne({
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
+  });
   return { auth, tenantId, user, db, id };
 }
 

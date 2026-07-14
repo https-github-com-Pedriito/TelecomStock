@@ -11,7 +11,9 @@ export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
   const { id, entryId } = await params;
   const db = await getDb();
   const entry = await db.getRepository(InventaireEntry).findOne({
-    where: { id: entryId, inventaire_id: id, tenant_id: tenantId },
+    where: tenantId
+      ? { id: entryId, inventaire_id: id, tenant_id: tenantId }
+      : { id: entryId, inventaire_id: id },
   });
   if (!entry) return Response.json({ message: 'Entrée introuvable' }, { status: 404 });
   await db.getRepository(InventaireEntry).remove(entry);

@@ -9,7 +9,7 @@ export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
   const db = await getDb();
   const inventaires = await db.getRepository(Inventaire).find({
-    where: { tenant_id: tenantId },
+    where: tenantId ? { tenant_id: tenantId } : {},
     relations: { created_by: true, finalized_by: true },
     order: { created_at: 'DESC' },
   });
@@ -19,6 +19,7 @@ export const GET = withAuth(async (_request, auth) => {
 export const POST = withAuth(async (request: NextRequest, auth) => {
   requireRole(auth, UserRole.ADMIN, UserRole.MANAGER);
   const tenantId = requireTenant(auth);
+  if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
   const body = await request.json();
   const { nom, description, mois, annee } = body;
   if (!nom || !description || !mois || !annee) {

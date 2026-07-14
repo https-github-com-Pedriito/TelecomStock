@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { LogIn, Eye, EyeOff, Mail, ArrowLeft } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
 interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -15,7 +14,7 @@ export function LoginForm({ onLogin, onForgotPassword, error, onBack }: LoginFor
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { loading: isLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [mode, setMode] = useState<'login' | 'forgot'>('login');
   const [forgotEmail, setForgotEmail] = useState('');
@@ -24,11 +23,14 @@ export function LoginForm({ onLogin, onForgotPassword, error, onBack }: LoginFor
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password || isLoading) return;
+    setIsLoading(true);
     try {
       await onLogin(email, password);
     } catch (err) {
       console.error('Login error:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 

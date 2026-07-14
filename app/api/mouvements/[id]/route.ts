@@ -10,7 +10,7 @@ export const GET = withAuth<Ctx>(async (_request, auth, { params }) => {
   const { id } = await params;
   const db = await getDb();
   const mouvement = await db.getRepository(Mouvement).findOne({
-    where: { id, tenant_id: tenantId },
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
     relations: { article: true },
   });
   if (!mouvement) return Response.json({ message: 'Mouvement introuvable' }, { status: 404 });
@@ -22,7 +22,9 @@ export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
   const tenantId = requireTenant(auth);
   const { id } = await params;
   const db = await getDb();
-  const mouvement = await db.getRepository(Mouvement).findOne({ where: { id, tenant_id: tenantId } });
+  const mouvement = await db.getRepository(Mouvement).findOne({
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
+  });
   if (!mouvement) return Response.json({ message: 'Mouvement introuvable' }, { status: 404 });
   await db.getRepository(Mouvement).remove(mouvement);
   return Response.json({ message: 'Mouvement supprimé' });

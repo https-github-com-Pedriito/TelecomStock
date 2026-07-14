@@ -11,7 +11,7 @@ export const GET = withAuth<Ctx>(async (_request, auth, { params }) => {
   const { id } = await params;
   const db = await getDb();
   const inventaire = await db.getRepository(Inventaire).findOne({
-    where: { id, tenant_id: tenantId },
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
     relations: { created_by: true, finalized_by: true },
   });
   if (!inventaire) return Response.json({ message: 'Inventaire introuvable' }, { status: 404 });
@@ -23,7 +23,9 @@ export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
   const tenantId = requireTenant(auth);
   const { id } = await params;
   const db = await getDb();
-  const inventaire = await db.getRepository(Inventaire).findOne({ where: { id, tenant_id: tenantId } });
+  const inventaire = await db.getRepository(Inventaire).findOne({
+    where: tenantId ? { id, tenant_id: tenantId } : { id },
+  });
   if (!inventaire) return Response.json({ message: 'Inventaire introuvable' }, { status: 404 });
   await db.getRepository(Inventaire).remove(inventaire);
   return Response.json({ message: 'Inventaire supprimé' });

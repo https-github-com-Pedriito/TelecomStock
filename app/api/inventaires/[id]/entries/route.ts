@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: Context) {
     const { id } = await context.params;
     const db = await getDb();
     const entries = await db.getRepository(InventaireEntry).find({
-      where: { inventaire_id: id, tenant_id: tenantId },
+      where: tenantId ? { inventaire_id: id, tenant_id: tenantId } : { inventaire_id: id },
       relations: { article: true, utilisateur: true },
     });
     return Response.json(entries);
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest, context: Context) {
     const auth = requireAuth(request);
     requireRole(auth, UserRole.ADMIN, UserRole.MANAGER);
     const tenantId = requireTenant(auth);
+    if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
     const { id } = await context.params;
     const { article_id, quantite_comptee, commentaire } = await request.json();
 

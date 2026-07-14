@@ -11,7 +11,7 @@ export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
   const db = await getDb();
   const mouvements = await db.getRepository(Mouvement).find({
-    where: { tenant_id: tenantId },
+    where: tenantId ? { tenant_id: tenantId } : {},
     relations: { article: true },
     order: { created_at: 'DESC' },
   });
@@ -20,6 +20,7 @@ export const GET = withAuth(async (_request, auth) => {
 
 export const POST = withAuth(async (request: NextRequest, auth) => {
   const tenantId = requireTenant(auth);
+  if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
   const body = await request.json();
 
   const { type, quantite, article_id, utilisateur, projet, technicien, commentaire } = body;

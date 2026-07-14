@@ -6,12 +6,15 @@ import { Localisation } from '@/entities/Localisation';
 export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
   const db = await getDb();
-  const localisations = await db.getRepository(Localisation).find({ where: { tenant_id: tenantId } });
+  const localisations = await db.getRepository(Localisation).find({
+    where: tenantId ? { tenant_id: tenantId } : {},
+  });
   return Response.json(localisations);
 });
 
 export const POST = withAuth(async (request: NextRequest, auth) => {
   const tenantId = requireTenant(auth);
+  if (!tenantId) return Response.json({ message: 'Aucun tenant sélectionné' }, { status: 403 });
   const body = await request.json();
   const { nom, description, type } = body;
   if (!nom) return Response.json({ message: 'Le nom est requis' }, { status: 400 });

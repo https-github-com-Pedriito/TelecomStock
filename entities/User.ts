@@ -14,7 +14,7 @@ export class User {
   id!: string;
 
   // null pour SUPER_ADMIN (pas de tenant)
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   tenant_id!: string | null;
 
   @Column()
