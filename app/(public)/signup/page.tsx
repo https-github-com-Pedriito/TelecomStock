@@ -1,21 +1,52 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { CreditCard, ArrowLeft, Check } from 'lucide-react';
+import { Suspense } from 'react';
 
-export default function SignupPage() {
+const PLAN_INFO: Record<string, { label: string; price: string; features: string[] }> = {
+  pro_mobile: {
+    label: 'Pro Mobile',
+    price: '19€/mois',
+    features: ["Jusqu'à 5 utilisateurs", 'Scanner de codes-barres', 'Alertes de stock critique'],
+  },
+  business: {
+    label: 'Business',
+    price: '29€/mois',
+    features: ['Utilisateurs illimités', 'Multi-entrepôts', 'Exports CSV/Excel', 'Support prioritaire'],
+  },
+};
+
+function SignupForm() {
   const router = useRouter();
-  const [form, setForm] = useState({ nom_societe: '', slug: '', admin_prenom: '', admin_nom: '', admin_email: '' });
+  const searchParams = useSearchParams();
+  const plan = searchParams.get('plan') ?? '';
+
+  const [form, setForm] = useState({
+    nom_societe: '',
+    slug: '',
+    admin_prenom: '',
+    admin_nom: '',
+    admin_email: '',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+
+  const planInfo = PLAN_INFO[plan];
+
+  useEffect(() => {
+    if (!plan || !planInfo) router.replace('/pricing');
+  }, [plan, planInfo, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({
       ...prev,
       [name]: value,
-      ...(name === 'nom_societe' ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') } : {}),
+      ...(name === 'nom_societe'
+        ? { slug: value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') }
+        : {}),
     }));
   };
 
@@ -24,42 +55,176 @@ export default function SignupPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/auth/register-tenant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, plan }),
+      });
       const data = await res.json();
-      if (!res.ok) { setError(data.message); return; }
-      setSuccess(true);
-    } catch { setError('Erreur réseau.'); } finally { setLoading(false); }
+      if (!res.ok) {
+        setError(data.message);
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setError('Erreur réseau. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (success) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-        <div className="text-5xl mb-4">✅</div>
-        <h2 className="text-2xl font-bold mb-2">Compte créé !</h2>
-        <p className="text-gray-600 mb-6">Vos identifiants ont été envoyés par email.</p>
-        <button onClick={() => router.push('/login')} className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">Se connecter</button>
+  if (!planInfo) return null;
+
+  return (
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-6">
+
+        {/* Récapitulatif du plan */}
+        <div className="bg-blue-600 rounded-[2rem] p-8 text-white flex flex-col justify-between">
+          <div>
+            <button
+              onClick={() => router.push('/pricing')}
+              className="flex items-center gap-2 text-blue-200 hover:text-white mb-8 text-sm transition-colors"
+            >
+              <ArrowLeft size={16} />
+              Changer de plan
+            </button>
+            <div className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">
+              {planInfo.label}
+            </div>
+            <div className="text-5xl font-extrabold mb-1">{planInfo.price}</div>
+            <p className="text-blue-200 text-sm mb-8">Abonnement mensuel, résiliable à tout moment</p>
+            <ul className="space-y-3">
+              {planInfo.features.map((f, i) => (
+                <li key={i} className="flex items-center gap-3 text-sm">
+                  <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <Check size={12} />
+                  </div>
+                  {f}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-8 flex items-center gap-2 text-blue-200 text-xs">
+            <CreditCard size={14} />
+            Paiement sécurisé via Stripe
+          </div>
+        </div>
+
+        {/* Formulaire */}
+        <div className="bg-white dark:bg-gray-800/50 rounded-[2rem] p-8 shadow-xl border border-gray-100 dark:border-gray-700/50">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Créer votre espace</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            Renseignez vos informations, vous serez ensuite redirigé vers le paiement.
+          </p>
+
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl px-4 py-3 mb-5 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Nom de la société
+              </label>
+              <input
+                name="nom_societe"
+                value={form.nom_societe}
+                onChange={handleChange}
+                required
+                placeholder="Acme Telecom"
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Identifiant unique{' '}
+                <span className="text-gray-400 font-normal">(slug)</span>
+              </label>
+              <input
+                name="slug"
+                value={form.slug}
+                onChange={handleChange}
+                required
+                pattern="[a-z0-9-]+"
+                placeholder="acme-telecom"
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-mono bg-gray-50 dark:bg-gray-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Prénom</label>
+                <input
+                  name="admin_prenom"
+                  value={form.admin_prenom}
+                  onChange={handleChange}
+                  required
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom</label>
+                <input
+                  name="admin_nom"
+                  value={form.admin_nom}
+                  onChange={handleChange}
+                  required
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email administrateur
+              </label>
+              <input
+                name="admin_email"
+                type="email"
+                value={form.admin_email}
+                onChange={handleChange}
+                required
+                placeholder="vous@societe.com"
+                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm bg-gray-50 dark:bg-gray-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 mt-2"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <CreditCard size={18} />
+                  Payer {planInfo.price} →
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-xs text-gray-400 mt-4">
+            Déjà un compte ?{' '}
+            <Link href="/login" className="text-blue-600 hover:underline">
+              Se connecter
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
+}
 
+export default function SignupPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Créer votre espace</h1>
-        <p className="text-gray-500 text-sm mb-6">Démarrez sans carte bancaire</p>
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 mb-4 text-sm">{error}</div>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Nom de la société</label><input name="nom_societe" value={form.nom_societe} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug <span className="text-gray-400 font-normal">(identifiant unique)</span></label><input name="slug" value={form.slug} onChange={handleChange} required pattern="[a-z0-9-]+" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500" /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label><input name="admin_prenom" value={form.admin_prenom} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Nom</label><input name="admin_nom" value={form.admin_nom} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" /></div>
-          </div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Email administrateur</label><input name="admin_email" type="email" value={form.admin_email} onChange={handleChange} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" /></div>
-          <button type="submit" disabled={loading} className="w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 font-medium disabled:opacity-60">{loading ? 'Création...' : 'Créer mon espace'}</button>
-        </form>
-        <p className="text-center text-sm text-gray-500 mt-4">Déjà un compte ? <Link href="/login" className="text-indigo-600 hover:underline">Se connecter</Link></p>
-      </div>
-    </div>
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }

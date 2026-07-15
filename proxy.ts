@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
 const PUBLIC_PATHS = ['/', '/login', '/signup', '/pricing', '/faq', '/privacy', '/terms'];
-const API_PUBLIC = ['/api/auth/login', '/api/auth/forgot-password', '/api/auth/register-tenant'];
+const API_PUBLIC = [
+  '/api/auth/login',
+  '/api/auth/forgot-password',
+  '/api/auth/register-tenant',
+  '/api/stripe/checkout',
+  '/api/stripe/webhook',
+];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Fichiers statiques du dossier public — laisser passer
+  if (/\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf|json|csv)$/i.test(pathname)) {
+    return NextResponse.next();
+  }
 
   // Routes API publiques — laisser passer
   if (API_PUBLIC.some(p => pathname.startsWith(p))) return NextResponse.next();

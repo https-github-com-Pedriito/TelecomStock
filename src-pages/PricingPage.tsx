@@ -7,6 +7,11 @@ interface PricingPageProps {
   onLogin: () => void;
 }
 
+const PLAN_SLUGS: Record<string, string> = {
+  'Pro Mobile': 'pro_mobile',
+  'Business': 'business',
+};
+
 export function PricingPage({ onBack, onLogin }: PricingPageProps) {
   const plans = [
     {
@@ -134,6 +139,9 @@ export function PricingPage({ onBack, onLogin }: PricingPageProps) {
                 onClick={() => {
                   if (plan.price === 'Sur devis') {
                     window.location.href = 'mailto:promer@decimale.net?subject=Demande de devis - Telecom Stock';
+                  } else {
+                    const slug = PLAN_SLUGS[plan.name];
+                    if (slug) window.location.href = `/signup?plan=${slug}`;
                   }
                 }}
                 className={`w-full py-4 rounded-2xl font-bold transition-all ${plan.active
@@ -141,7 +149,7 @@ export function PricingPage({ onBack, onLogin }: PricingPageProps) {
                   : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
               >
-                {plan.price === 'Sur devis' ? 'Contacter l\'équipe' : 'Commencer l\'essai'}
+                {plan.price === 'Sur devis' ? 'Contacter l\'équipe' : 'Commencer — payer par carte'}
               </button>
             </div>
           ))}

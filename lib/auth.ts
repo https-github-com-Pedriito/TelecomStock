@@ -1,6 +1,26 @@
 import jwt from 'jsonwebtoken';
 import { NextRequest } from 'next/server';
 import { UserRole } from '@/entities/User';
+import { getDb } from '@/lib/db';
+import { Tenant } from '@/entities/Tenant';
+
+// Cache en mémoire du statut d'abonnement (TTL 2min)
+const _tenantCache = new Map<string, { active: boolean; at: number }>();
+const TENANT_CACHE_TTL = 2 * 60 * 1000;
+
+async function isTenantActive(tenantId: string): Promise<boolean> {
+  const hit = _tenantCache.get(tenantId);
+  if (hit && Date.now() - hit.at < TENANT_CACHE_TTL) return hit.active;
+  try {
+    const db = await getDb();
+    const tenant = await db.getRepository(Tenant).findOne({ where: { id: tenantId }, select: ['is_active'] });
+    const active = tenant?.is_active ?? false;
+    _tenantCache.set(tenantId, { active, at: Date.now() });
+    return active;
+  } catch {
+    return true; // En cas d'erreur DB, ne pas bloquer
+  }
+}
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -70,6 +90,18 @@ export function withAuth<C = unknown>(
   return async (request: NextRequest, context: C): Promise<Response> => {
     try {
       const auth = requireAuth(request);
+
+      // Vérifier l'abonnement du tenant (sauf SUPER_ADMIN)
+      if (auth.tenantId && auth.role !== UserRole.SUPER_ADMIN) {
+        const active = await isTenantActive(auth.tenantId);
+        if (!active) {
+          return Response.json({
+            message: 'Abonnement inactif. Veuillez régulariser votre situation.',
+            code: 'SUBSCRIPTION_INACTIVE',
+          }, { status: 402 });
+        }
+      }
+
       return await handler(request, auth, context);
     } catch (err) {
       if (err instanceof AuthError) {

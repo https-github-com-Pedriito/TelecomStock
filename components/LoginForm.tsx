@@ -7,10 +7,11 @@ interface LoginFormProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onForgotPassword: (email: string) => Promise<void>;
   error: string | null;
+  portalUrl?: string | null;
   onBack?: () => void;
 }
 
-export function LoginForm({ onLogin, onForgotPassword, error, onBack }: LoginFormProps) {
+export function LoginForm({ onLogin, onForgotPassword, error, portalUrl, onBack }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -142,9 +143,19 @@ export function LoginForm({ onLogin, onForgotPassword, error, onBack }: LoginFor
                 </div>
 
                 {error && (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 flex items-center gap-3 animate-slide-up">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 flex flex-col gap-2 animate-slide-up">
+                    <div className="flex items-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />
+                      <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                    </div>
+                    {portalUrl && (
+                      <a
+                        href={portalUrl}
+                        className="mt-1 w-full text-center text-sm font-semibold bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl transition-colors"
+                      >
+                        Régulariser mon abonnement →
+                      </a>
+                    )}
                   </div>
                 )}
 

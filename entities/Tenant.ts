@@ -17,6 +17,18 @@ export class Tenant {
   @Column({ nullable: true })
   contact_email?: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  stripe_customer_id?: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  stripe_subscription_id?: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  subscription_status?: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  plan?: string | null;
+
   @CreateDateColumn()
   created_at!: Date;
 
