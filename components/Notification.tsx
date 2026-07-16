@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle, AlertCircle, X, Trash2, PlusCircle, Info } from 'lucide-react';
+import { getStockLevel } from '@/lib/stock';
 
 interface NotificationProps {
   id: string;
@@ -156,13 +157,17 @@ export function useNotifications() {
   };
 
   const showStockNotification = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => {
-    const isLowStock = seuilMinimum !== undefined && nouvelleQuantite <= seuilMinimum;
+    const niveau = getStockLevel(nouvelleQuantite, seuilMinimum ?? 0);
+    const isRupture = niveau === 'rupture';
+    const isCritique = niveau === 'critique';
 
     addNotification({
-      type: isLowStock ? 'warning' : 'success',
+      type: isRupture ? 'error' : isCritique ? 'warning' : 'success',
       title: `${type === 'ENTREE' ? 'Entrée' : 'Sortie'} confirmée`,
-      message: `${articleNom}: ${nouvelleQuantite} unités actuellement en stock.${isLowStock ? ' Attention: Niveau critique !' : ''}`,
-      duration: isLowStock ? 7000 : 4000,
+      message: `${articleNom}: ${nouvelleQuantite} unités actuellement en stock.${
+        isRupture ? ' Rupture de stock !' : isCritique ? ' Attention: niveau critique !' : ''
+      }`,
+      duration: isRupture || isCritique ? 8000 : 4000,
     });
   };
 

@@ -2,18 +2,20 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CreditCard, ArrowLeft, Check } from 'lucide-react';
+import { CreditCard, ArrowLeft, Check, Minus, Plus } from 'lucide-react';
 import { Suspense } from 'react';
 
-const PLAN_INFO: Record<string, { label: string; price: string; features: string[] }> = {
+const PLAN_INFO: Record<string, { label: string; unitPrice: number; maxSeats: number | null; features: string[] }> = {
   pro_mobile: {
     label: 'Pro Mobile',
-    price: '19€/mois',
+    unitPrice: 19,
+    maxSeats: 5,
     features: ["Jusqu'à 5 utilisateurs", 'Scanner de codes-barres', 'Alertes de stock critique'],
   },
   business: {
     label: 'Business',
-    price: '29€/mois',
+    unitPrice: 29,
+    maxSeats: null,
     features: ['Utilisateurs illimités', 'Multi-entrepôts', 'Exports CSV/Excel', 'Support prioritaire'],
   },
 };
@@ -30,10 +32,16 @@ function SignupForm() {
     admin_nom: '',
     admin_email: '',
   });
+  const [seats, setSeats] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const planInfo = PLAN_INFO[plan];
+
+  const updateSeats = (next: number) => {
+    const clamped = Math.max(1, planInfo?.maxSeats ? Math.min(next, planInfo.maxSeats) : next);
+    setSeats(clamped);
+  };
 
   useEffect(() => {
     if (!plan || !planInfo) router.replace('/pricing');
@@ -58,7 +66,7 @@ function SignupForm() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, plan }),
+        body: JSON.stringify({ ...form, plan, seats }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -92,8 +100,42 @@ function SignupForm() {
             <div className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-4">
               {planInfo.label}
             </div>
-            <div className="text-5xl font-extrabold mb-1">{planInfo.price}</div>
-            <p className="text-blue-200 text-sm mb-8">Abonnement mensuel, résiliable à tout moment</p>
+            <div className="text-sm text-blue-200 mb-1">{planInfo.unitPrice}€ / utilisateur / mois</div>
+            <div className="text-5xl font-extrabold mb-1">
+              {planInfo.unitPrice * seats}€<span className="text-lg font-medium">/mois</span>
+            </div>
+            <p className="text-blue-200 text-sm mb-6">
+              Abonnement mensuel, résiliable à tout moment
+            </p>
+
+            <div className="mb-8">
+              <label className="block text-blue-200 text-xs font-bold uppercase tracking-widest mb-2">
+                Nombre d&apos;utilisateurs
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => updateSeats(seats - 1)}
+                  disabled={seats <= 1}
+                  className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-40 flex items-center justify-center transition-colors"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="text-xl font-bold w-8 text-center">{seats}</span>
+                <button
+                  type="button"
+                  onClick={() => updateSeats(seats + 1)}
+                  disabled={planInfo.maxSeats !== null && seats >= planInfo.maxSeats}
+                  className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-40 flex items-center justify-center transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              {planInfo.maxSeats && (
+                <p className="text-blue-200 text-xs mt-2">Plafonné à {planInfo.maxSeats} utilisateurs sur ce plan</p>
+              )}
+            </div>
+
             <ul className="space-y-3">
               {planInfo.features.map((f, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm">
@@ -203,7 +245,7 @@ function SignupForm() {
               ) : (
                 <>
                   <CreditCard size={18} />
-                  Payer {planInfo.price} →
+                  Payer {planInfo.unitPrice * seats}€/mois →
                 </>
               )}
             </button>

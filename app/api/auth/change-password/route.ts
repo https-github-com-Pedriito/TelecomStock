@@ -3,6 +3,7 @@ import bcryptjs from 'bcryptjs';
 import { withAuth } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { User } from '@/entities/User';
+import { sendPasswordChangedEmail } from '@/lib/mailer';
 
 export const PUT = withAuth(async (request: NextRequest, auth) => {
   const { oldPassword, newPassword } = await request.json();
@@ -25,6 +26,12 @@ export const PUT = withAuth(async (request: NextRequest, auth) => {
 
   user.password_hash = await bcryptjs.hash(newPassword, 10);
   await repo.save(user);
+
+  try {
+    await sendPasswordChangedEmail(user.email);
+  } catch (e) {
+    console.error('Erreur envoi email changement mot de passe:', e);
+  }
 
   return Response.json({ message: 'Mot de passe modifié avec succès' });
 });

@@ -29,6 +29,9 @@ export class Tenant {
   @Column({ type: 'varchar', nullable: true })
   plan?: string | null;
 
+  @Column({ type: 'int', default: 1 })
+  seats!: number;
+
   @CreateDateColumn()
   created_at!: Date;
 

@@ -44,6 +44,9 @@ class ApiService {
           console.error('[API] Raw error response:', errorText.slice(0, 500));
           let errorData;
           try { errorData = JSON.parse(errorText); } catch { errorData = { message: errorText || `Erreur HTTP ${response.status}` }; }
+          if (response.status === 402 && errorData.code === 'SUBSCRIPTION_INACTIVE') {
+            window.dispatchEvent(new CustomEvent('subscription-inactive'));
+          }
           const error = new Error(errorData.message || errorData.stack || 'Une erreur est survenue');
           (error as any).response = { status: response.status, data: errorData };
           throw error;
@@ -86,11 +89,24 @@ class ApiService {
   async getProfile() { return this.request('/auth/profile'); }
   async forgotPassword(email: string) { return this.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }); }
 
+  async getTenantInfo() { return this.request('/tenant'); }
+  async getBillingPortalUrl(): Promise<{ url: string }> { return this.request('/stripe/portal'); }
+
+  async getAllUsers() { return this.request('/admin/users'); }
+  async assignUserToTenant(userId: string, tenantId: string | null) {
+    return this.request(`/users/${userId}`, { method: 'PUT', body: JSON.stringify({ tenant_id: tenantId }) });
+  }
+
   async getUsers() { return this.request('/users'); }
   async updateUser(id: string, data: Partial<User>) { return this.request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
   async deleteUser(id: string) { return this.request(`/users/${id}`, { method: 'DELETE' }); }
   async createUser(data: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
     return this.request('/users', { method: 'POST', body: JSON.stringify({ ...data, role: data.role.toUpperCase() }) });
+  }
+
+  async getTenantUsers(tenantId: string) { return this.request(`/admin/tenants/${tenantId}/users`); }
+  async createTenantUser(tenantId: string, data: { nom: string; prenom: string; email: string; role: string; is_active?: boolean }) {
+    return this.request(`/admin/tenants/${tenantId}/users`, { method: 'POST', body: JSON.stringify(data) });
   }
 
   async getArticles() { return this.request('/articles'); }

@@ -13,7 +13,7 @@ async function isTenantActive(tenantId: string): Promise<boolean> {
   if (hit && Date.now() - hit.at < TENANT_CACHE_TTL) return hit.active;
   try {
     const db = await getDb();
-    const tenant = await db.getRepository(Tenant).findOne({ where: { id: tenantId }, select: ['is_active'] });
+    const tenant = await db.getRepository(Tenant).findOne({ where: { id: tenantId }, select: { is_active: true } });
     const active = tenant?.is_active ?? false;
     _tenantCache.set(tenantId, { active, at: Date.now() });
     return active;

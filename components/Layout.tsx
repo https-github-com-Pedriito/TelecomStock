@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { ViewMode } from '@/types';
 import {
   LayoutDashboard,
@@ -12,7 +13,8 @@ import {
   Truck,
   FileText,
   Building2,
-  Users
+  Users,
+  ShieldCheck
 } from 'lucide-react';
 import { UserProfileModal } from '@/components/UserProfileModal';
 
@@ -27,6 +29,7 @@ interface LayoutProps {
     email: string;
     role: 'admin' | 'manager' | 'technicien';
   };
+  isSuperAdmin?: boolean;
   onLogout: () => void;
   onChangePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   hasPermission: (permission: string) => boolean;
@@ -40,6 +43,7 @@ export function Layout({
   onViewChange,
   alertsCount,
   currentUser,
+  isSuperAdmin,
   onLogout,
   onChangePassword,
   hasPermission,
@@ -148,6 +152,16 @@ export function Layout({
                 <AlertTriangle size={16} />
                 <span>{alertsCount} alertes</span>
               </button>
+            )}
+
+            {isSuperAdmin && (
+              <Link
+                href="/tenants"
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl text-sm font-semibold border border-purple-100 dark:border-purple-800/50 hover:bg-purple-100 transition-colors"
+              >
+                <ShieldCheck size={16} />
+                <span>Tenants</span>
+              </Link>
             )}
 
             <div className="h-10 w-[1px] bg-gray-200 dark:bg-gray-800 mx-2 hidden sm:block"></div>

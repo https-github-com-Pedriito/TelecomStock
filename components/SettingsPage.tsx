@@ -1,23 +1,50 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Bell, 
-  Database, 
-  Shield, 
-  Monitor, 
+import {
+  Settings,
+  Bell,
+  Database,
+  Shield,
+  Monitor,
   Smartphone,
-  Save, 
-  RotateCcw, 
+  Save,
+  RotateCcw,
   AlertTriangle,
-  Info
+  Info,
+  CreditCard,
+  Users as UsersIcon,
 } from 'lucide-react';
 import { useFeedback } from '@/components/UXFeedback';
+import { api } from '@/lib/api';
 
 interface SettingsPageProps {
   onSave?: (settings: SystemSettings) => Promise<void>;
   initialSettings?: Partial<SystemSettings>;
+  isAdmin?: boolean;
+}
+
+const PLAN_DISPLAY: Record<string, { label: string; unitPrice: number }> = {
+  pro_mobile: { label: 'Pro Mobile', unitPrice: 19 },
+  business: { label: 'Business', unitPrice: 29 },
+};
+
+const STATUS_DISPLAY: Record<string, { label: string; className: string }> = {
+  active: { label: 'Actif', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  trialing: { label: 'Essai', className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+  past_due: { label: 'Paiement en retard', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  unpaid: { label: 'Impayé', className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  canceled: { label: 'Résilié', className: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
+  paused: { label: 'En pause', className: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
+};
+
+interface TenantInfo {
+  nom: string;
+  plan: string | null;
+  seats: number;
+  activeUsers: number;
+  subscription_status: string | null;
+  is_active: boolean;
 }
 
 interface SystemSettings {
@@ -62,8 +89,11 @@ interface SystemSettings {
   enableAdvancedReporting: boolean;
 }
 
-export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'security' | 'data'>('general');
+export function SettingsPage({ onSave, initialSettings, isAdmin }: SettingsPageProps) {
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'security' | 'data' | 'billing'>('general');
+  const [tenantInfo, setTenantInfo] = useState<TenantInfo | null>(null);
+  const [tenantLoading, setTenantLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [settings, setSettings] = useState<SystemSettings>({
     defaultStockThreshold: 10,
     criticalStockThreshold: 5,
@@ -104,6 +134,26 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
   useEffect(() => {
     setHasChanges(true);
   }, [settings]);
+
+  useEffect(() => {
+    if (activeTab !== 'billing' || !isAdmin || tenantInfo) return;
+    setTenantLoading(true);
+    api.getTenantInfo()
+      .then((data) => setTenantInfo(data as TenantInfo))
+      .catch(() => showFeedback({ type: 'error', title: 'Erreur', message: "Impossible de charger les informations d'abonnement" }))
+      .finally(() => setTenantLoading(false));
+  }, [activeTab, isAdmin, tenantInfo, showFeedback]);
+
+  const handleManageBilling = async () => {
+    setPortalLoading(true);
+    try {
+      const { url } = await api.getBillingPortalUrl();
+      window.location.href = url;
+    } catch {
+      showFeedback({ type: 'error', title: 'Erreur', message: "Impossible d'ouvrir le portail de facturation" });
+      setPortalLoading(false);
+    }
+  };
 
   const handleSettingChange = (key: keyof SystemSettings, value: any) => {
     setSettings(prev => ({
@@ -172,7 +222,8 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
     { id: 'general', name: 'Général', icon: Settings },
     { id: 'notifications', name: 'Notifications', icon: Bell },
     { id: 'security', name: 'Sécurité', icon: Shield },
-    { id: 'data', name: 'Données', icon: Database }
+    { id: 'data', name: 'Données', icon: Database },
+    ...(isAdmin ? [{ id: 'billing', name: 'Facturation', icon: CreditCard }] : []),
   ];
 
   return (
@@ -682,6 +733,73 @@ export function SettingsPage({ onSave, initialSettings }: SettingsPageProps) {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Onglet Facturation */}
+            {activeTab === 'billing' && isAdmin && (
+              <div className="space-y-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                    Abonnement
+                  </h3>
+
+                  {tenantLoading && !tenantInfo && (
+                    <div className="animate-pulse space-y-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                    </div>
+                  )}
+
+                  {tenantInfo && (
+                    <div className="space-y-6">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="text-xl font-bold text-gray-900 dark:text-white">
+                          {tenantInfo.plan && PLAN_DISPLAY[tenantInfo.plan] ? PLAN_DISPLAY[tenantInfo.plan].label : 'Plan inconnu'}
+                        </span>
+                        {tenantInfo.subscription_status && STATUS_DISPLAY[tenantInfo.subscription_status] && (
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_DISPLAY[tenantInfo.subscription_status].className}`}>
+                            {STATUS_DISPLAY[tenantInfo.subscription_status].label}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+                          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">
+                            <UsersIcon size={14} /> Utilisateurs
+                          </div>
+                          <div className="text-lg font-bold text-gray-900 dark:text-white">
+                            {tenantInfo.activeUsers} / {tenantInfo.seats}
+                          </div>
+                        </div>
+                        {tenantInfo.plan && PLAN_DISPLAY[tenantInfo.plan] && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wide mb-1">
+                              <CreditCard size={14} /> Coût mensuel
+                            </div>
+                            <div className="text-lg font-bold text-gray-900 dark:text-white">
+                              {PLAN_DISPLAY[tenantInfo.plan].unitPrice * tenantInfo.seats}€
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <button
+                          onClick={handleManageBilling}
+                          disabled={portalLoading}
+                          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors"
+                        >
+                          {portalLoading ? 'Redirection...' : 'Gérer mon abonnement'}
+                        </button>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                          Mettre à jour votre moyen de paiement, consulter vos factures ou résilier votre abonnement (portail sécurisé Stripe).
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

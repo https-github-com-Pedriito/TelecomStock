@@ -13,12 +13,12 @@ export function FAQPage({ onBack, onLogin }: FAQPageProps) {
 
   const faqs = [
     {
-      question: "Comment fonctionne la facturation annuelle ?",
-      answer: "Nous offrons une réduction de 15% sur la facturation annuelle. Une facture unique est émise au début de l'année, ce qui simplifie votre gestion administrative."
+      question: "Comment fonctionne la facturation ?",
+      answer: "La facturation est mensuelle et calculée par utilisateur actif : 19€/utilisateur pour Pro Mobile, 29€/utilisateur pour Business. Vous choisissez le nombre de sièges à l'inscription et le montant s'ajuste automatiquement."
     },
     {
-      question: "Puis-je changer de plan à tout moment ?",
-      answer: "Oui, vous pouvez mettre à jour votre plan depuis les paramètres en un clic. Un ajustement prorata est automatiquement appliqué à votre prochaine facture."
+      question: "Puis-je résilier ou changer de plan à tout moment ?",
+      answer: "Oui, vous pouvez résilier votre abonnement à tout moment depuis Paramètres > Facturation (portail sécurisé Stripe). Pour changer de plan ou ajuster votre nombre d'utilisateurs, contactez notre support."
     },
     {
       question: "Y a-t-il un engagement minimum ?",

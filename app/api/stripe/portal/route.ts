@@ -34,4 +34,4 @@ export async function GET(request: NextRequest) {
   });
 
   return Response.json({ url: session.url });
-});
+}

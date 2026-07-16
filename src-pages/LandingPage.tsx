@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import { useEffect, useRef } from 'react';
 import { Shield, Zap, Smartphone, ArrowRight, BarChart3, Database, HeadphonesIcon } from 'lucide-react';
 
 interface LandingPageProps {
@@ -8,6 +9,18 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
+  const onGetStarted = () => onNavigate('pricing');
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = heroVideoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.play().catch(() => {
+      // L'autoplay peut être bloqué par le navigateur ; la vidéo restera sur sa 1ère image.
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#0f172a] text-gray-900 dark:text-gray-100 font-sans selection:bg-blue-500/30">
       {/* Header */}
@@ -27,11 +40,11 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
               >
                 Espace client
               </button>
-              <button 
-                onClick={onLoginClick}
+              <button
+                onClick={onGetStarted}
                 className="inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95 gap-2"
               >
-                Se connecter <ArrowRight size={18} />
+                S'inscrire <ArrowRight size={18} />
               </button>
             </div>
           </div>
@@ -60,18 +73,34 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
               Rentabilisez vos équipes • Maîtrisez vos stocks • Simplifiez votre opérationnel avec notre plateforme moderne.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button 
+              <button
                 className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-bold text-lg shadow-xl hover:scale-105 transition-transform"
-                onClick={onLoginClick}
+                onClick={onGetStarted}
               >
                 Démarrer maintenant
               </button>
-              <a 
+              <a
                 href="mailto:contact@telecomstock.fr"
                 className="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-2 border-gray-200 dark:border-gray-700 rounded-full font-bold text-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
               >
                 Contacter l'équipe
               </a>
+            </div>
+
+            <div className="mt-32 max-w-4xl mx-auto">
+              <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800 bg-gray-900">
+                <video
+                  ref={heroVideoRef}
+                  src="/videos/hero-demo.mp4"
+                  className="w-full h-auto block"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  aria-label="Présentation de Telecom Stock"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -116,11 +145,11 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
               Rejoignez les entreprises qui font confiance à Telecom Stock pour leur efficacité opérationnelle.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <button 
-                onClick={onLoginClick}
+              <button
+                onClick={onGetStarted}
                 className="w-full sm:w-auto px-10 py-5 bg-white text-blue-600 rounded-full font-bold text-xl shadow-2xl hover:scale-105 transition-all active:scale-95"
               >
-                Démarrer l'essai gratuit
+                Choisir mon offre
               </button>
               <a 
                 href="mailto:contact@telecomstock.fr?subject=Demande d'information - Telecom Stock"

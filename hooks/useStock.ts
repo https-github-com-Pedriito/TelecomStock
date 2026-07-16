@@ -126,12 +126,16 @@ export function useStock(user: User | null, onStockChange?: StockNotificationCal
           if (user?.prenom && user?.nom) utilisateurNom = `${user.prenom.trim()} ${user.nom.trim()}`.trim();
           else if (user?.email) utilisateurNom = user.email;
           try {
+            const mouvementType = difference > 0 ? 'ENTREE' : 'SORTIE';
             const mouvement = await api.post<Mouvement>('/mouvements', {
-              type: difference > 0 ? 'ENTREE' : 'SORTIE', quantite: Math.abs(difference),
+              type: mouvementType, quantite: Math.abs(difference),
               article_id: id, utilisateur: utilisateurNom,
               commentaire: `Ajustement de stock: ${ancienneQuantite} → ${data.quantite_stock}`,
             });
             setMouvements(prev => [...prev, mouvement]);
+            if (onStockChange) {
+              onStockChange(updatedArticle.nom, updatedArticle.quantite_stock, mouvementType, updatedArticle.seuil_minimum);
+            }
           } catch {}
         }
       }

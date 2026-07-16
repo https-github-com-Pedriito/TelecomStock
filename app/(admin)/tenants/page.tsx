@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Building2, Plus, CheckCircle, XCircle, Trash2, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, Plus, CheckCircle, XCircle, Trash2, RefreshCw, ChevronDown, ChevronUp, ExternalLink, Pencil, Check, X, Users as UsersIcon } from 'lucide-react';
 
 interface Tenant {
   id: string;
@@ -11,7 +12,25 @@ interface Tenant {
   is_active: boolean;
   contact_email?: string;
   created_at: string;
+  plan?: string | null;
+  seats?: number;
+  subscription_status?: string | null;
+  stripe_customer_id?: string | null;
 }
+
+const PLAN_LABELS: Record<string, string> = {
+  pro_mobile: 'Pro Mobile',
+  business: 'Business',
+};
+
+const STATUS_DISPLAY: Record<string, { label: string; className: string }> = {
+  active: { label: 'Actif', className: 'bg-emerald-100 text-emerald-700' },
+  trialing: { label: 'Essai', className: 'bg-blue-100 text-blue-700' },
+  past_due: { label: 'Retard', className: 'bg-amber-100 text-amber-700' },
+  unpaid: { label: 'Impayé', className: 'bg-red-100 text-red-700' },
+  canceled: { label: 'Résilié', className: 'bg-gray-200 text-gray-700' },
+  paused: { label: 'En pause', className: 'bg-gray-200 text-gray-700' },
+};
 
 interface CreateTenantForm {
   nom: string;
@@ -35,6 +54,9 @@ export default function TenantsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [editingSeatsId, setEditingSeatsId] = useState<string | null>(null);
+  const [seatsValue, setSeatsValue] = useState('');
+  const [savingSeats, setSavingSeats] = useState(false);
 
   const loadTenants = useCallback(async () => {
     try {
@@ -76,6 +98,36 @@ export default function TenantsPage() {
     }
   };
 
+  const startEditSeats = (tenant: Tenant) => {
+    setError(null);
+    setEditingSeatsId(tenant.id);
+    setSeatsValue(String(tenant.seats ?? 1));
+  };
+
+  const cancelEditSeats = () => {
+    setEditingSeatsId(null);
+    setSeatsValue('');
+  };
+
+  const saveSeats = async (tenant: Tenant) => {
+    const newSeats = parseInt(seatsValue, 10);
+    if (!Number.isInteger(newSeats) || newSeats < 1) {
+      setError("Nombre d'utilisateurs invalide");
+      return;
+    }
+    setSavingSeats(true);
+    setError(null);
+    try {
+      const updated = await api.put<Tenant>(`/admin/tenants/${tenant.id}`, { seats: newSeats });
+      setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, seats: updated.seats } : t));
+      setEditingSeatsId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur de mise à jour des sièges');
+    } finally {
+      setSavingSeats(false);
+    }
+  };
+
   const deleteTenant = async (tenant: Tenant) => {
     if (!confirm(`Supprimer le tenant "${tenant.nom}" et toutes ses données ? Cette action est irréversible.`)) return;
     try {
@@ -101,6 +153,13 @@ export default function TenantsPage() {
           <button onClick={loadTenants} className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors" title="Actualiser">
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
           </button>
+          <Link
+            href="/tenants/comptes"
+            className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-lg hover:bg-amber-200 transition-colors font-medium text-sm"
+          >
+            <UsersIcon size={16} />
+            Tous les comptes
+          </Link>
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
@@ -226,6 +285,9 @@ export default function TenantsPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Entreprise</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Plan</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sièges</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Abonnement</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Créé le</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -246,6 +308,57 @@ export default function TenantsPage() {
                     <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{tenant.slug}</span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">{tenant.contact_email || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {tenant.plan && PLAN_LABELS[tenant.plan] ? PLAN_LABELS[tenant.plan] : '—'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {editingSeatsId === tenant.id ? (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={1}
+                          value={seatsValue}
+                          onChange={e => setSeatsValue(e.target.value)}
+                          autoFocus
+                          className="w-16 px-2 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                        />
+                        <button
+                          onClick={() => saveSeats(tenant)}
+                          disabled={savingSeats}
+                          className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          title="Valider"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          onClick={cancelEditSeats}
+                          disabled={savingSeats}
+                          className="p-1 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Annuler"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEditSeats(tenant)}
+                        className="flex items-center gap-1.5 hover:text-blue-600 transition-colors group"
+                        title="Modifier le nombre de sièges"
+                      >
+                        {tenant.seats ?? '—'}
+                        <Pencil size={12} className="opacity-0 group-hover:opacity-100 text-gray-400" />
+                      </button>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    {tenant.subscription_status && STATUS_DISPLAY[tenant.subscription_status] ? (
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_DISPLAY[tenant.subscription_status].className}`}>
+                        {STATUS_DISPLAY[tenant.subscription_status].label}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">—</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <button
                       onClick={() => toggleActive(tenant)}
@@ -263,13 +376,33 @@ export default function TenantsPage() {
                     {new Date(tenant.created_at).toLocaleDateString('fr-FR')}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => deleteTenant(tenant)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Supprimer"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/tenants/${tenant.id}/users`}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Gérer les utilisateurs"
+                      >
+                        <UsersIcon size={16} />
+                      </Link>
+                      {tenant.stripe_customer_id && (
+                        <a
+                          href={`https://dashboard.stripe.com/customers/${tenant.stripe_customer_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title="Voir le client dans Stripe"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
+                      )}
+                      <button
+                        onClick={() => deleteTenant(tenant)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Supprimer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -3,6 +3,8 @@ import bcryptjs from 'bcryptjs';
 import { requireAuth, requireRole, requireTenant, AuthError } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { User, UserRole } from '@/entities/User';
+import { Tenant } from '@/entities/Tenant';
+import { hasSeatAvailable } from '@/lib/seats';
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -32,11 +34,11 @@ export async function GET(request: NextRequest, context: Context) {
 
 export async function PUT(request: NextRequest, context: Context) {
   try {
-    const { user, db } = await resolveUser(request, context);
+    const { auth, user, db } = await resolveUser(request, context);
     if (!user) return Response.json({ message: 'Utilisateur non trouvé' }, { status: 404 });
 
     const body = await request.json();
-    const { nom, prenom, email, role, is_active, password } = body;
+    const { nom, prenom, email, role, is_active, password, tenant_id } = body;
 
     if (nom !== undefined) user.nom = nom;
     if (prenom !== undefined) user.prenom = prenom;
@@ -44,6 +46,24 @@ export async function PUT(request: NextRequest, context: Context) {
     if (role !== undefined) user.role = role;
     if (is_active !== undefined) user.is_active = is_active;
     if (password) user.password_hash = await bcryptjs.hash(password, 10);
+
+    if (tenant_id !== undefined) {
+      if (auth.role !== UserRole.SUPER_ADMIN) {
+        return Response.json({ message: 'Action réservée au SUPER_ADMIN' }, { status: 403 });
+      }
+      if (tenant_id !== null) {
+        const targetTenant = await db.getRepository(Tenant).findOne({ where: { id: tenant_id } });
+        if (!targetTenant) return Response.json({ message: 'Tenant cible introuvable' }, { status: 404 });
+        const activeCount = await db.getRepository(User).count({ where: { tenant_id, is_active: true } });
+        if ((is_active ?? user.is_active) && !hasSeatAvailable(activeCount, targetTenant.seats)) {
+          return Response.json(
+            { message: `Limite de ${targetTenant.seats} utilisateur(s) atteinte pour ce tenant` },
+            { status: 403 }
+          );
+        }
+      }
+      user.tenant_id = tenant_id;
+    }
 
     await db.getRepository(User).save(user);
     const { password_hash: _, ...u } = user;

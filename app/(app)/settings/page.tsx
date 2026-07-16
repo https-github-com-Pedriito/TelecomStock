@@ -5,5 +5,5 @@ import { SettingsPage } from '@/components/SettingsPage';
 export default function SettingsRoute() {
   const { user } = useAuth();
   if (!user) return null;
-  return <SettingsPage />;
+  return <SettingsPage isAdmin={user.role === 'ADMIN'} />;
 }

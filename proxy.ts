@@ -14,7 +14,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Fichiers statiques du dossier public — laisser passer
-  if (/\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf|json|csv)$/i.test(pathname)) {
+  if (/\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|otf|json|csv|mp4|webm|mov)$/i.test(pathname)) {
     return NextResponse.next();
   }
 

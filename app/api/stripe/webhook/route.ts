@@ -5,7 +5,7 @@ import { getDb } from '@/lib/db';
 import { Tenant } from '@/entities/Tenant';
 import { User, UserRole } from '@/entities/User';
 import bcryptjs from 'bcryptjs';
-import { sendTenantWelcomeEmail } from '@/lib/mailer';
+import { sendTenantWelcomeEmail, sendPaymentFailedEmail, sendSubscriptionCanceledEmail } from '@/lib/mailer';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,11 +27,11 @@ export async function POST(request: NextRequest) {
 
   if (event.type === 'checkout.session.completed') {
     await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
-  } else if (
-    event.type === 'customer.subscription.updated' ||
-    event.type === 'customer.subscription.deleted'
-  ) {
+  } else if (event.type === 'customer.subscription.updated') {
     await handleSubscriptionChange(event.data.object as Stripe.Subscription);
+  } else if (event.type === 'customer.subscription.deleted') {
+    await handleSubscriptionChange(event.data.object as Stripe.Subscription);
+    await handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
   } else if (event.type === 'invoice.paid') {
     await handleInvoicePaid(event.data.object as Stripe.Invoice);
   } else if (event.type === 'invoice.payment_failed') {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const { nom_societe, slug, admin_prenom, admin_nom, admin_email, plan } = session.metadata ?? {};
+  const { nom_societe, slug, admin_prenom, admin_nom, admin_email, plan, seats } = session.metadata ?? {};
   if (!nom_societe || !slug || !admin_email) return;
 
   try {
@@ -62,6 +62,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       stripe_subscription_id: session.subscription as string,
       subscription_status: 'active',
       plan: plan ?? null,
+      seats: seats ? parseInt(seats, 10) : 1,
     });
     await tenantRepo.save(tenant);
 
@@ -107,18 +108,40 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
       tenant.is_active = false;
     }
     // 'past_due' : on garde actif temporairement, Stripe retentera le paiement
+    const quantity = sub.items.data[0]?.quantity;
+    if (typeof quantity === 'number') tenant.seats = quantity;
     await db.getRepository(Tenant).save(tenant);
   } catch (err) {
     console.error('handleSubscriptionChange error:', err);
   }
 }
 
-async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return;
+async function handleSubscriptionDeleted(sub: Stripe.Subscription) {
   try {
     const db = await getDb();
     const tenant = await db.getRepository(Tenant).findOne({
-      where: { stripe_subscription_id: invoice.subscription as string },
+      where: { stripe_subscription_id: sub.id },
+    });
+    if (!tenant?.contact_email) return;
+    await sendSubscriptionCanceledEmail(tenant.contact_email, tenant.nom);
+  } catch (err) {
+    console.error('handleSubscriptionDeleted email error:', err);
+  }
+}
+
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const sub = invoice.parent?.subscription_details?.subscription;
+  if (!sub) return null;
+  return typeof sub === 'string' ? sub : sub.id;
+}
+
+async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) return;
+  try {
+    const db = await getDb();
+    const tenant = await db.getRepository(Tenant).findOne({
+      where: { stripe_subscription_id: subscriptionId },
     });
     if (!tenant) return;
     tenant.is_active = true;
@@ -130,8 +153,31 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  if (!invoice.subscription) return;
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  if (!subscriptionId) return;
   // Stripe retentera automatiquement. On bloque seulement après 'unpaid' (dernière tentative)
   // Le statut 'past_due' est géré dans handleSubscriptionChange
-  console.warn('Invoice payment failed for subscription:', invoice.subscription);
+  try {
+    const db = await getDb();
+    const tenant = await db.getRepository(Tenant).findOne({
+      where: { stripe_subscription_id: subscriptionId },
+    });
+    if (!tenant?.contact_email) return;
+
+    let portalUrl: string | null = null;
+    if (tenant.stripe_customer_id) {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const session = await getStripe().billingPortal.sessions.create({
+          customer: tenant.stripe_customer_id,
+          return_url: `${baseUrl}/login`,
+        });
+        portalUrl = session.url;
+      } catch { /* portail indisponible, on envoie l'email sans lien */ }
+    }
+
+    await sendPaymentFailedEmail(tenant.contact_email, tenant.nom, portalUrl);
+  } catch (err) {
+    console.error('handleInvoicePaymentFailed error:', err);
+  }
 }

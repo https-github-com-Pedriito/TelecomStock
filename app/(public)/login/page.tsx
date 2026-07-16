@@ -46,9 +46,9 @@ function LoginContent() {
   };
 
   return (
-    <div className=”relative”>
+    <div className="relative">
       {registered && (
-        <div className=”fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-2xl shadow-lg text-sm font-medium”>
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-2xl shadow-lg text-sm font-medium">
           Compte créé ! Vérifiez votre email pour vos identifiants.
         </div>
       )}

@@ -34,6 +34,18 @@ function createDataSource(): DataSource {
 }
 
 export async function getDb(): Promise<DataSource> {
+  // En dev, le Fast Refresh de Next.js recompile les modules d'entités et crée
+  // de nouvelles références de classe. La DataSource mise en cache dans `global`
+  // référence alors des classes obsolètes et ne retrouve plus leurs metadata.
+  // On détecte ce cas et on réinitialise la connexion.
+  if (
+    global._dataSource?.isInitialized &&
+    !global._dataSource.hasMetadata(Tenant)
+  ) {
+    await global._dataSource.destroy().catch(() => {});
+    global._dataSource = undefined;
+  }
+
   if (!global._dataSource) {
     global._dataSource = createDataSource();
   }

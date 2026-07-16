@@ -17,7 +17,7 @@ export function PricingPage({ onBack, onLogin }: PricingPageProps) {
     {
       name: "Pro Mobile",
       price: "19€",
-      period: "/mois",
+      period: "/utilisateur/mois",
       description: "Idéal pour les artisans et petites équipes sur le terrain.",
       features: [
         "Jusqu'à 5 utilisateurs",
@@ -33,7 +33,7 @@ export function PricingPage({ onBack, onLogin }: PricingPageProps) {
     {
       name: "Business",
       price: "29€",
-      period: "/mois",
+      period: "/utilisateur/mois",
       description: "Le plan le plus populaire pour les PME en croissance.",
       features: [
         "Utilisateurs illimités",
