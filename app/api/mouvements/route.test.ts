@@ -186,15 +186,55 @@ describe('GET /api/mouvements', () => {
     setupDb({
       tenants: [{ id: tenantId, is_active: true }],
       mouvements: [
-        { id: 'm1', tenant_id: tenantId, utilisateur: 'Jane' },
-        { id: 'm2', tenant_id: 'other-tenant', utilisateur: 'Bob' },
+        { id: 'm1', tenant_id: tenantId, utilisateur: 'Jane', created_at: new Date('2026-01-01') },
+        { id: 'm2', tenant_id: 'other-tenant', utilisateur: 'Bob', created_at: new Date('2026-01-01') },
       ],
     });
     const req = new NextRequest('http://localhost/api/mouvements', { headers: { Authorization } });
     const res = await GET(req, {});
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data).toHaveLength(1);
-    expect(data[0].id).toBe('m1');
+    expect(data.items).toHaveLength(1);
+    expect(data.items[0].id).toBe('m1');
+    expect(data.total).toBe(1);
+  });
+
+  it('paginates results and reports total/totalPages', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const mouvements = Array.from({ length: 5 }, (_, i) => ({
+      id: `m${i}`,
+      tenant_id: tenantId,
+      utilisateur: 'Jane',
+      created_at: new Date(2026, 0, i + 1),
+    }));
+    setupDb({ tenants: [{ id: tenantId, is_active: true }], mouvements });
+    const req = new NextRequest('http://localhost/api/mouvements?page=2&limit=2', { headers: { Authorization } });
+    const res = await GET(req, {});
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.items).toHaveLength(2);
+    expect(data.total).toBe(5);
+    expect(data.page).toBe(2);
+    expect(data.limit).toBe(2);
+    expect(data.totalPages).toBe(3);
+    // Ordered by created_at DESC: m4, m3, m2, m1, m0 -> page 2 (limit 2) = m2, m1
+    expect(data.items.map((m: any) => m.id)).toEqual(['m2', 'm1']);
+  });
+
+  it('filters mouvements by date range', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      mouvements: [
+        { id: 'old', tenant_id: tenantId, utilisateur: 'Jane', created_at: new Date('2026-01-01') },
+        { id: 'recent', tenant_id: tenantId, utilisateur: 'Jane', created_at: new Date('2026-06-01') },
+      ],
+    });
+    const req = new NextRequest('http://localhost/api/mouvements?startDate=2026-03-01T00:00:00.000Z&endDate=2026-12-31T00:00:00.000Z', { headers: { Authorization } });
+    const res = await GET(req, {});
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.items).toHaveLength(1);
+    expect(data.items[0].id).toBe('recent');
   });
 });

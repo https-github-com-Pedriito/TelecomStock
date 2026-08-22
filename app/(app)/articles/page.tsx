@@ -7,7 +7,7 @@ import { Article } from '@/types';
 
 export default function ArticlesPage() {
   const { user } = useAuth();
-  const { articles, fournisseurs, createArticle, updateArticle, deleteArticle } = useStock(user ?? null);
+  const { articles, fournisseurs, createArticle, updateArticle, deleteArticle } = useStock();
   const { addNotification } = useNotifications();
 
   const hasPermission = (permission: string) => {

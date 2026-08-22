@@ -1,13 +1,14 @@
 ﻿'use client';
 
 import { useState, useEffect } from 'react';
-import { BarcodeScanner } from '@/components/BarcodeScanner';
+import dynamic from 'next/dynamic';
 import { InventaireDetailModal } from '@/components/InventaireDetailModal';
 import { useInventaire } from '@/hooks/useInventaire';
 import { api } from '@/lib/api';
 import { FileText, Plus, Eye, List, Package, Trash2, CheckCircle, Rocket, Upload, Download, Info, Sparkles, History, Activity, ChevronRight, ChevronLeft, ArrowRight, ClipboardCheck, Search, X } from 'lucide-react';
 import { Portal } from '@/components/Portal';
-import * as XLSX from 'xlsx';
+
+const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner').then(m => m.BarcodeScanner), { ssr: false });
 
 interface InventoryProps {
   articles: any[];
@@ -606,7 +607,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     }
   };
 
-  const downloadExcel = (entries: any[]) => {
+  const downloadExcel = async (entries: any[]) => {
+    const XLSX = await import('xlsx');
     // Préparer les données pour Excel
     const headers = [
       'Article',

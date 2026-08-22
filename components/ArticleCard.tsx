@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
-import { Article, Mouvement } from '@/types';
+import { Article } from '@/types';
 import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -89,13 +89,6 @@ export function ArticleCard({
 
     setIsDeleting(true);
     try {
-      const mouvements: Mouvement[] = await api.getMouvements();
-      const mouvementsArticle = mouvements.filter((m: Mouvement) => m.article.id === article.id);
-
-      for (const mouvement of mouvementsArticle) {
-        await api.deleteMouvement(mouvement.id);
-      }
-
       await onDelete(article.id, true);
       if (addNotification) {
         addNotification({

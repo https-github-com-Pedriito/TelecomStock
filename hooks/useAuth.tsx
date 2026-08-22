@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { User } from '@/types';
 import { logger } from '@/lib/logger';
@@ -13,10 +13,17 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
+interface AuthContextValue extends AuthState {
+  signIn: (email: string, password: string) => Promise<{ token: string; user: User }>;
+  signOut: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
 let isCheckingAuth = false;
 let authPromise: Promise<User | null> | null = null;
 
-export function useAuth() {
+function useAuthState(): AuthContextValue {
   const [state, setState] = useState<AuthState>(() => {
     const token = typeof window !== 'undefined' ? getToken() : null;
     return { user: null, loading: !!token, error: null, isAuthenticated: false };
@@ -120,4 +127,17 @@ export function useAuth() {
   }, [checkAuth, state.isAuthenticated]);
 
   return { user: state.user, loading: state.loading, error: state.error, isAuthenticated: state.isAuthenticated, signIn, signOut };
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const value = useAuthState();
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return ctx;
 }

@@ -1,9 +1,11 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Article, CreateMouvementData } from '@/types';
-import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { MouvementModal } from '@/components/MouvementModal';
+
+const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner').then(m => m.BarcodeScanner), { ssr: false });
 import { ArrowUp, ArrowDown, ScanLine, Keyboard, CheckCircle } from 'lucide-react';
 
 interface ScannerProps {

@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 
 export default function EntrepotsPage() {
   const { user } = useAuth();
-  const { localisations, loading, error, refreshLocalisations } = useStock(user ?? null);
+  const { localisations, loading, error, refreshLocalisations } = useStock();
   if (!user) return null;
   return (
     <Entrepots

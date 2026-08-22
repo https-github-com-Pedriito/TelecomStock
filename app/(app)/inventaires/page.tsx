@@ -6,7 +6,7 @@ import { User } from '@/types';
 
 export default function InventairesPage() {
   const { user } = useAuth();
-  const { articles, users } = useStock(user ?? null);
+  const { articles, users } = useStock();
   if (!user) return null;
 
   const currentUser = { id: user.id, nom: user.nom, prenom: user.prenom, email: user.email, role: user.role, created_at: user.created_at, updated_at: user.updated_at, is_active: user.is_active };

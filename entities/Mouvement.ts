@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Article } from './Article';
 
 export enum MouvementType {
@@ -7,6 +7,7 @@ export enum MouvementType {
 }
 
 @Entity('mouvements')
+@Index(['tenant_id', 'created_at'])
 export class Mouvement {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

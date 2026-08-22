@@ -6,7 +6,7 @@ import { Article, CreateMouvementData } from '@/types';
 
 export default function ScannerPage() {
   const { user } = useAuth();
-  const { articles, fournisseurs, createArticle, createMouvement } = useStock(user ?? null);
+  const { articles, fournisseurs, createArticle, createMouvement } = useStock();
 
   if (!user) return null;
 

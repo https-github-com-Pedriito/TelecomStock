@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useStock } from '@/hooks/useStock';
+import { useStock, StockProvider } from '@/hooks/useStock';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useNotifications } from '@/components/Notification';
 import { Layout } from '@/components/Layout';
@@ -49,12 +49,20 @@ const pathnameToView = (pathname: string): ViewMode => {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { showStockNotification, NotificationContainer } = useNotifications();
+  return (
+    <StockProvider onStockChange={showStockNotification}>
+      <AppLayoutInner NotificationContainer={NotificationContainer}>{children}</AppLayoutInner>
+    </StockProvider>
+  );
+}
+
+function AppLayoutInner({ children, NotificationContainer }: { children: React.ReactNode; NotificationContainer: () => React.ReactElement }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { NotificationContainer, showStockNotification } = useNotifications();
-  const { articles } = useStock(user ?? null, showStockNotification);
+  const { articles } = useStock();
   const [isMounted, setIsMounted] = useState(false);
   const [subscriptionInactive, setSubscriptionInactive] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);

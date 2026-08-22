@@ -5,7 +5,7 @@ import { Fournisseurs } from '@/src-pages/Fournisseurs';
 
 export default function FournisseursPage() {
   const { user } = useAuth();
-  const { fournisseurs, createFournisseur, updateFournisseur, deleteFournisseur, refreshFournisseurs } = useStock(user ?? null);
+  const { fournisseurs, createFournisseur, updateFournisseur, deleteFournisseur, refreshFournisseurs } = useStock();
   if (!user) return null;
   return (
     <Fournisseurs

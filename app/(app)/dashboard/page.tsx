@@ -6,7 +6,7 @@ import { Dashboard } from '@/src-pages/DashboardMT';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { articles, mouvements, refreshAll } = useStock(user ?? null);
+  const { articles, mouvements, refreshAll } = useStock();
 
   const articlesWithAlerts = articles.filter(a => a.quantite_stock <= a.seuil_minimum);
   const handleRefresh = useCallback(async () => { await refreshAll(); }, [refreshAll]);

@@ -8,7 +8,7 @@ import { User } from '@/types';
 
 export default function UtilisateursPage() {
   const { user } = useAuth();
-  const { users, refreshUsers } = useStock(user ?? null);
+  const { users, refreshUsers } = useStock();
   const { addNotification } = useNotifications();
 
   if (!user) return null;

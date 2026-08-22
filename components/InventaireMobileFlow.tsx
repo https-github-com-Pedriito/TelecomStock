@@ -1,20 +1,22 @@
 ﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  ScanLine, 
-  Search, 
-  Check, 
-  X, 
-  ChevronRight, 
+import dynamic from 'next/dynamic';
+import {
+  ScanLine,
+  Search,
+  Check,
+  X,
+  ChevronRight,
   RotateCcw,
   Package,
   Hash,
   CheckCircle2
 } from 'lucide-react';
-import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { useStockFeedback, useFeedback } from '@/components/UXFeedback';
 import { Article } from '@/types';
+
+const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner').then(m => m.BarcodeScanner), { ssr: false });
 
 
 interface InventaireMobileFlowProps {

@@ -37,10 +37,11 @@ export const PUT = withAuth<Ctx>(async (request: NextRequest, auth, { params }) 
   return Response.json(updated);
 });
 
-export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
+export const DELETE = withAuth<Ctx>(async (request: NextRequest, auth, { params }) => {
   requireRole(auth, UserRole.ADMIN);
   const tenantId = requireTenant(auth);
   const { id } = await params;
+  const force = new URL(request.url).searchParams.get('force') === 'true';
 
   const db = await getDb();
   const article = await db.getRepository(Article).findOne({
@@ -48,11 +49,13 @@ export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
   });
   if (!article) return Response.json({ message: 'Article introuvable' }, { status: 404 });
 
-  const mouvementsCount = await db.getRepository(Mouvement).count({
-    where: tenantId ? { article: { id }, tenant_id: tenantId } : { article: { id } },
-  });
+  const mouvementsWhere = tenantId ? { article: { id }, tenant_id: tenantId } : { article: { id } };
+  const mouvementsCount = await db.getRepository(Mouvement).count({ where: mouvementsWhere });
   if (mouvementsCount > 0) {
-    return Response.json({ message: 'Cet article a des mouvements associés', mouvementsCount }, { status: 409 });
+    if (!force) {
+      return Response.json({ message: 'Cet article a des mouvements associés', mouvementsCount }, { status: 409 });
+    }
+    await db.getRepository(Mouvement).delete(mouvementsWhere);
   }
 
   const articleTenantId = article.tenant_id;

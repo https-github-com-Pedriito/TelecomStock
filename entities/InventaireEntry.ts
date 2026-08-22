@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { User } from './User';
 import { Article } from './Article';
 import { Inventaire } from './Inventaire';
 
 @Entity('inventaire_entry')
+@Index(['tenant_id', 'inventaire_id'])
 export class InventaireEntry {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

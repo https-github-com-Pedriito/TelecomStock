@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { User } from './User';
 
 export enum InventoryStatus {
@@ -8,6 +8,7 @@ export enum InventoryStatus {
 }
 
 @Entity('inventaire')
+@Index(['tenant_id'])
 export class Inventaire {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

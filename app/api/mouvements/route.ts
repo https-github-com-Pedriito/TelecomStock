@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { Between, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { withAuth, requireRole, requireTenant } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { Mouvement, MouvementType } from '@/entities/Mouvement';
@@ -9,16 +10,44 @@ import { publishChange } from '@/lib/realtime';
 import { sendStockAlertEmail } from '@/lib/mailer';
 import { getStockLevel } from '@/lib/stock';
 
-export const GET = withAuth(async (_request, auth) => {
+const DEFAULT_LIMIT = 50;
+const MAX_LIMIT = 200;
+
+export const GET = withAuth(async (request: NextRequest, auth) => {
   requireRole(auth, UserRole.ADMIN, UserRole.MANAGER);
   const tenantId = requireTenant(auth);
   const db = await getDb();
-  const mouvements = await db.getRepository(Mouvement).find({
-    where: tenantId ? { tenant_id: tenantId } : {},
+
+  const { searchParams } = new URL(request.url);
+  const startDateParam = searchParams.get('startDate');
+  const endDateParam = searchParams.get('endDate');
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+  const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
+
+  const where: Record<string, unknown> = tenantId ? { tenant_id: tenantId } : {};
+  if (startDateParam && endDateParam) {
+    where.created_at = Between(new Date(startDateParam), new Date(endDateParam));
+  } else if (startDateParam) {
+    where.created_at = MoreThanOrEqual(new Date(startDateParam));
+  } else if (endDateParam) {
+    where.created_at = LessThanOrEqual(new Date(endDateParam));
+  }
+
+  const [mouvements, total] = await db.getRepository(Mouvement).findAndCount({
+    where,
     relations: { article: true },
     order: { created_at: 'DESC' },
+    skip: (page - 1) * limit,
+    take: limit,
   });
-  return Response.json(mouvements);
+
+  return Response.json({
+    items: mouvements,
+    total,
+    page,
+    limit,
+    totalPages: Math.max(1, Math.ceil(total / limit)),
+  });
 });
 
 export const POST = withAuth(async (request: NextRequest, auth) => {

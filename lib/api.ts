@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '@/types';
+import { User, Mouvement } from '@/types';
 import { logger, logApiRequest } from '@/lib/logger';
 import { getToken, setToken, clearToken } from '@/lib/tokenManager';
 
@@ -132,7 +132,17 @@ class ApiService {
   async deleteArticle(id: string) { return this.request(`/articles/${id}`, { method: 'DELETE' }); }
   async handleForceDeleteArticle(id: string) { return this.request(`/articles/${id}?force=true`, { method: 'DELETE' }); }
 
-  async getMouvements() { return this.request('/mouvements'); }
+  async getMouvements(params?: { startDate?: string; endDate?: string; page?: number; limit?: number }): Promise<{
+    items: Mouvement[]; total: number; page: number; limit: number; totalPages: number;
+  }> {
+    const query = new URLSearchParams();
+    if (params?.startDate) query.set('startDate', params.startDate);
+    if (params?.endDate) query.set('endDate', params.endDate);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    const qs = query.toString();
+    return this.request(`/mouvements${qs ? `?${qs}` : ''}`);
+  }
   async createMouvement(mouvement: any) { return this.request('/mouvements', { method: 'POST', body: JSON.stringify(mouvement) }); }
   async deleteMouvement(id: string) { return this.request(`/mouvements/${id}`, { method: 'DELETE' }); }
 

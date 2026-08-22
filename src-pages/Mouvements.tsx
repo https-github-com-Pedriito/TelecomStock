@@ -1,7 +1,8 @@
 ﻿'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Mouvement } from '@/types';
+import { api } from '@/lib/api';
 import {
   Search,
   Filter,
@@ -19,18 +20,39 @@ import {
   Flame,
   ShieldCheck,
   Clock,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
-import { format, subDays, startOfDay, endOfDay, isWithinInterval, getHours } from 'date-fns';
+import { format, subDays, startOfDay, endOfDay, getHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
-interface MouvementsProps {
-  mouvements: Mouvement[];
-}
 
 type TimeRange = 'all' | 'today' | '7days' | '30days' | '1month' | '3months' | '6months';
 
-export function Mouvements({ mouvements }: MouvementsProps) {
+// Nombre de mouvements chargés par requête serveur. Les plages bornées (7j/30j/3m/6m)
+// tiennent dans un seul chargement ; "Tout" charge par paliers via "Charger plus".
+const FETCH_LIMIT = 500;
+
+function dateRangeFor(range: TimeRange): { startDate?: string; endDate?: string } {
+  if (range === 'all') return {};
+  const now = new Date();
+  const endDate = endOfDay(now).toISOString();
+  switch (range) {
+    case 'today': return { startDate: startOfDay(now).toISOString(), endDate };
+    case '7days': return { startDate: startOfDay(subDays(now, 7)).toISOString(), endDate };
+    case '30days':
+    case '1month': return { startDate: startOfDay(subDays(now, 30)).toISOString(), endDate };
+    case '3months': return { startDate: startOfDay(subDays(now, 90)).toISOString(), endDate };
+    case '6months': return { startDate: startOfDay(subDays(now, 180)).toISOString(), endDate };
+    default: return {};
+  }
+}
+
+export function Mouvements() {
+  const [items, setItems] = useState<Mouvement[]>([]);
+  const [total, setTotal] = useState(0);
+  const [nextPage, setNextPage] = useState(2);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'' | 'ENTREE' | 'SORTIE'>('');
   const [filterUser, setFilterUser] = useState('');
@@ -40,44 +62,48 @@ export function Mouvements({ mouvements }: MouvementsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Chargement scopé par date à chaque changement de plage temporelle
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setCurrentPage(1);
+    api.getMouvements({ ...dateRangeFor(timeRange), page: 1, limit: FETCH_LIMIT })
+      .then(res => {
+        if (cancelled) return;
+        setItems(res.items);
+        setTotal(res.total);
+        setNextPage(2);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setItems([]);
+        setTotal(0);
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [timeRange]);
+
+  const hasMore = items.length < total;
+
+  const handleLoadMore = useCallback(async () => {
+    setLoadingMore(true);
+    try {
+      const res = await api.getMouvements({ ...dateRangeFor(timeRange), page: nextPage, limit: FETCH_LIMIT });
+      setItems(prev => [...prev, ...res.items]);
+      setTotal(res.total);
+      setNextPage(prev => prev + 1);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [timeRange, nextPage]);
+
   // Liste des utilisateurs pour le filtre
   const users = useMemo(() => {
-    return Array.from(new Set(mouvements.map(m => m.utilisateur))).filter(Boolean).sort();
-  }, [mouvements]);
+    return Array.from(new Set(items.map(m => m.utilisateur))).filter(Boolean).sort();
+  }, [items]);
 
-  // Filtrage par plage temporelle
-  const timeFilteredmouvements = useMemo(() => {
-    if (timeRange === 'all') return mouvements;
-
-    const now = new Date();
-    let start: Date;
-    const end = endOfDay(now);
-
-    switch (timeRange) {
-      case 'today':
-        start = startOfDay(now);
-        break;
-      case '7days':
-        start = startOfDay(subDays(now, 7));
-        break;
-      case '30days':
-      case '1month':
-        start = startOfDay(subDays(now, 30));
-        break;
-      case '3months':
-        start = startOfDay(subDays(now, 90));
-        break;
-      case '6months':
-        start = startOfDay(subDays(now, 180));
-        break;
-      default:
-        return mouvements;
-    }
-
-    return mouvements.filter(m =>
-      isWithinInterval(new Date(m.dateHeure), { start, end })
-    );
-  }, [mouvements, timeRange]);
+  // La fenêtre temporelle est désormais filtrée côté serveur ; `items` est déjà scopé à `timeRange`.
+  const timeFilteredmouvements = items;
 
   // Calculs des statistiques (basés sur les résultats filtrés par temps)
   const stats = useMemo(() => {
@@ -546,6 +572,12 @@ export function Mouvements({ mouvements }: MouvementsProps) {
       </div>
 
       {/* Liste des Mouvements (Tableau Opti) */}
+      {loading ? (
+        <div className="py-24 glass rounded-[3rem] border border-white/20 dark:border-gray-800/50 flex flex-col items-center justify-center gap-4">
+          <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Chargement des mouvements...</p>
+        </div>
+      ) : (
       <div className="glass rounded-[2rem] border border-white/20 dark:border-gray-800/50 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -673,10 +705,25 @@ export function Mouvements({ mouvements }: MouvementsProps) {
             </div>
           </div>
         )}
+
+        {/* Historique complet : chargement par palier au-delà de la limite d'une requête */}
+        {hasMore && (
+          <div className="px-6 py-6 bg-gray-50/50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-200 font-bold hover:shadow-lg transition-all active:scale-95 disabled:opacity-50"
+            >
+              {loadingMore ? <Loader2 size={18} className="animate-spin" /> : <History size={18} className="text-indigo-500" />}
+              <span>{loadingMore ? 'Chargement...' : `Charger plus d'historique (${items.length}/${total})`}</span>
+            </button>
+          </div>
+        )}
       </div>
+      )}
 
       {/* Empty State */}
-      {finalFilteredMouvements.length === 0 && (
+      {!loading && finalFilteredMouvements.length === 0 && (
         <div className="py-20 glass rounded-[3rem] border border-white/20 dark:border-gray-800/50 text-center animate-scale-in">
           <div className="w-24 h-24 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <History className="w-10 h-10 text-indigo-400 dark:text-indigo-600" />
