@@ -40,30 +40,49 @@ export async function PUT(request: NextRequest, context: Context) {
     const body = await request.json();
     const { nom, prenom, email, role, is_active, password, tenant_id } = body;
 
-    if (nom !== undefined) user.nom = nom;
-    if (prenom !== undefined) user.prenom = prenom;
-    if (email !== undefined) user.email = email;
-    if (role !== undefined) user.role = role;
-    if (is_active !== undefined) user.is_active = is_active;
-    if (password) user.password_hash = await bcryptjs.hash(password, 10);
+    if (tenant_id !== undefined && auth.role !== UserRole.SUPER_ADMIN) {
+      return Response.json({ message: 'Action réservée au SUPER_ADMIN' }, { status: 403 });
+    }
 
-    if (tenant_id !== undefined) {
-      if (auth.role !== UserRole.SUPER_ADMIN) {
-        return Response.json({ message: 'Action réservée au SUPER_ADMIN' }, { status: 403 });
-      }
-      if (tenant_id !== null) {
-        const targetTenant = await db.getRepository(Tenant).findOne({ where: { id: tenant_id } });
-        if (!targetTenant) return Response.json({ message: 'Tenant cible introuvable' }, { status: 404 });
+    const wasActive = user.is_active;
+    const nextActive = is_active !== undefined ? is_active : wasActive;
+    const tenantChanged = tenant_id !== undefined && tenant_id !== user.tenant_id;
+
+    if (tenant_id !== undefined && tenant_id !== null) {
+      const targetTenant = await db.getRepository(Tenant).findOne({ where: { id: tenant_id } });
+      if (!targetTenant) return Response.json({ message: 'Tenant cible introuvable' }, { status: 404 });
+
+      // Réaffectation vers un tenant, ou réactivation combinée à une réaffectation : vérifier ses sièges.
+      if (nextActive && (tenantChanged || !wasActive)) {
         const activeCount = await db.getRepository(User).count({ where: { tenant_id, is_active: true } });
-        if ((is_active ?? user.is_active) && !hasSeatAvailable(activeCount, targetTenant.seats)) {
+        if (!hasSeatAvailable(activeCount, targetTenant.seats)) {
           return Response.json(
             { message: `Limite de ${targetTenant.seats} utilisateur(s) atteinte pour ce tenant` },
             { status: 403 }
           );
         }
       }
-      user.tenant_id = tenant_id;
+    } else if (nextActive && !wasActive && user.tenant_id) {
+      // Simple réactivation, sans changement de tenant : vérifier les sièges du tenant actuel.
+      const currentTenant = await db.getRepository(Tenant).findOne({ where: { id: user.tenant_id } });
+      if (currentTenant) {
+        const activeCount = await db.getRepository(User).count({ where: { tenant_id: user.tenant_id, is_active: true } });
+        if (!hasSeatAvailable(activeCount, currentTenant.seats)) {
+          return Response.json(
+            { message: `Limite de ${currentTenant.seats} utilisateur(s) atteinte pour ce tenant` },
+            { status: 403 }
+          );
+        }
+      }
     }
+
+    if (nom !== undefined) user.nom = nom;
+    if (prenom !== undefined) user.prenom = prenom;
+    if (email !== undefined) user.email = email;
+    if (role !== undefined) user.role = role;
+    if (is_active !== undefined) user.is_active = is_active;
+    if (password) user.password_hash = await bcryptjs.hash(password, 10);
+    if (tenant_id !== undefined) user.tenant_id = tenant_id;
 
     await db.getRepository(User).save(user);
     const { password_hash: _, ...u } = user;

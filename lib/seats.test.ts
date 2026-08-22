@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validatePlanSeatCount, hasSeatAvailable } from './seats';
+import { validatePlanSeatCount, hasSeatAvailable, selectUsersToDeactivate } from './seats';
 
 describe('validatePlanSeatCount', () => {
   it('rejects non-integer seat counts', () => {
@@ -40,5 +40,35 @@ describe('hasSeatAvailable', () => {
 
   it('is false when active users exceed the seat count', () => {
     expect(hasSeatAvailable(6, 5)).toBe(false);
+  });
+});
+
+describe('selectUsersToDeactivate', () => {
+  const user = (id: string, created_at: string) => ({ id, created_at });
+
+  it('deactivates no one when active users fit within the seat count', () => {
+    const users = [user('a', '2026-01-01'), user('b', '2026-01-02')];
+    expect(selectUsersToDeactivate(users, 5)).toEqual([]);
+  });
+
+  it('deactivates no one when active users exactly match the seat count', () => {
+    const users = [user('a', '2026-01-01'), user('b', '2026-01-02')];
+    expect(selectUsersToDeactivate(users, 2)).toEqual([]);
+  });
+
+  it('keeps the earliest-created users active and deactivates the excess, most recent first', () => {
+    const users = [
+      user('newest', '2026-03-01'),
+      user('oldest', '2026-01-01'),
+      user('middle', '2026-02-01'),
+    ];
+    const result = selectUsersToDeactivate(users, 1);
+    expect(result.map(u => u.id)).toEqual(['middle', 'newest']);
+  });
+
+  it('does not mutate the input array order', () => {
+    const users = [user('newest', '2026-03-01'), user('oldest', '2026-01-01')];
+    selectUsersToDeactivate(users, 1);
+    expect(users[0].id).toBe('newest');
   });
 });

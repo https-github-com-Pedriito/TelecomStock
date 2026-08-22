@@ -6,6 +6,7 @@ import { Tenant } from '@/entities/Tenant';
 import { User, UserRole } from '@/entities/User';
 import bcryptjs from 'bcryptjs';
 import { sendTenantWelcomeEmail, sendPaymentFailedEmail, sendSubscriptionCanceledEmail } from '@/lib/mailer';
+import { enforceSeatLimit } from '@/lib/seats';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,6 +112,10 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
     const quantity = sub.items.data[0]?.quantity;
     if (typeof quantity === 'number') tenant.seats = quantity;
     await db.getRepository(Tenant).save(tenant);
+
+    // Une réduction de sièges via le portail de facturation peut laisser plus d'utilisateurs
+    // actifs que de sièges disponibles : on désactive l'excédent (comptes les plus récents en premier).
+    await enforceSeatLimit(db, tenant.id, tenant.seats);
   } catch (err) {
     console.error('handleSubscriptionChange error:', err);
   }

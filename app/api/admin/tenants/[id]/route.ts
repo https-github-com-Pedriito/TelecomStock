@@ -4,7 +4,7 @@ import { getDb } from '@/lib/db';
 import { Tenant } from '@/entities/Tenant';
 import { User, UserRole } from '@/entities/User';
 import { getStripe } from '@/lib/stripe';
-import { validatePlanSeatCount } from '@/lib/seats';
+import { validatePlanSeatCount, enforceSeatLimit } from '@/lib/seats';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -58,7 +58,14 @@ export const PUT = withAuth<Ctx>(async (request, auth, { params }) => {
   }
 
   await db.getRepository(Tenant).save(tenant);
-  return Response.json(tenant);
+
+  // Si la réduction des sièges laisse plus d'utilisateurs actifs que de sièges disponibles,
+  // on désactive l'excédent (comptes les plus récents en premier), pour rester cohérent avec la limite.
+  const deactivatedUsers = seats !== undefined
+    ? (await enforceSeatLimit(db, id, tenant.seats)).map(({ id, nom, prenom, email }) => ({ id, nom, prenom, email }))
+    : [];
+
+  return Response.json({ ...tenant, deactivatedUsers });
 });
 
 export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {

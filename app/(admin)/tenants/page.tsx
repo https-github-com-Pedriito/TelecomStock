@@ -18,6 +18,13 @@ interface Tenant {
   stripe_customer_id?: string | null;
 }
 
+interface DeactivatedUser {
+  id: string;
+  nom: string;
+  prenom: string;
+  email: string;
+}
+
 const PLAN_LABELS: Record<string, string> = {
   pro_mobile: 'Pro Mobile',
   business: 'Business',
@@ -118,9 +125,13 @@ export default function TenantsPage() {
     setSavingSeats(true);
     setError(null);
     try {
-      const updated = await api.put<Tenant>(`/admin/tenants/${tenant.id}`, { seats: newSeats });
+      const updated = await api.put<Tenant & { deactivatedUsers?: DeactivatedUser[] }>(`/admin/tenants/${tenant.id}`, { seats: newSeats });
       setTenants(prev => prev.map(t => t.id === tenant.id ? { ...t, seats: updated.seats } : t));
       setEditingSeatsId(null);
+      if (updated.deactivatedUsers && updated.deactivatedUsers.length > 0) {
+        const names = updated.deactivatedUsers.map(u => `${u.prenom} ${u.nom}`).join(', ');
+        setSuccess(`Limite de sièges atteinte : ${updated.deactivatedUsers.length} compte(s) désactivé(s) automatiquement (les plus récemment créés) — ${names}.`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de mise à jour des sièges');
     } finally {

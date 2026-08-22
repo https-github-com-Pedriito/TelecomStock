@@ -83,6 +83,52 @@ describe('PUT /api/admin/tenants/[id] — seats', () => {
     }));
     expect(tenantRepo._all()[0].seats).toBe(7);
   });
+
+  it('deactivates the most recently created users when reducing seats below the active user count', async () => {
+    const { Authorization } = superAdminAuth();
+    const { userRepo } = setupDb({
+      tenants: [{ id: 't1', plan: 'business', seats: 3, stripe_subscription_id: null }],
+      users: [
+        { id: 'oldest', tenant_id: 't1', is_active: true, created_at: new Date('2026-01-01'), nom: 'A', prenom: 'A', email: 'a@x.com' },
+        { id: 'middle', tenant_id: 't1', is_active: true, created_at: new Date('2026-02-01'), nom: 'B', prenom: 'B', email: 'b@x.com' },
+        { id: 'newest', tenant_id: 't1', is_active: true, created_at: new Date('2026-03-01'), nom: 'C', prenom: 'C', email: 'c@x.com' },
+      ],
+    });
+    const req = new NextRequest('http://localhost/api/admin/tenants/t1', {
+      method: 'PUT',
+      headers: { Authorization },
+      body: JSON.stringify({ seats: 1 }),
+    });
+    const res = await PUT(req, ctx('t1'));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.deactivatedUsers.map((u: any) => u.id).sort()).toEqual(['middle', 'newest']);
+
+    const users = userRepo._all();
+    expect(users.find(u => u.id === 'oldest')!.is_active).toBe(true);
+    expect(users.find(u => u.id === 'middle')!.is_active).toBe(false);
+    expect(users.find(u => u.id === 'newest')!.is_active).toBe(false);
+  });
+
+  it('does not touch user activation when seats stay above the active user count', async () => {
+    const { Authorization } = superAdminAuth();
+    const { userRepo } = setupDb({
+      tenants: [{ id: 't1', plan: 'business', seats: 3, stripe_subscription_id: null }],
+      users: [
+        { id: 'u1', tenant_id: 't1', is_active: true, created_at: new Date('2026-01-01') },
+      ],
+    });
+    const req = new NextRequest('http://localhost/api/admin/tenants/t1', {
+      method: 'PUT',
+      headers: { Authorization },
+      body: JSON.stringify({ seats: 5 }),
+    });
+    const res = await PUT(req, ctx('t1'));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.deactivatedUsers).toEqual([]);
+    expect(userRepo._all()[0].is_active).toBe(true);
+  });
 });
 
 describe('DELETE /api/admin/tenants/[id]', () => {
