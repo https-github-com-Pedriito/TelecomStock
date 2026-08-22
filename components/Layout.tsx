@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { UserProfileModal } from '@/components/UserProfileModal';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 interface LayoutProps {
   currentView: ViewMode;
@@ -213,7 +214,7 @@ export function Layout({
       </header>
 
       {/* Navigation Bar */}
-      <nav className="bg-[#f8fafc] dark:bg-[#0f172a] border-b border-gray-200 dark:border-gray-800/60 sticky top-20 z-30">
+      <nav className="hidden md:block bg-[#f8fafc] dark:bg-[#0f172a] border-b border-gray-200 dark:border-gray-800/60 sticky top-20 z-30">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-1 min-h-14 overflow-x-auto no-scrollbar scroll-smooth py-1">
             {menuItems.map((item) => {
@@ -255,9 +256,18 @@ export function Layout({
       </nav>
 
       {/* Main Content Area */}
-      <main className="container mx-auto px-4 py-8 overflow-x-hidden max-w-[1600px] animate-fade-in">
+      <main className="container mx-auto px-4 py-8 pb-28 md:pb-8 overflow-x-hidden max-w-[1600px] animate-fade-in">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        currentView={currentView}
+        onViewChange={onViewChange}
+        hasPermission={hasPermission}
+        userRole={currentUser.role}
+        alertsCount={alertsCount}
+      />
 
       {/* Profile Modal */}
       <UserProfileModal
