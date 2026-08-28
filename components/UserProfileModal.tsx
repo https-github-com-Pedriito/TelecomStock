@@ -129,7 +129,8 @@ export const UserProfileModal = ({ isOpen, onClose, currentUser, onChangePasswor
         />
 
         {/* Modal Container */}
-        <div className="relative w-full max-w-lg glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
+        <div className="relative w-full max-w-lg rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
+        <div className="glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
           {/* Header */}
           <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20">
@@ -155,7 +156,8 @@ export const UserProfileModal = ({ isOpen, onClose, currentUser, onChangePasswor
             <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
 
               {/* Profile Hero Card */}
-              <div className="glass p-6 rounded-[2rem] border border-white/40 dark:border-gray-800/50 shadow-xl relative overflow-hidden group">
+              <div className="rounded-[2rem] shadow-xl relative group">
+              <div className="glass p-6 rounded-[2rem] border border-white/40 dark:border-gray-800/50 relative overflow-hidden">
                 <div className="flex items-center gap-6 relative z-10">
                   <div className="relative">
                     <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[1.5rem] flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-500">
@@ -182,6 +184,7 @@ export const UserProfileModal = ({ isOpen, onClose, currentUser, onChangePasswor
                 <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform">
                   <User size={120} />
                 </div>
+              </div>
               </div>
 
               {/* Account Details */}
@@ -302,7 +305,7 @@ export const UserProfileModal = ({ isOpen, onClose, currentUser, onChangePasswor
                     <button
                       type="submit"
                       disabled={isLoading || !oldPassword || !newPassword || !confirmPassword}
-                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 overflow-hidden group"
+                      className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
                     >
                       {isLoading ? (
                         <Loader2 size={18} className="animate-spin" />
@@ -335,6 +338,7 @@ export const UserProfileModal = ({ isOpen, onClose, currentUser, onChangePasswor
               <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
+        </div>
         </div>
       </div>
     </Portal>

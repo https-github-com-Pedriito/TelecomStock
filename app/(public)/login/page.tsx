@@ -4,27 +4,28 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { LoginForm } from '@/components/LoginForm';
 import { api } from '@/lib/api';
+import { getDefaultRouteForRole } from '@/lib/permissions';
 import { Suspense } from 'react';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, signIn } = useAuth();
+  const { isAuthenticated, user, signIn } = useAuth();
   const [loginError, setLoginError] = useState('');
   const [portalUrl, setPortalUrl] = useState<string | null>(null);
 
   const registered = searchParams.get('registered');
 
   useEffect(() => {
-    if (isAuthenticated) router.replace('/dashboard');
-  }, [isAuthenticated, router]);
+    if (isAuthenticated && user) router.replace(getDefaultRouteForRole(user.role));
+  }, [isAuthenticated, user, router]);
 
   const handleLogin = async (email: string, password: string) => {
     try {
       setLoginError('');
       setPortalUrl(null);
-      await signIn(email, password);
-      router.push('/dashboard');
+      const { user: signedInUser } = await signIn(email, password);
+      router.push(getDefaultRouteForRole(signedInUser.role));
     } catch (error: any) {
       const data = error?.response?.data;
       if (data?.code === 'SUBSCRIPTION_INACTIVE') {

@@ -150,23 +150,23 @@ function FeedbackToast({
   const getBackgroundColor = () => {
     switch (feedback.type) {
       case 'success':
-        return 'bg-green-50 border-green-200';
+        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
       case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
+        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
       case 'error':
-        return 'bg-red-50 border-red-200';
+        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
       case 'info':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
       case 'loading':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700';
     }
   };
 
   return (
     <div className={`
-      relative p-4 rounded-lg border shadow-lg transition-all duration-300 transform
+      relative p-4 rounded-lg border shadow-lg dark:shadow-none transition-all duration-300 transform
       animate-in slide-in-from-right-4 fade-in
       ${getBackgroundColor()}
     `}>
@@ -174,22 +174,22 @@ function FeedbackToast({
         <div className="flex-shrink-0">
           {getIcon()}
         </div>
-        
+
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-semibold text-gray-900">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
             {feedback.title}
           </h4>
           {feedback.message && (
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {feedback.message}
             </p>
           )}
-          
+
           {feedback.action && (
             <div className="mt-3">
               <button
                 onClick={feedback.action.callback}
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-500"
+                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
               >
                 <Undo2 className="h-4 w-4" />
                 {feedback.action.label}
@@ -197,11 +197,11 @@ function FeedbackToast({
             </div>
           )}
         </div>
-        
+
         {feedback.type !== 'loading' && (
           <button
             onClick={onClose}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
           >
             <X className="h-4 w-4" />
           </button>

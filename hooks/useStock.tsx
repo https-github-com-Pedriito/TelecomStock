@@ -98,8 +98,8 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
       setError(null);
       const [art, mouv, four, locs] = await Promise.all([
         api.get<Article[]>('/articles'),
-        api.getMouvements({ startDate: recentMouvementsSince(), limit: RECENT_MOUVEMENTS_LIMIT }),
-        api.get<Fournisseur[]>('/fournisseurs'),
+        api.getMouvements({ startDate: recentMouvementsSince(), limit: RECENT_MOUVEMENTS_LIMIT }).catch(() => ({ items: [] })),
+        api.get<Fournisseur[]>('/fournisseurs').catch(() => []),
         api.getLocalisations().catch(() => []),
       ]);
       setArticles(art);

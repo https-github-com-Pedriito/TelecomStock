@@ -151,7 +151,8 @@ export default function AllAccountsPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="rounded-2xl shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
@@ -278,6 +279,7 @@ export default function AllAccountsPage() {
             </tbody>
           </table>
         )}
+      </div>
       </div>
     </div>
   );

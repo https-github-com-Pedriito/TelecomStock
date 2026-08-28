@@ -59,7 +59,8 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
         />
 
         {/* Modal Container */}
-        <div className="relative w-full max-w-xl glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[82dvh] sm:max-h-[90vh]">
+        <div className="relative w-full max-w-xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[82dvh] sm:max-h-[90vh]">
+        <div className="glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
           {/* Header */}
           <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20">
@@ -90,7 +91,8 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
             <form onSubmit={handleSubmit} className="space-y-6">
 
               {/* 1. Identity Card */}
-              <div className="glass p-5 sm:p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-4 sm:space-y-5">
+              <div className="rounded-3xl shadow-sm">
+              <div className="glass p-5 sm:p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-4 sm:space-y-5">
                 <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
                   <Building2 size={18} strokeWidth={3} />
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Identité de l'Entreprise</h3>
@@ -108,9 +110,11 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
                   />
                 </div>
               </div>
+              </div>
 
               {/* 2. Contact Details Card */}
-              <div className="glass p-5 sm:p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-5 sm:space-y-6">
+              <div className="rounded-3xl shadow-sm">
+              <div className="glass p-5 sm:p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-5 sm:space-y-6">
                 <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
                   <User size={18} strokeWidth={3} />
                   <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Contact & Communication</h3>
@@ -180,6 +184,7 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
                   </div>
                 </div>
               </div>
+              </div>
             </form>
           </div>
 
@@ -200,6 +205,7 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
               <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform shrink-0" />
             </button>
           </div>
+        </div>
         </div>
       </div>
     </Portal>

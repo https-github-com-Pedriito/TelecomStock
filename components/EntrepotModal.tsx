@@ -70,7 +70,8 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-lg glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-lg rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[90vh]">
+      <div className="glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
         {/* Header */}
         <div className="relative px-8 pt-8 pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20">
@@ -107,7 +108,8 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
             )}
 
             {/* 1. Main Info Card */}
-            <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-6">
+            <div className="rounded-3xl shadow-sm">
+            <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-6">
               <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
                 <MapPin size={18} strokeWidth={3} />
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Identité du Lieu</h3>
@@ -149,9 +151,11 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
                 </div>
               </div>
             </div>
+            </div>
 
             {/* 2. Advanced Config Card */}
-            <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-6">
+            <div className="rounded-3xl shadow-sm">
+            <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-6">
               <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
                 <Activity size={18} strokeWidth={3} />
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Configuration Avancée</h3>
@@ -200,6 +204,7 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
                 </label>
               </div>
             </div>
+            </div>
           </form>
         </div>
 
@@ -228,6 +233,7 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
             )}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

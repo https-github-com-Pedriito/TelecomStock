@@ -108,7 +108,8 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
         />
 
         {/* Modal Container */}
-        <div className="relative w-full max-w-lg glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
+        <div className="relative w-full max-w-lg rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
+        <div className="glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
           {/* Header */}
           <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-blue-500/5 dark:bg-blue-950/20 overflow-hidden">
@@ -379,13 +380,14 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
               <button
                 form="user-form"
                 type="submit"
-                className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3 transition-all group flex-1 overflow-hidden"
+                className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-3 transition-all group flex-1"
               >
                 <span>{user ? 'Appliquer' : 'Enregistrer'}</span>
                 <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </Portal>

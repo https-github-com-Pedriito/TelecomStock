@@ -211,23 +211,25 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
           {statsCards.map((card, index) => (
             <div
               key={index}
-              className="glass rounded-2xl p-4 md:p-6 hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group cursor-default"
+              className="rounded-2xl hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300 group cursor-default"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-xl ${card.bgColor} group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                  <card.icon className={`w-6 h-6 ${card.iconColor}`} />
+              <div className="glass rounded-2xl p-4 md:p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`p-3 rounded-xl ${card.bgColor} group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                    <card.icon className={`w-6 h-6 ${card.iconColor}`} />
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs md:text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                  {card.title}
-                </p>
-                <p className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-                  {card.value}
-                </p>
-                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">
-                  {card.subtitle}
-                </p>
+                <div className="space-y-1">
+                  <p className="text-xs md:text-[13px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                    {card.title}
+                  </p>
+                  <p className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                    {card.value}
+                  </p>
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">
+                    {card.subtitle}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
@@ -235,7 +237,8 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
 
         {/* Mouvements du jour */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
-          <div className="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-green-500/5 transition-all duration-300">
+          <div className="rounded-2xl hover:shadow-xl hover:shadow-green-500/5 transition-all duration-300">
+          <div className="glass rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 shadow-sm">
@@ -254,8 +257,10 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
               />
             </div>
           </div>
+          </div>
 
-          <div className="glass rounded-2xl p-6 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300">
+          <div className="rounded-2xl hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300">
+          <div className="glass rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-xl bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 shadow-sm">
@@ -273,6 +278,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                 style={{ width: `${sortiesPercentage}%` }}
               />
             </div>
+          </div>
           </div>
         </div>
 
@@ -519,10 +525,11 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
 
       {/* Modale d'article pour les alertes */}
       {selectedAlertArticle && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-[9999] p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-950/40 backdrop-blur-md flex items-center justify-center z-[9999] p-2 sm:p-4 animate-in fade-in duration-300">
+          <div className="rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl max-w-md w-full max-h-[85vh] animate-in zoom-in-95 duration-300">
+          <div className="glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 max-h-[85vh] overflow-y-auto">
             {/* Header */}
-            <div className="sticky top-0 px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between">
+            <div className="sticky top-0 px-4 py-3 sm:px-6 sm:py-4 border-b border-white/20 dark:border-gray-800/50 bg-blue-500/10 dark:bg-blue-950/30 backdrop-blur-md flex items-center justify-between rounded-t-[2rem] sm:rounded-t-[2.5rem]">
               <h2 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white">Équipement en alerte</h2>
               <button
                 onClick={() => setSelectedAlertArticle(null)}
@@ -614,7 +621,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 px-4 py-3 sm:px-6 sm:py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+            <div className="sticky bottom-0 px-4 py-3 sm:px-6 sm:py-4 border-t border-white/20 dark:border-gray-800/50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md rounded-b-[2rem] sm:rounded-b-[2.5rem]">
               <button
                 onClick={() => setSelectedAlertArticle(null)}
                 className="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium text-sm sm:text-base"
@@ -622,6 +629,7 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
                 Fermer
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}

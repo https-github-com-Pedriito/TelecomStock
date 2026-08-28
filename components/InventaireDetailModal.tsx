@@ -186,7 +186,8 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
         />
 
         {/* Modal Container */}
-        <div className="relative w-full max-w-7xl glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[82dvh] sm:max-h-[90vh]">
+        <div className="relative w-full max-w-7xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[82dvh] sm:max-h-[90vh]">
+        <div className="glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
           {/* Header */}
           <div className="relative px-6 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-blue-500/5 dark:bg-blue-950/20">
@@ -279,7 +280,8 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
                   <p className="text-[10px] font-black uppercase tracking-[0.2em]">Aucune entrée répertoriée</p>
                 </div>
               ) : (
-                <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 overflow-hidden shadow-xl">
+                <div className="rounded-[2rem] shadow-xl">
+                <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50/50 dark:bg-gray-900/50 border-b border-white/20 dark:border-gray-800/50">
@@ -374,6 +376,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
                     </tbody>
                   </table>
                 </div>
+                </div>
               )}
             </div>
           </div>
@@ -397,6 +400,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
             </button>
           </div>
         </div>
+        </div>
       </div>
     </Portal>
   );
@@ -412,7 +416,8 @@ function StatCard({ label, value, subValue, icon, color }: { label: string; valu
   };
 
   return (
-    <div className={`glass p-4 rounded-3xl border border-white/40 dark:border-gray-800/50 flex flex-col items-center justify-center space-y-2 shadow-sm relative overflow-hidden group`}>
+    <div className="rounded-3xl shadow-sm relative group">
+    <div className={`glass p-4 rounded-3xl border border-white/40 dark:border-gray-800/50 flex flex-col items-center justify-center space-y-2 relative overflow-hidden`}>
       <div className={`absolute top-0 right-0 w-12 h-12 opacity-5 translate-x-4 -translate-y-4 group-hover:scale-150 transition-transform ${colors[color].split(' ')[0]}`}>
         {icon}
       </div>
@@ -426,6 +431,7 @@ function StatCard({ label, value, subValue, icon, color }: { label: string; valu
           {subValue && <div className="text-[10px] font-black text-gray-400">({subValue})</div>}
         </div>
       </div>
+    </div>
     </div>
   );
 }

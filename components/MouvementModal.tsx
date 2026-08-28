@@ -152,7 +152,8 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
       />
 
       {/* Modal Container */}
-      <div className="relative z-[110] w-full max-w-lg glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+      <div className="relative z-[110] w-full max-w-lg rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[90vh]">
+      <div className="glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
         {/* Header */}
         <div className={`relative px-4 pt-4 pb-3 md:px-8 md:pt-8 md:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-${themeColor}-500/5 dark:bg-${themeColor}-950/20`}>
@@ -182,7 +183,8 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
         <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8 custom-scrollbar">
 
           {/* Article Identity Card */}
-          <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm relative overflow-hidden group">
+          <div className="rounded-3xl shadow-sm relative group">
+          <div className="glass p-6 rounded-3xl border border-white/40 dark:border-gray-800/50 relative overflow-hidden">
             <div className={`absolute top-0 right-0 w-24 h-24 bg-${themeColor}-500/5 blur-2xl group-hover:bg-${themeColor}-500/10 transition-colors`} />
 
             <div className="relative flex items-start gap-4">
@@ -208,6 +210,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
                 <span className="text-[10px] font-bold text-gray-400 uppercase">Unités</span>
               </div>
             </div>
+          </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -402,6 +405,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
             <ChevronRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform shrink-0" />
           </button>
         </div>
+      </div>
       </div>
     </div>
     </Portal>

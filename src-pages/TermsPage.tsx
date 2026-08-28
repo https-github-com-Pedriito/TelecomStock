@@ -54,8 +54,8 @@ export function TermsPage({ onBack, onLogin }: TermsPageProps) {
               <span className="font-semibold">Retour</span>
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center p-1 shadow-sm border border-gray-100 dark:border-gray-800">
-                <img src="/decimalestock.png" alt="Logo" className="w-full h-full object-contain" />
+              <div className="w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <img src="/decimalestock.png" alt="Logo" className="w-full h-full rounded-lg object-cover" />
               </div>
               <span className="font-bold text-lg tracking-tight hidden sm:block text-gray-900 dark:text-white">Telecom Stock</span>
             </div>

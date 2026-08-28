@@ -323,7 +323,8 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         {scanMode === 'camera' ? (
           <div className="w-full h-full max-w-lg flex flex-col items-center justify-center gap-4">
             {/* Viewfinder Area */}
-            <div className="relative w-full max-w-[280px] aspect-square rounded-2xl overflow-hidden border-2 border-white/10 shadow-2xl bg-gray-900">
+            <div className="relative w-full max-w-[280px] aspect-square rounded-2xl border-2 border-white/10 shadow-2xl">
+            <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gray-900">
               <div id="reader" className="w-full h-full" />
 
               {/* HUD Overlays */}
@@ -367,9 +368,11 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                 </div>
               )}
             </div>
+            </div>
 
             {/* Quick Actions HUD */}
-            <div className="flex items-center gap-3 p-2 bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/10 shadow-xl">
+            <div className="rounded-2xl shadow-xl">
+            <div className="flex items-center gap-3 p-2 bg-gray-900/60 backdrop-blur-xl rounded-2xl border border-white/10">
               <button
                 onClick={toggleTorch}
                 className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90 ${torch
@@ -389,11 +392,13 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                 <RotateCcw size={20} strokeWidth={2.5} />
               </button>
             </div>
+            </div>
           </div>
         ) : (
           /* Manual Mode Redesign */
           <div className="w-full h-full flex flex-col items-center justify-center p-4 animate-in slide-in-from-bottom-8 duration-500">
-            <div className="max-w-md w-full bg-white/5 backdrop-blur-2xl p-6 rounded-2xl border border-white/10 shadow-2xl">
+            <div className="max-w-md w-full rounded-2xl shadow-2xl">
+            <div className="bg-white/5 backdrop-blur-2xl p-6 rounded-2xl border border-white/10">
               <div className="text-center mb-6">
                 <div className="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
                   <Keyboard className="h-8 w-8 text-blue-500" />
@@ -424,6 +429,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
                   <span>Valider</span>
                 </button>
               </form>
+            </div>
             </div>
           </div>
         )}

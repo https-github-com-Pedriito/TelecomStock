@@ -1,17 +1,19 @@
 ﻿'use client';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken } from '@/lib/tokenManager';
+import { useAuth } from '@/hooks/useAuth';
+import { getDefaultRouteForRole } from '@/lib/permissions';
 import { LandingPage } from '@/src-pages/LandingPage';
 
 type PublicView = 'landing' | 'login' | 'pricing' | 'faq' | 'privacy' | 'terms';
 
 export default function HomePage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (getToken()) router.replace('/dashboard');
-  }, [router]);
+    if (!loading && user) router.replace(getDefaultRouteForRole(user.role));
+  }, [user, loading, router]);
 
   const handleNavigate = (view: PublicView) => {
     if (view === 'login') router.push('/login');

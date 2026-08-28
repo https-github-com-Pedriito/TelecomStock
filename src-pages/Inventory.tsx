@@ -787,7 +787,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
           <div className="space-y-8 max-w-5xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Carte Guidelines */}
-              <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-6 group hover:translate-y-[-4px] transition-all duration-500">
+              <div className="rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none group hover:translate-y-[-4px] transition-all duration-500">
+              <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 space-y-6">
                 <div className="p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-3xl w-fit group-hover:scale-110 transition-transform">
                   <Info className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                 </div>
@@ -806,9 +807,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                   ))}
                 </ul>
               </div>
+              </div>
 
               {/* Carte Statistiques Rapides */}
-              <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-6 group hover:translate-y-[-4px] transition-all duration-500 overflow-hidden relative">
+              <div className="rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none group hover:translate-y-[-4px] transition-all duration-500 relative">
+              <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 space-y-6 overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
                   <Activity size={180} />
                 </div>
@@ -831,10 +834,12 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                   </p>
                 </div>
               </div>
+              </div>
             </div>
 
             {/* CTA Central */}
-            <div className="glass p-10 rounded-[4rem] border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none text-center space-y-8">
+            <div className="rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none">
+            <div className="glass p-10 rounded-[3rem] border border-white/40 dark:border-gray-800/50 text-center space-y-8">
               <div className="mx-auto p-8 bg-gray-50 dark:bg-gray-800/50 rounded-full w-32 h-32 flex items-center justify-center">
                 <History size={50} className="text-gray-300" />
               </div>
@@ -854,12 +859,14 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                 </button>
               </div>
             </div>
+            </div>
           </div>
         )}
 
         {/* Formulaire de comptage */}
         {currentInventaire && !currentInventaire.description?.includes('[EXPRESS]') && (
-          <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-8">
+          <div className="rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none">
+          <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 space-y-8">
             <div className="flex items-center gap-4 mb-2">
               <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl">
                 <Package className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
@@ -884,7 +891,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                   />
 
                   {searchQuery && filteredArticles.length > 0 && (
-                    <div className="absolute z-10 w-full mt-4 glass border border-white/40 dark:border-gray-800/50 rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[400px] overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-4 rounded-[2.5rem] shadow-2xl">
+                    <div className="glass border border-white/40 dark:border-gray-800/50 rounded-[2.5rem] overflow-hidden max-h-[400px] overflow-y-auto">
                       {filteredArticles.map((article) => (
                         <button
                           key={article.id}
@@ -907,6 +915,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                           <ChevronRight className="text-gray-300" />
                         </button>
                       ))}
+                    </div>
                     </div>
                   )}
                 </div>
@@ -939,10 +948,10 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
 
               {/* Zone de saisie si article sélectionné */}
               {selectedArticle && (
-                <div className="glass p-8 rounded-[3rem] border-2 border-indigo-500/20 shadow-inner-lg space-y-8 animate-in zoom-in-95 duration-300">
+                <div className="glass p-8 rounded-[3rem] border-2 border-indigo-500/20 shadow-inner space-y-8 animate-in zoom-in-95 duration-300">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
+                      <div className="w-14 h-14 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200 dark:shadow-none">
                         <Package size={28} />
                       </div>
                       <div>
@@ -1002,11 +1011,13 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
               )}
             </div>
           </div>
+          </div>
         )}
 
         {/* Liste des articles comptés */}
         {currentInventaire && (
-          <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-8">
+          <div className="rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none">
+          <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 space-y-8">
             <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl">
@@ -1096,7 +1107,8 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
             {/* Bloc Action Finale */}
             {currentEntries.length > 0 && (
               <div className="pt-8 border-t border-gray-100 dark:border-gray-800">
-                <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 bg-indigo-600 shadow-2xl shadow-indigo-200 dark:shadow-none relative overflow-hidden group">
+                <div className="rounded-[3rem] shadow-2xl shadow-indigo-200 dark:shadow-none relative group">
+                <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 bg-indigo-600 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform duration-700">
                     <CheckCircle size={150} className="text-white" />
                   </div>
@@ -1118,13 +1130,16 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                     </button>
                   </div>
                 </div>
+                </div>
               </div>
             )}
+          </div>
           </div>
         )}
 
         {/* Historique des inventaires */}
-        <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-8 animate-fade-in">
+        <div className="rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none">
+        <div className="glass p-8 rounded-[3rem] border border-white/40 dark:border-gray-800/50 space-y-8 animate-fade-in">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-2xl">
               <History className="w-6 h-6 text-gray-500" />
@@ -1163,13 +1178,15 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                       </div>
                     </div>
 
+                    <div className="rounded-2xl group-hover:shadow-lg">
                     <button
                       onClick={() => setSelectedInventaire(inv)}
-                      className="px-6 py-3 glass border border-white/40 dark:border-gray-800/50 hover:bg-indigo-600 hover:text-white rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2 group-hover:shadow-lg"
+                      className="px-6 py-3 glass border border-white/40 dark:border-gray-800/50 hover:bg-indigo-600 hover:text-white rounded-2xl font-black transition-all active:scale-95 flex items-center justify-center gap-2"
                     >
                       <Eye size={18} />
                       Voir le Rapport
                     </button>
+                    </div>
                   </div>
                 ))}
 
@@ -1200,6 +1217,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
             </div>
           )}
         </div>
+        </div>
       </div>
 
 
@@ -1207,10 +1225,11 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       {showExpressForm && (
         <Portal>
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="glass w-full max-w-4xl max-h-[82dvh] md:max-h-[90vh] rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+            <div className="w-full max-w-4xl max-h-[82dvh] md:max-h-[90vh] rounded-[3rem] shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+            <div className="glass rounded-[3rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
               <div className="p-8 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-4 bg-indigo-600 rounded-3xl shadow-lg shadow-indigo-200">
+                  <div className="p-4 bg-indigo-600 rounded-3xl shadow-lg shadow-indigo-200 dark:shadow-none">
                     <Rocket className="w-8 h-8 text-white" />
                   </div>
                   <div>
@@ -1295,7 +1314,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                       </>
                     ) : (
                       <>
-                        <div className="p-6 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200">
+                        <div className="p-6 bg-emerald-500 rounded-full shadow-lg shadow-emerald-200 dark:shadow-none">
                           <FileText className="w-10 h-10 text-white" />
                         </div>
                         <div className="text-center">
@@ -1394,6 +1413,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                 )}
               </div>
             </div>
+            </div>
           </div>
         </Portal>
       )}
@@ -1402,9 +1422,10 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
       {showCreateForm && (
         <Portal>
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/40 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="glass w-full max-w-lg rounded-[3rem] border border-white/40 dark:border-gray-800/50 shadow-2xl p-8 space-y-8 animate-in zoom-in-95 duration-300">
+            <div className="w-full max-w-lg rounded-[3rem] shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="glass rounded-[3rem] border border-white/40 dark:border-gray-800/50 p-8 space-y-8">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-indigo-600 rounded-3xl shadow-lg shadow-indigo-200">
+                <div className="p-4 bg-indigo-600 rounded-3xl shadow-lg shadow-indigo-200 dark:shadow-none">
                   <Plus className="w-8 h-8 text-white" />
                 </div>
                 <div>
@@ -1452,6 +1473,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
                   Créer la session
                 </button>
               </div>
+            </div>
             </div>
           </div>
         </Portal>

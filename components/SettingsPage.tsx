@@ -656,36 +656,36 @@ export function SettingsPage({ onSave, initialSettings, isAdmin }: SettingsPageP
             {/* Onglet Données */}
             {activeTab === 'data' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     Gestion des Données
                   </h3>
-                  
+
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Intervalle de sauvegarde (heures)
                         </label>
                         <input
                           type="number"
                           value={settings.backupInterval}
                           onChange={(e) => handleSettingChange('backupInterval', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           min="1"
                           max="168"
                         />
                       </div>
-                      
+
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Rétention des données (jours)
                         </label>
                         <input
                           type="number"
                           value={settings.retentionPeriod}
                           onChange={(e) => handleSettingChange('retentionPeriod', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           min="7"
                           max="3650"
                         />
@@ -699,34 +699,34 @@ export function SettingsPage({ onSave, initialSettings, isAdmin }: SettingsPageP
                           id="enableAutoBackup"
                           checked={settings.enableAutoBackup}
                           onChange={(e) => handleSettingChange('enableAutoBackup', e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                         />
-                        <label htmlFor="enableAutoBackup" className="ml-2 text-sm text-gray-700">
+                        <label htmlFor="enableAutoBackup" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                           Sauvegarde automatique
                         </label>
                       </div>
-                      
+
                       <div className="flex items-center">
                         <input
                           type="checkbox"
                           id="enableDataCompression"
                           checked={settings.enableDataCompression}
                           onChange={(e) => handleSettingChange('enableDataCompression', e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                         />
-                        <label htmlFor="enableDataCompression" className="ml-2 text-sm text-gray-700">
+                        <label htmlFor="enableDataCompression" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                           Compression des données
                         </label>
                       </div>
                     </div>
-                    
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                       <div className="flex items-start">
                         <Info className="h-5 w-5 text-yellow-400 mr-2 mt-0.5" />
-                        <div className="text-sm text-yellow-800">
+                        <div className="text-sm text-yellow-800 dark:text-yellow-200">
                           <p className="font-medium mb-1">Information importante</p>
                           <p>
-                            Les modifications des paramètres de sauvegarde prennent effet 
+                            Les modifications des paramètres de sauvegarde prennent effet
                             immédiatement. Assurez-vous d'avoir suffisamment d'espace disque.
                           </p>
                         </div>

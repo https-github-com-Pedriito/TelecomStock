@@ -96,13 +96,13 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
   return (
     <div
       className={`
-        fixed z-[10000] right-4 md:right-8 transition-all duration-500 transform
+        fixed z-[10000] right-4 md:right-8 transition-all duration-500 transform rounded-[1.25rem] ${styles.shadow}
         ${isLeaving ? 'opacity-0 translate-x-12 scale-90' : 'opacity-100 translate-x-0 scale-100 animate-slide-in-right'}
       `}
       style={{ top: '2rem' }}
     >
       <div
-        className={`relative glass overflow-hidden rounded-[1.25rem] border ${styles.border} ${styles.bg} ${styles.shadow} p-4 flex items-start gap-4 backdrop-blur-xl group`}
+        className={`relative glass overflow-hidden rounded-[1.25rem] border ${styles.border} ${styles.bg} p-4 flex items-start gap-4 backdrop-blur-xl group`}
         style={{ width: '380px', maxWidth: 'calc(100vw - 2rem)' }}
       >
         <div className="flex-shrink-0 p-2 bg-white/20 dark:bg-gray-900/20 rounded-xl shadow-inner group-hover:scale-110 transition-transform duration-300">

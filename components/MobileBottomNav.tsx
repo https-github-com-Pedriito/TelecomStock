@@ -112,8 +112,8 @@ export function MobileBottomNav({
   }, [userRole]);
 
   return (
-    <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 animate-slide-up">
-      <nav className="glass bg-white/95 dark:bg-gray-950/95 rounded-2xl shadow-2xl border border-white/20 dark:border-gray-800/50 flex items-center justify-around p-2 sm:p-3 gap-0.5 sm:gap-1 backdrop-blur-2xl">
+    <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 animate-slide-up rounded-2xl shadow-2xl">
+      <nav className="glass bg-white/95 dark:bg-gray-950/95 rounded-2xl border border-white/20 dark:border-gray-800/50 flex items-center justify-around p-2 sm:p-3 gap-0.5 sm:gap-1 backdrop-blur-2xl">
         {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const active = currentView === item.id;

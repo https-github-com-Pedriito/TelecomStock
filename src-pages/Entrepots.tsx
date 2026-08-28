@@ -254,7 +254,8 @@ export function Entrepots({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Total Card */}
-        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+        <div className="rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl shadow-sm">
               <Building2 size={24} strokeWidth={2.5} />
@@ -265,9 +266,11 @@ export function Entrepots({
             </div>
           </div>
         </div>
+        </div>
 
         {/* Active Card */}
-        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+        <div className="rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl shadow-sm">
               <CheckCircle size={24} strokeWidth={2.5} />
@@ -278,9 +281,11 @@ export function Entrepots({
             </div>
           </div>
         </div>
+        </div>
 
         {/* Inactive Card */}
-        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+        <div className="rounded-[2rem] shadow-xl shadow-gray-200/50 dark:shadow-none transition-all duration-500 hover:scale-[1.02]">
+        <div className="glass rounded-[2rem] border border-white/40 dark:border-gray-800/50 p-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl shadow-sm">
               <XCircle size={24} strokeWidth={2.5} />
@@ -291,9 +296,11 @@ export function Entrepots({
             </div>
           </div>
         </div>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 space-y-4 border border-gray-200 dark:border-gray-700">
+      <div className="rounded-2xl shadow-xl">
+      <div className="glass p-3 md:p-4 rounded-2xl border border-white/20 dark:border-gray-800/50 space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-end gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -351,7 +358,7 @@ export function Entrepots({
         </div>
 
         {error && (
-          <div className="flex items-start gap-3 rounded-lg border border-red-100 dark:border-red-900 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400">
+          <div className="flex items-start gap-3 rounded-2xl border border-red-100 dark:border-red-900 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400">
             <Info className="mt-0.5 h-5 w-5" />
             <div>
               <p className="font-medium">Erreur lors du chargement des lieux</p>
@@ -359,6 +366,7 @@ export function Entrepots({
             </div>
           </div>
         )}
+      </div>
       </div>
 
       {loading ? (
@@ -393,8 +401,12 @@ export function Entrepots({
             return (
               <div
                 key={localisation.id}
-                className={`group relative glass rounded-[2.5rem] border transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 ${isActive
-                  ? 'border-white/40 dark:border-gray-800/50 p-7 shadow-xl shadow-gray-200/50 dark:shadow-none'
+                className={`rounded-[2.5rem] transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 ${isActive ? 'shadow-xl shadow-gray-200/50 dark:shadow-none' : ''
+                  }`}
+              >
+              <div
+                className={`group relative glass rounded-[2.5rem] border ${isActive
+                  ? 'border-white/40 dark:border-gray-800/50 p-7'
                   : 'border-transparent bg-gray-100/50 dark:bg-gray-900/20 p-7 opacity-70 grayscale'
                   }`}
               >
@@ -491,6 +503,7 @@ export function Entrepots({
                     </button>
                   </div>
                 </div>
+              </div>
               </div>
             );
           })}

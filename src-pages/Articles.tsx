@@ -212,24 +212,28 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap md:flex-nowrap w-full md:w-auto">
+          <div className="flex-1 md:flex-none rounded-xl shadow-sm">
           <button
             onClick={exportToCSV}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 glass text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all active:scale-95 border border-white/40 dark:border-gray-800/60 shadow-sm text-sm sm:text-base"
+            className="w-full flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 glass text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all active:scale-95 border border-white/40 dark:border-gray-800/60 text-sm sm:text-base"
           >
             <Download size={18} strokeWidth={2.5} />
             <span className="hidden sm:inline">Exporter</span>
             <span className="sm:hidden">Exp.</span>
           </button>
+          </div>
           {canManageArticles && (
             <>
+              <div className="flex-1 md:flex-none rounded-xl shadow-sm">
               <button
                 onClick={() => setIsImportModalOpen(true)}
-                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 glass text-indigo-600 dark:text-indigo-400 font-bold rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all active:scale-95 border border-white/40 dark:border-gray-800/60 shadow-sm text-sm sm:text-base"
+                className="w-full flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 glass text-indigo-600 dark:text-indigo-400 font-bold rounded-xl hover:bg-white dark:hover:bg-gray-800 transition-all active:scale-95 border border-white/40 dark:border-gray-800/60 text-sm sm:text-base"
               >
                 <Upload size={18} strokeWidth={2.5} />
                 <span className="hidden sm:inline">Importer</span>
                 <span className="sm:hidden">Imp.</span>
               </button>
+              </div>
               <button
                 onClick={() => {
                   setEditingArticle(undefined);
@@ -246,7 +250,8 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
       </div>
 
       {/* Modern Filter & Search Bar */}
-      <div className="glass p-3 md:p-4 rounded-2xl shadow-xl border border-white/20 dark:border-gray-800/50 space-y-4">
+      <div className="rounded-2xl shadow-xl">
+      <div className="glass p-3 md:p-4 rounded-2xl border border-white/20 dark:border-gray-800/50 space-y-4">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search Input */}
           <div className="relative flex-1 group">
@@ -327,6 +332,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
             )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Articles Desktop Grid */}

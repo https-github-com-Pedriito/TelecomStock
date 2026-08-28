@@ -161,11 +161,12 @@ export function ArticleCard({
     , [article.quantite_stock, article.seuil_minimum]);
 
   return (
-    <div className={`group relative glass rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border-2 animate-scale-in flex flex-col h-full bg-white/40 dark:bg-gray-900/40 backdrop-blur-md ${isOutOfStock
-      ? 'border-red-500/30'
+    <div className="group rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 animate-scale-in flex flex-col h-full">
+    <div className={`relative glass rounded-2xl overflow-hidden flex flex-col h-full ${isOutOfStock
+      ? 'border-2 border-red-500/30'
       : isLowStock
-        ? 'border-orange-500/30'
-        : 'border-white/20 dark:border-gray-800/50'
+        ? 'border-2 border-orange-500/30'
+        : 'border border-white/20 dark:border-gray-800/50'
       }`}>
       {/* Glow Effect */}
       <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-20 transition-colors duration-700 ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-orange-500' : 'bg-blue-500'
@@ -173,10 +174,12 @@ export function ArticleCard({
 
       {/* Badge Status */}
       {(isOutOfStock || isLowStock) && (
-        <div className={`absolute top-3 right-3 z-10 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md border border-white/20 ${isOutOfStock ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'
-          }`}>
-          <AlertTriangle size={12} strokeWidth={3} className="animate-pulse" />
-          <span>{isOutOfStock ? 'Rupture' : 'Stock bas'}</span>
+        <div className="absolute top-3 right-3 z-10 rounded-full shadow-lg">
+          <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 backdrop-blur-md border border-white/20 ${isOutOfStock ? 'bg-red-500 text-white' : 'bg-orange-500 text-white'
+            }`}>
+            <AlertTriangle size={12} strokeWidth={3} className="animate-pulse" />
+            <span>{isOutOfStock ? 'Rupture' : 'Stock bas'}</span>
+          </div>
         </div>
       )}
 
@@ -310,6 +313,7 @@ export function ArticleCard({
           </button>
         </div>
       )}
+      </div>
 
       <DeleteConfirmationModal
         isOpen={showDeleteModal}

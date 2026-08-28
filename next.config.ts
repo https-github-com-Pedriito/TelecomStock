@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Allow accessing the dev server (and its HMR websocket) from other devices
+  // on the local network (e.g. testing on a real phone via its LAN IP).
+  allowedDevOrigins: ['192.168.1.169'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'i.ibb.co' },

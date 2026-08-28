@@ -22,7 +22,8 @@ export function CookieBanner({ onAccept, onDecline, onViewPrivacy }: CookieBanne
 
   return (
     <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-md z-[100] animate-slide-up">
-      <div className="bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200 dark:border-gray-700 p-6 rounded-[2rem] shadow-2xl shadow-blue-500/10">
+      <div className="rounded-[2rem] shadow-2xl shadow-blue-500/10">
+      <div className="bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200 dark:border-gray-700 p-6 rounded-[2rem]">
         <div className="flex items-start gap-4 mb-4">
           <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 p-2.5 rounded-2xl flex-shrink-0">
             <Shield size={24} />
@@ -64,6 +65,7 @@ export function CookieBanner({ onAccept, onDecline, onViewPrivacy }: CookieBanne
             Refuser
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

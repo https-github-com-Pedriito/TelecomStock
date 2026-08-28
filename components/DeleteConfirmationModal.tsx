@@ -35,7 +35,8 @@ export function DeleteConfirmationModal({
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-md glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col">
+      <div className="relative w-full max-w-md rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col">
+      <div className="glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
         {/* Header */}
         <div className={`relative px-8 pt-8 pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-center justify-between bg-${themeColor}-500/5 dark:bg-${themeColor}-950/20`}>
@@ -127,6 +128,7 @@ export function DeleteConfirmationModal({
             )}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -156,7 +156,8 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         />
 
         {/* Modal Container */}
-        <div className="relative w-full max-w-2xl glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-2xl overflow-hidden animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
+        <div className="relative w-full max-w-2xl rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl animate-scale-in flex flex-col max-h-[90dvh] sm:max-h-[90vh]">
+        <div className="glass rounded-[2rem] sm:rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden flex flex-col h-full">
 
           {/* Header - Bloqué contre le scroll avec shrink-0 */}
           <div className="relative px-4 sm:px-8 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-white/20 dark:border-gray-800/50 flex items-start sm:items-center justify-between gap-4 bg-blue-500/5 dark:bg-blue-950/20 shrink-0 overflow-hidden">
@@ -184,7 +185,8 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
 
               {/* 1. PRODUCT IDENTITY CARD */}
-              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-4">
+              <div className="rounded-2xl sm:rounded-3xl shadow-sm">
+              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-4">
                 <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
                   <Info size={18} strokeWidth={3} />
                   <h3 className="text-xs font-black uppercase tracking-[0.2em]">Identité du Produit</h3>
@@ -236,9 +238,11 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                   </div>
                 </div>
               </div>
+              </div>
 
               {/* 2. LOGISTICS CARD */}
-              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-4">
+              <div className="rounded-2xl sm:rounded-3xl shadow-sm">
+              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-4">
                 <div className="flex items-center gap-3 text-purple-600 dark:text-purple-400">
                   <MapPin size={18} strokeWidth={3} />
                   <h3 className="text-xs font-black uppercase tracking-[0.2em]">Logistique & Traçabilité</h3>
@@ -280,9 +284,11 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                   </div>
                 </div>
               </div>
+              </div>
 
               {/* 3. INVENTORY & FINANCE CARD */}
-              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-4">
+              <div className="rounded-2xl sm:rounded-3xl shadow-sm">
+              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-4">
                 <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400">
                   <TrendingUp size={18} strokeWidth={3} />
                   <h3 className="text-xs font-black uppercase tracking-[0.2em]">Stock & Tarification</h3>
@@ -325,9 +331,11 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                   </div>
                 </div>
               </div>
+              </div>
 
               {/* 4. MEDIA CARD */}
-              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 shadow-sm space-y-4">
+              <div className="rounded-2xl sm:rounded-3xl shadow-sm">
+              <div className="glass p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-white/40 dark:border-gray-800/50 space-y-4">
                 <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400">
                   <ImageIcon size={18} strokeWidth={3} />
                   <h3 className="text-xs font-black uppercase tracking-[0.2em]">Visuel du Produit</h3>
@@ -340,6 +348,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
                     onRemove={() => setFormData({ ...formData, image_url: '' })}
                   />
                 </div>
+              </div>
               </div>
             </form>
           </div>
@@ -369,6 +378,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
               </button>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </Portal>

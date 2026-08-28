@@ -9,34 +9,7 @@ import { useNotifications } from '@/components/Notification';
 import { Layout } from '@/components/Layout';
 import { ViewMode } from '@/types';
 import { api } from '@/lib/api';
-
-const hasPermissionFn = (role: string, permission: string): boolean => {
-  const r = role.toLowerCase();
-  if (r === 'super_admin') return true;
-  switch (permission) {
-    case 'view_dashboard':
-    case 'manage_users':
-      return r === 'admin';
-    case 'edit_articles':
-      return r === 'admin' || r === 'manager';
-    case 'delete_articles':
-      return r === 'admin';
-    case 'view_articles':
-      return ['admin', 'manager', 'technicien'].includes(r);
-    case 'view_prices':
-      return r === 'admin' || r === 'manager';
-    case 'manage_articles':
-      return r === 'admin' || r === 'manager';
-    case 'view_mouvements':
-    case 'view_historique':
-    case 'view_inventory':
-      return ['admin', 'manager'].includes(r);
-    case 'use_scanner':
-      return ['admin', 'manager', 'technicien'].includes(r);
-    default:
-      return false;
-  }
-};
+import { hasPermissionFn, getDefaultRouteForRole } from '@/lib/permissions';
 
 const pathnameToView = (pathname: string): ViewMode => {
   const segment = pathname.split('/')[1];
@@ -73,6 +46,13 @@ function AppLayoutInner({ children, NotificationContainer }: { children: React.R
     if (!isMounted) return;
     if (!loading && !user) router.replace('/login');
   }, [user, loading, router, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted || loading || !user) return;
+    if (pathname === '/dashboard' && !hasPermissionFn(user.role, 'view_dashboard')) {
+      router.replace(getDefaultRouteForRole(user.role));
+    }
+  }, [user, loading, isMounted, pathname, router]);
 
   useEffect(() => {
     const handler = () => setSubscriptionInactive(true);

@@ -152,7 +152,8 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
       </div>
 
       {/* Modern Search & Filter Bar */}
-      <div className="glass p-3 md:p-4 rounded-2xl shadow-xl border border-white/20 dark:border-gray-800/50">
+      <div className="rounded-2xl shadow-xl">
+      <div className="glass p-3 md:p-4 rounded-2xl border border-white/20 dark:border-gray-800/50">
         <div className="relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
           <input
@@ -163,6 +164,7 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
             className="w-full pl-12 pr-4 py-3.5 bg-white/50 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all dark:text-white font-medium"
           />
         </div>
+      </div>
       </div>
 
       {/* Fournisseurs Grid */}
@@ -189,9 +191,10 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
           {filteredFournisseurs.map((fournisseur, index) => (
             <div
               key={fournisseur.id}
-              className="glass rounded-[2rem] p-6 sm:p-7 border border-white/40 dark:border-gray-800/50 hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all group animate-slide-up relative overflow-hidden"
+              className="rounded-[2rem] hover:shadow-2xl hover:shadow-blue-500/5 hover:-translate-y-1 transition-all group animate-slide-up"
               style={{ animationDelay: `${index * 50}ms` }}
             >
+            <div className="glass rounded-[2rem] p-6 sm:p-7 border border-white/40 dark:border-gray-800/50 relative overflow-hidden">
               {/* Background Accent */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 -translate-y-16 translate-x-16 rounded-full group-hover:scale-150 transition-transform duration-700" />
 
@@ -274,6 +277,7 @@ export function Fournisseurs({ fournisseurs, onAddFournisseur, onUpdateFournisse
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           ))}
         </div>

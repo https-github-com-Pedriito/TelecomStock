@@ -180,7 +180,8 @@ export function CSVImport({ isOpen, onClose, onImport, addNotification }: CSVImp
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <div className="fixed inset-0 bg-gray-950/60 backdrop-blur-md animate-fade-in" onClick={onClose} />
 
-            <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/20 dark:border-gray-800/50 animate-scale-in">
+            <div className="relative w-full max-w-4xl rounded-[2.5rem] shadow-2xl animate-scale-in">
+            <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] overflow-hidden border border-white/20 dark:border-gray-800/50">
 
                 {/* Header */}
                 <div className="px-8 pt-8 pb-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
@@ -359,6 +360,7 @@ export function CSVImport({ isOpen, onClose, onImport, addNotification }: CSVImp
                         )}
                     </button>
                 </div>
+            </div>
             </div>
         </div>
     );

@@ -28,8 +28,10 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl flex items-center justify-center p-1.5 shadow-md border border-gray-100 dark:border-gray-700">
-                <img src="/decimalestock.png" alt="Telecom Stock Logo" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded-xl shadow-md">
+                <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  <img src="/decimalestock.png" alt="Telecom Stock Logo" className="w-full h-full rounded-xl object-cover" />
+                </div>
               </div>
               <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">Telecom Stock</span>
             </div>
@@ -42,7 +44,7 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
               </button>
               <button
                 onClick={onGetStarted}
-                className="inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold shadow-lg shadow-blue-500/30 transition-all hover:scale-105 active:scale-95 gap-2"
+                className="inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold transition-all hover:scale-105 active:scale-95 gap-2"
               >
                 S'inscrire <ArrowRight size={18} />
               </button>
@@ -88,7 +90,8 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
             </div>
 
             <div className="mt-32 max-w-4xl mx-auto">
-              <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800 bg-gray-900">
+              <div className="rounded-[2rem] shadow-2xl">
+              <div className="relative rounded-[2rem] overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-900">
                 <video
                   ref={heroVideoRef}
                   src="/videos/hero-demo.mp4"
@@ -100,6 +103,7 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
                   preload="auto"
                   aria-label="Présentation de Telecom Stock"
                 />
+              </div>
               </div>
             </div>
           </div>
@@ -168,8 +172,8 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center p-1 shadow-sm border border-gray-100 dark:border-gray-700">
-                   <img src="/decimalestock.png" alt="Logo mini" className="w-full h-full object-contain" />
+                <div className="w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                   <img src="/decimalestock.png" alt="Logo mini" className="w-full h-full rounded-lg object-cover" />
                 </div>
                 <span className="font-bold text-lg text-gray-900 dark:text-white">Telecom Stock</span>
               </div>

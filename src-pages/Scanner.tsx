@@ -104,7 +104,8 @@ export function Scanner(props: ScannerProps) {
           <p className="text-gray-500 dark:text-gray-400 font-medium">Gestion intelligente des entrées et sorties via code-barres</p>
         </div>
 
-        <div className="flex items-center gap-4 bg-white/40 dark:bg-gray-950/40 backdrop-blur-xl p-2 rounded-2xl border border-white/40 dark:border-gray-800/50 shadow-sm">
+        <div className="rounded-2xl shadow-sm">
+        <div className="flex items-center gap-4 bg-white/40 dark:bg-gray-950/40 backdrop-blur-xl p-2 rounded-2xl border border-white/40 dark:border-gray-800/50">
           <div className="p-3 bg-blue-500/10 rounded-xl">
             <ScanLine className="w-6 h-6 text-blue-600" />
           </div>
@@ -112,6 +113,7 @@ export function Scanner(props: ScannerProps) {
             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Scanner Ready</div>
             <div className="text-sm font-black text-gray-900 dark:text-white">Capteur Actif</div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -159,9 +161,11 @@ export function Scanner(props: ScannerProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <button
           onClick={() => startScanForType('ENTREE')}
-          className="relative group overflow-hidden rounded-[2.5rem] bg-white dark:bg-gray-900 border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:scale-[1.02] active:scale-95 text-left"
+          className="relative group rounded-[2.5rem] bg-white dark:bg-gray-900 border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:scale-[1.02] active:scale-95 text-left"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-16 translate-x-16 group-hover:bg-emerald-500/20 transition-colors" />
+          <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -translate-y-16 translate-x-16 group-hover:bg-emerald-500/20 transition-colors" />
+          </div>
           <div className="relative p-10 flex flex-col h-full">
             <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-8 border border-emerald-500/20 group-hover:scale-110 transition-transform duration-500">
               <ArrowUp className="w-8 h-8 text-emerald-600" strokeWidth={3} />
@@ -189,9 +193,11 @@ export function Scanner(props: ScannerProps) {
 
         <button
           onClick={() => startScanForType('SORTIE')}
-          className="relative group overflow-hidden rounded-[2.5rem] bg-white dark:bg-gray-900 border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:scale-[1.02] active:scale-95 text-left"
+          className="relative group rounded-[2.5rem] bg-white dark:bg-gray-900 border border-white/40 dark:border-gray-800/50 shadow-xl shadow-gray-200/50 dark:shadow-none transition-all hover:scale-[1.02] active:scale-95 text-left"
         >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -translate-y-16 translate-x-16 group-hover:bg-orange-500/20 transition-colors" />
+          <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -translate-y-16 translate-x-16 group-hover:bg-orange-500/20 transition-colors" />
+          </div>
           <div className="relative p-10 flex flex-col h-full">
             <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center mb-8 border border-orange-500/20 group-hover:scale-110 transition-transform duration-500">
               <ArrowDown className="w-8 h-8 text-orange-600" strokeWidth={3} />

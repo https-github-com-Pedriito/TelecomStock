@@ -210,7 +210,8 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
 
       {/* Stats Cards Premium */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-sm relative overflow-hidden group">
+        <div className="rounded-[2.5rem] shadow-sm relative group">
+        <div className="glass p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
             <Users size={120} />
           </div>
@@ -224,8 +225,10 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
             {stats.total}
           </div>
         </div>
+        </div>
 
-        <div className="glass p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-sm relative overflow-hidden group">
+        <div className="rounded-[2.5rem] shadow-sm relative group">
+        <div className="glass p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
             <Shield className="text-rose-500" size={120} />
           </div>
@@ -239,8 +242,10 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
             {stats.admins}
           </div>
         </div>
+        </div>
 
-        <div className="glass p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-sm relative overflow-hidden group">
+        <div className="rounded-[2.5rem] shadow-sm relative group">
+        <div className="glass p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
             <Shield className="text-emerald-500" size={120} />
           </div>
@@ -254,10 +259,12 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
             {stats.techniciens}
           </div>
         </div>
+        </div>
       </div>
 
       {/* Barre de Recherche Premium */}
-      <div className="glass p-4 sm:p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-sm">
+      <div className="rounded-[2.5rem] shadow-sm">
+      <div className="glass p-4 sm:p-6 rounded-[2.5rem] border border-white/40 dark:border-gray-800/50">
         <div className="relative group">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
           <input
@@ -268,6 +275,7 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
             className="w-full pl-16 pr-4 py-4 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent focus:border-indigo-500/50 focus:bg-white dark:focus:bg-gray-800 rounded-3xl outline-none transition-all font-medium text-gray-900 dark:text-white placeholder:text-gray-400 shadow-inner"
           />
         </div>
+      </div>
       </div>
 
 
@@ -283,7 +291,8 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
           </div>
         </div>
       ) : (
-        <div className="glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 shadow-sm overflow-hidden">
+        <div className="rounded-[2.5rem] shadow-sm">
+        <div className="glass rounded-[2.5rem] border border-white/40 dark:border-gray-800/50 overflow-hidden">
           {/* Desktop Table */}
           <table className="w-full hidden sm:table text-center">
             <thead>
@@ -421,6 +430,7 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
               </div>
             ))}
           </div>
+        </div>
         </div>
       )}
 
