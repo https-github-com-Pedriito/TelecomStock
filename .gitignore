@@ -32,6 +32,9 @@ dist-ssr
 .next/
 out/
 
+# Test coverage reports
+coverage/
+
 # Deployment
 .vercel
 account.md

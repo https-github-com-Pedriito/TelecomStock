@@ -11,7 +11,6 @@ import { Tenant } from '@/entities/Tenant';
 
 // Singleton global pour réutiliser la connexion entre les invocations serverless
 declare global {
-  // eslint-disable-next-line no-var
   var _dataSource: DataSource | undefined;
 }
 
