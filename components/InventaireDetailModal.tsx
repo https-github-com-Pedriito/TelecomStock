@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { FileText, X, CheckCircle, Package, Loader2, Download, TrendingDown, Calendar, History, Activity, AlertCircle, ChevronRight, TrendingUp } from 'lucide-react';
 import { Portal } from '@/components/Portal';
 import { Inventaire, InventaireEntry } from '@/types';
@@ -17,11 +18,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    loadEntries();
-  }, [inventaire.id]);
-
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getInventaireEntries(inventaire.id);
@@ -31,7 +28,11 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
     } finally {
       setLoading(false);
     }
-  };
+  }, [inventaire.id]);
+
+  useEffect(() => {
+    loadEntries();
+  }, [loadEntries]);
 
   const handleExportExcel = async () => {
     try {
@@ -303,9 +304,9 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
                         return (
                           <tr key={entry.id} className="group hover:bg-white/40 dark:hover:bg-gray-800/20 transition-all">
                             <td className="px-6 py-4">
-                              <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center overflow-hidden border border-white/40 dark:border-gray-700/50 shadow-inner group-hover:scale-110 transition-transform">
+                              <div className="relative w-12 h-12 rounded-2xl bg-gray-100 dark:bg-gray-900 flex items-center justify-center overflow-hidden border border-white/40 dark:border-gray-700/50 shadow-inner group-hover:scale-110 transition-transform">
                                 {entry.article?.image_url ? (
-                                  <img src={entry.article.image_url} alt="" className="w-full h-full object-cover" />
+                                  <Image src={entry.article.image_url} alt="" fill sizes="48px" className="object-cover" />
                                 ) : (
                                   <Package className="text-gray-300 dark:text-gray-700" size={20} />
                                 )}

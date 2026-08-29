@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   TrendingUp,
   Package,
@@ -73,7 +73,7 @@ export function AdminDashboard({
   const [pieData, setPieData] = useState<PieDataPoint[]>([]);
 
   // Calcul des stats du dashboard
-  const calculateStats = () => {
+  const calculateStats = useCallback(() => {
     const totalArticles = articles.length;
     const totalValue = articles.reduce((sum, a) => {
       const prix = typeof a.prix_unitaire === 'number' ? a.prix_unitaire : 0;
@@ -103,10 +103,10 @@ export function AdminDashboard({
       activeInventories,
       criticalAlerts
     });
-  };
+  }, [articles, mouvements, inventaires]);
 
   // Génération des alertes critiques
-  const generateAlerts = () => {
+  const generateAlerts = useCallback(() => {
     const newAlerts: StockAlert[] = articles
       .filter(a => a.quantite_stock !== undefined && a.quantite_stock <= (a.seuil_minimum || 0))
       .map(a => ({
@@ -118,10 +118,10 @@ export function AdminDashboard({
         date: new Date()
       }));
     setAlerts(newAlerts.slice(0, 10));
-  };
+  }, [articles]);
 
   // Pie chart: répartition du stock par catégorie
-  const generatePieData = () => {
+  const generatePieData = useCallback(() => {
     const catStats: Record<string, number> = {};
     articles.forEach((a: Article) => {
       catStats[a.categorie] = (catStats[a.categorie] || 0) + (a.quantite_stock || 0);
@@ -132,10 +132,10 @@ export function AdminDashboard({
       color: COLORS[idx % COLORS.length]
     }));
     setPieData(data);
-  };
+  }, [articles]);
 
   // Area chart: mouvements sur 30 jours
-  const generateChartData = () => {
+  const generateChartData = useCallback(() => {
     const days = 30;
     const data: ChartDataPoint[] = [];
     for (let i = days - 1; i >= 0; i--) {
@@ -162,14 +162,14 @@ export function AdminDashboard({
       });
     }
     setChartData(data);
-  };
+  }, [mouvements]);
 
   useEffect(() => {
     calculateStats();
     generateAlerts();
     generateChartData();
     generatePieData();
-  }, [articles, mouvements, inventaires]);
+  }, [calculateStats, generateAlerts, generateChartData, generatePieData]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

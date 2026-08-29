@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { Article } from '@/types';
@@ -186,10 +187,12 @@ export function ArticleCard({
       {/* Image Area */}
       <div className="relative aspect-[4/3] w-full bg-gray-100/50 dark:bg-gray-950/50 flex items-center justify-center overflow-hidden border-b border-white/10 dark:border-gray-800/50">
         {article.image_url ? (
-          <img
+          <Image
             src={article.image_url}
             alt={article.nom}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-gray-400/50">

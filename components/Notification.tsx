@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CheckCircle, AlertCircle, X, Trash2, PlusCircle, Info } from 'lucide-react';
 import { getStockLevel } from '@/lib/stock';
 
@@ -17,6 +17,11 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
   const [isLeaving, setIsLeaving] = useState(false);
   const [progress, setProgress] = useState(100);
 
+  const handleClose = useCallback(() => {
+    setIsLeaving(true);
+    setTimeout(() => onClose(id), 400); // Match animation duration
+  }, [id, onClose]);
+
   useEffect(() => {
     const startTime = Date.now();
     const interval = setInterval(() => {
@@ -30,12 +35,7 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
     }, 10);
 
     return () => clearInterval(interval);
-  }, [id, duration]);
-
-  const handleClose = () => {
-    setIsLeaving(true);
-    setTimeout(() => onClose(id), 400); // Match animation duration
-  };
+  }, [id, duration, handleClose]);
 
   const getStyles = () => {
     switch (type) {
@@ -141,7 +141,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationProps[]>([]);
 
   const addNotification = (notification: Omit<NotificationProps, 'id' | 'onClose'>) => {
-    const id = Math.random().toString(36).substr(2, 9);
+    const id = crypto.randomUUID();
     const newNotification: NotificationProps = {
       ...notification,
       id,

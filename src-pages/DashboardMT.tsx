@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Article, Mouvement } from '@/types';
 import {
   Package,
@@ -30,34 +31,8 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
   const [chartData, setChartData] = useState<{ date: string; Entrees: number; Sorties: number }[]>([]);
   const [selectedAlertArticle, setSelectedAlertArticle] = useState<Article | null>(null);
 
-  // Générer les données du graphique quand les mouvements changent
-  useEffect(() => {
-    generateChartData();
-  }, [mouvements]);
-
-  // Rafraîchissement automatique toutes les 5 minutes (sécurité)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (onRefreshData) {
-        console.log('🔄 Rafraîchissement automatique (5min)');
-        onRefreshData();
-      }
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [onRefreshData]);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    if (onRefreshData) {
-      await onRefreshData();
-    }
-    generateChartData();
-    setTimeout(() => setRefreshing(false), 500);
-  };
-
   // Génération des données de graphique
-  const generateChartData = () => {
+  const generateChartData = useCallback(() => {
     const days = 14; // 14 derniers jours (2 semaines)
     const data: { date: string; Entrees: number; Sorties: number }[] = [];
 
@@ -86,6 +61,32 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
     }
 
     setChartData(data);
+  }, [mouvements]);
+
+  // Générer les données du graphique quand les mouvements changent
+  useEffect(() => {
+    generateChartData();
+  }, [generateChartData]);
+
+  // Rafraîchissement automatique toutes les 5 minutes (sécurité)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (onRefreshData) {
+        console.log('🔄 Rafraîchissement automatique (5min)');
+        onRefreshData();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [onRefreshData]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    if (onRefreshData) {
+      await onRefreshData();
+    }
+    generateChartData();
+    setTimeout(() => setRefreshing(false), 500);
   };
 
   const recentMouvements = mouvements
@@ -545,11 +546,13 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
             <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
               {/* Image */}
               {selectedAlertArticle.image_url && (
-                <div className="w-full h-32 sm:h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
-                  <img
+                <div className="relative w-full h-32 sm:h-48 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
+                  <Image
                     src={selectedAlertArticle.image_url}
                     alt={selectedAlertArticle.nom}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 448px"
+                    className="object-cover"
                   />
                 </div>
               )}

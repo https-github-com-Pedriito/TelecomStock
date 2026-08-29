@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
+import Image from 'next/image';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -16,7 +17,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = async (file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     // Vérifications
     if (!file.type.startsWith('image/')) {
       setError('Le fichier doit être une image');
@@ -40,7 +41,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [onImageChange]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -50,7 +51,7 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
     if (file) {
       handleFile(file);
     }
-  }, []);
+  }, [handleFile]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -89,11 +90,13 @@ export function ImageUpload({ currentImageUrl, onImageChange, onRemove }: ImageU
       </label>
 
       {currentImageUrl ? (
-        <div className="relative">
-          <img
+        <div className="relative h-48">
+          <Image
             src={currentImageUrl}
             alt="Article"
-            className="w-full h-48 object-contain rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+            fill
+            sizes="(max-width: 640px) 100vw, 448px"
+            className="object-contain rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
           />
           <button
             type="button"

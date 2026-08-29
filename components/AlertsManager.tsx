@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Bell, 
   AlertTriangle, 
@@ -83,11 +83,6 @@ export function AlertsManager({
   
   const { showFeedback } = useFeedback();
 
-  // Génération automatique des alertes basée sur les articles
-  useEffect(() => {
-    generateAlerts();
-  }, [articles]);
-
   // Filtrage des alertes
   useEffect(() => {
     let filtered = alerts;
@@ -131,7 +126,7 @@ export function AlertsManager({
     setFilteredAlerts(filtered);
   }, [alerts, selectedFilter, priorityFilter, searchQuery, showArchived]);
 
-  const generateAlerts = () => {
+  const generateAlerts = useCallback(() => {
     const newAlerts: Alert[] = [];
     const now = new Date();
 
@@ -267,7 +262,12 @@ export function AlertsManager({
     });
 
     setAlerts(newAlerts);
-  };
+  }, [articles, onNavigateToArticle, onNavigateToSettings, onNavigateToInventory, showFeedback]);
+
+  // Génération automatique des alertes basée sur les articles
+  useEffect(() => {
+    generateAlerts();
+  }, [generateAlerts]);
 
   const markAsRead = (alertId: string) => {
     setAlerts(prev => prev.map(alert => 

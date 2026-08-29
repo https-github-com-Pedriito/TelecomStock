@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { LogIn, Eye, EyeOff, Mail, ArrowLeft } from 'lucide-react';
 
 interface LoginFormProps {
@@ -73,11 +74,13 @@ export function LoginForm({ onLogin, onForgotPassword, error, portalUrl, onBack 
 
       <div className="w-full max-w-[440px] z-10 animate-fade-in">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-3xl shadow-xl shadow-blue-500/10 mb-6 group transition-transform hover:scale-105 overflow-hidden">
-            <img
+          <div className="relative inline-flex items-center justify-center w-16 h-16 bg-white rounded-3xl shadow-xl shadow-blue-500/10 mb-6 group transition-transform hover:scale-105 overflow-hidden">
+            <Image
               src="/decimalestock.png"
               alt="Logo Telecom Stock"
-              className="w-full h-full rounded-3xl object-cover"
+              fill
+              sizes="64px"
+              className="rounded-3xl object-cover"
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Telecom Stock</h1>

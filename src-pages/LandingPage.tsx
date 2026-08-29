@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Shield, Zap, Smartphone, ArrowRight, BarChart3, Database, HeadphonesIcon } from 'lucide-react';
 
 interface LandingPageProps {
@@ -29,8 +30,8 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl shadow-md">
-                <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                  <img src="/decimalestock.png" alt="Telecom Stock Logo" className="w-full h-full rounded-xl object-cover" />
+                <div className="relative w-10 h-10 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                  <Image src="/decimalestock.png" alt="Telecom Stock Logo" fill sizes="40px" className="rounded-xl object-cover" />
                 </div>
               </div>
               <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">Telecom Stock</span>
@@ -172,8 +173,8 @@ export function LandingPage({ onLoginClick, onNavigate }: LandingPageProps) {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                   <img src="/decimalestock.png" alt="Logo mini" className="w-full h-full rounded-lg object-cover" />
+                <div className="relative w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                   <Image src="/decimalestock.png" alt="Logo mini" fill sizes="32px" className="rounded-lg object-cover" />
                 </div>
                 <span className="font-bold text-lg text-gray-900 dark:text-white">Telecom Stock</span>
               </div>
