@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Fournisseur } from '@/types';
 import { Truck, X, Building2, User, Mail, Phone, MapPin, ChevronRight } from 'lucide-react';
 import { Portal } from '@/components/Portal';
@@ -21,7 +21,12 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
     adresse: '',
   });
 
-  useEffect(() => {
+  // Resynchronise le formulaire avec le fournisseur édité à chaque changement —
+  // ajustement pendant le rendu plutôt que dans un effect
+  // (cf. https://react.dev/learn/you-might-not-need-an-effect).
+  const [prevFournisseurId, setPrevFournisseurId] = useState(fournisseur?.id);
+  if (fournisseur?.id !== prevFournisseurId) {
+    setPrevFournisseurId(fournisseur?.id);
     if (fournisseur) {
       setFormData({
         nom: fournisseur.nom || '',
@@ -39,7 +44,7 @@ export function FournisseurModal({ isOpen, onClose, onSave, fournisseur }: Fourn
         adresse: '',
       });
     }
-  }, [fournisseur]);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

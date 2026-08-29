@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { User } from '@/types';
 import { X, Users, Mail, Shield, Key, ChevronRight, Fingerprint, Lock, Eye, EyeOff, UserPlus, UserCheck, BellRing } from 'lucide-react';
 import { Portal } from '@/components/Portal';
@@ -50,7 +50,12 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  useEffect(() => {
+  // Resynchronise le formulaire avec l'utilisateur édité à chaque changement —
+  // ajustement pendant le rendu plutôt que dans un effect
+  // (cf. https://react.dev/learn/you-might-not-need-an-effect).
+  const [prevUserId, setPrevUserId] = useState(user?.id);
+  if (user?.id !== prevUserId) {
+    setPrevUserId(user?.id);
     if (user) {
       setFormData({
         nom: user.nom,
@@ -76,7 +81,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     setShowPasswordFields(!!user?.reset_requested_at);
     setShowPassword(false);
     setShowConfirmPassword(false);
-  }, [user]);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

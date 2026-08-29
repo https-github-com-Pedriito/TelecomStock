@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import {
   TrendingUp,
   Package,
@@ -58,22 +58,9 @@ export function AdminDashboard({
   inventaires
 }: AdminDashboardProps) {
   const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalArticles: 0,
-    totalValue: 0,
-    lowStockCount: 0,
-    todayMovements: 0,
-    weeklyTrend: 0,
-    monthlyTrend: 0,
-    activeInventories: 0,
-    criticalAlerts: 0
-  });
-  const [alerts, setAlerts] = useState<StockAlert[]>([]);
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [pieData, setPieData] = useState<PieDataPoint[]>([]);
 
   // Calcul des stats du dashboard
-  const calculateStats = useCallback(() => {
+  const stats = useMemo<DashboardStats>(() => {
     const totalArticles = articles.length;
     const totalValue = articles.reduce((sum, a) => {
       const prix = typeof a.prix_unitaire === 'number' ? a.prix_unitaire : 0;
@@ -93,7 +80,7 @@ export function AdminDashboard({
       article.quantite_stock === 0 ||
       article.quantite_stock < Math.max(1, (article.seuil_minimum || 0) * 0.5)
     ).length;
-    setStats({
+    return {
       totalArticles,
       totalValue,
       lowStockCount,
@@ -102,11 +89,11 @@ export function AdminDashboard({
       monthlyTrend: 0,
       activeInventories,
       criticalAlerts
-    });
+    };
   }, [articles, mouvements, inventaires]);
 
   // Génération des alertes critiques
-  const generateAlerts = useCallback(() => {
+  const alerts = useMemo<StockAlert[]>(() => {
     const newAlerts: StockAlert[] = articles
       .filter(a => a.quantite_stock !== undefined && a.quantite_stock <= (a.seuil_minimum || 0))
       .map(a => ({
@@ -117,25 +104,24 @@ export function AdminDashboard({
         message: a.quantite_stock === 0 ? 'Rupture de stock' : 'Stock faible',
         date: new Date()
       }));
-    setAlerts(newAlerts.slice(0, 10));
+    return newAlerts.slice(0, 10);
   }, [articles]);
 
   // Pie chart: répartition du stock par catégorie
-  const generatePieData = useCallback(() => {
+  const pieData = useMemo<PieDataPoint[]>(() => {
     const catStats: Record<string, number> = {};
     articles.forEach((a: Article) => {
       catStats[a.categorie] = (catStats[a.categorie] || 0) + (a.quantite_stock || 0);
     });
-    const data = Object.entries(catStats).map(([name, value], idx) => ({
+    return Object.entries(catStats).map(([name, value], idx) => ({
       name,
       value,
       color: COLORS[idx % COLORS.length]
     }));
-    setPieData(data);
   }, [articles]);
 
   // Area chart: mouvements sur 30 jours
-  const generateChartData = useCallback(() => {
+  const chartData = useMemo<ChartDataPoint[]>(() => {
     const days = 30;
     const data: ChartDataPoint[] = [];
     for (let i = days - 1; i >= 0; i--) {
@@ -161,23 +147,12 @@ export function AdminDashboard({
         Sorties: sortiesCount
       });
     }
-    setChartData(data);
+    return data;
   }, [mouvements]);
-
-  useEffect(() => {
-    calculateStats();
-    generateAlerts();
-    generateChartData();
-    generatePieData();
-  }, [calculateStats, generateAlerts, generateChartData, generatePieData]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
-    calculateStats();
-    generateAlerts();
-    generateChartData();
-    generatePieData();
     setRefreshing(false);
   };
 

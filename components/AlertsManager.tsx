@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Bell, 
   AlertTriangle, 
@@ -74,17 +74,16 @@ export function AlertsManager({
   onNavigateToInventory
 }: AlertsManagerProps) {
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [filteredAlerts, setFilteredAlerts] = useState<Alert[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'all' | AlertType | AlertStatus>('all');
   const [priorityFilter, setPriorityFilter] = useState<'all' | AlertPriority>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const { showFeedback } = useFeedback();
 
-  // Filtrage des alertes
-  useEffect(() => {
+  // Filtrage des alertes — dérivé synchrone de `alerts` + critères de filtre, pas besoin d'effect
+  const filteredAlerts = useMemo(() => {
     let filtered = alerts;
 
     // Filtre par type/statut
@@ -103,7 +102,7 @@ export function AlertsManager({
 
     // Filtre par recherche
     if (searchQuery) {
-      filtered = filtered.filter(alert => 
+      filtered = filtered.filter(alert =>
         alert.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         alert.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
         alert.article?.nom.toLowerCase().includes(searchQuery.toLowerCase())
@@ -116,14 +115,14 @@ export function AlertsManager({
     }
 
     // Trier par priorité puis par date
-    filtered.sort((a, b) => {
+    filtered = [...filtered].sort((a, b) => {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
       if (priorityDiff !== 0) return priorityDiff;
       return b.timestamp.getTime() - a.timestamp.getTime();
     });
 
-    setFilteredAlerts(filtered);
+    return filtered;
   }, [alerts, selectedFilter, priorityFilter, searchQuery, showArchived]);
 
   const generateAlerts = useCallback(() => {

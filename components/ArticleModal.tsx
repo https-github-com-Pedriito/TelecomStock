@@ -67,7 +67,13 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
     return urlParams.get('barcode');
   });
 
-  useEffect(() => {
+  // Resynchronise le formulaire avec l'article édité (ou le vide pour une création)
+  // à chaque changement d'article/ouverture — ajustement pendant le rendu plutôt
+  // que dans un effect (cf. https://react.dev/learn/you-might-not-need-an-effect).
+  const resetKey = `${article?.id ?? 'new'}|${barcodeFromURL ?? ''}|${isOpen}`;
+  const [prevResetKey, setPrevResetKey] = useState(resetKey);
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey);
     if (article) {
       setFormData({
         nom: article.nom,
@@ -93,7 +99,7 @@ export function ArticleModal({ isOpen, onClose, onSave, article, fournisseurs = 
         image_url: '',
       });
     }
-  }, [article, barcodeFromURL, isOpen]);
+  }
 
   useEffect(() => {
     const loadLocalisations = async () => {

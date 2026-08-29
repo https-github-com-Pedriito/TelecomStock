@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Article, Mouvement } from '@/types';
 import {
@@ -28,11 +28,10 @@ const COLORS = ['#2563eb', '#22c55e', '#f59e42', '#ef4444', '#a855f7', '#eab308'
 
 export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshData }: DashboardProps) {
   const [refreshing, setRefreshing] = useState(false);
-  const [chartData, setChartData] = useState<{ date: string; Entrees: number; Sorties: number }[]>([]);
   const [selectedAlertArticle, setSelectedAlertArticle] = useState<Article | null>(null);
 
-  // Génération des données de graphique
-  const generateChartData = useCallback(() => {
+  // Génération des données de graphique — dérivé synchrone de `mouvements`, pas besoin d'effect
+  const chartData = useMemo(() => {
     const days = 14; // 14 derniers jours (2 semaines)
     const data: { date: string; Entrees: number; Sorties: number }[] = [];
 
@@ -60,13 +59,8 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
       data.push({ date: label, Entrees: entreesCount, Sorties: sortiesCount });
     }
 
-    setChartData(data);
+    return data;
   }, [mouvements]);
-
-  // Générer les données du graphique quand les mouvements changent
-  useEffect(() => {
-    generateChartData();
-  }, [generateChartData]);
 
   // Rafraîchissement automatique toutes les 5 minutes (sécurité)
   useEffect(() => {
@@ -85,7 +79,6 @@ export function Dashboard({ articles, mouvements, articlesWithAlerts, onRefreshD
     if (onRefreshData) {
       await onRefreshData();
     }
-    generateChartData();
     setTimeout(() => setRefreshing(false), 500);
   };
 
