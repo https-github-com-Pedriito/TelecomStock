@@ -25,9 +25,17 @@ function createDataSource(): DataSource {
     username: process.env.DATABASE_URL ? undefined : process.env.DB_USER,
     password: process.env.DATABASE_URL ? undefined : process.env.DB_PASSWORD,
     database: process.env.DATABASE_URL ? undefined : process.env.DB_NAME,
-    ssl: process.env.DB_SSL === 'true' || !!process.env.DATABASE_URL
-      ? { rejectUnauthorized: false }
-      : false,
+    // DB_SSL='false' force l'absence de TLS meme quand DATABASE_URL est
+    // defini. Sans cette echappatoire, impossible de pointer l'application
+    // vers un Postgres local (conteneur de test, docker-compose) autrement
+    // qu'en retirant DATABASE_URL — ce que Next rend illusoire puisqu'il
+    // recharge .env par-dessus. Les hebergeurs gardent le comportement par
+    // defaut : TLS des qu'une URL est fournie.
+    ssl: process.env.DB_SSL === 'false'
+      ? false
+      : process.env.DB_SSL === 'true' || !!process.env.DATABASE_URL
+        ? { rejectUnauthorized: false }
+        : false,
     synchronize: true,
     logging: process.env.NODE_ENV === 'development',
     entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation, Tenant, Kit, KitLigne],
