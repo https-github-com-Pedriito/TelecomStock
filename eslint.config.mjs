@@ -4,7 +4,6 @@ const eslintConfig = [
   ...nextConfig,
   {
     ignores: [
-      'src/**',
       '.next/**',
       'node_modules/**',
       'dist/**',
