@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, PackageCheck, X } from 'lucide-react';
 import type { Kit, KitMouvementData, ManqueStock } from '@/types';
 import { explodeKit } from '@/lib/kits';
 
+/**
+ * Montee par le parent uniquement quand un kit est selectionne : l'etat part
+ * des props, sans effet de remise a zero (react-hooks/set-state-in-effect).
+ */
 interface KitMouvementModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  kit?: Kit;
+  kit: Kit;
   /** Type pre-selectionne quand le scan a ete lance depuis un bouton Entree/Sortie. */
   typeInitial?: 'ENTREE' | 'SORTIE';
   utilisateur: string;
@@ -16,7 +19,6 @@ interface KitMouvementModalProps {
 }
 
 export function KitMouvementModal({
-  isOpen,
   onClose,
   kit,
   typeInitial = 'SORTIE',
@@ -31,20 +33,10 @@ export function KitMouvementModal({
   const [manques, setManques] = useState<ManqueStock[] | null>(null);
   const [enCours, setEnCours] = useState(false);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setType(typeInitial);
-    setNbKits('1');
-    setProjet('');
-    setCommentaire('');
-    setErreur(null);
-    setManques(null);
-  }, [isOpen, typeInitial, kit]);
-
   // Apercu de ce qui sera deduit : la meme fonction que le serveur, pour que
   // l'ecran ne puisse pas annoncer autre chose que ce qui sera applique.
   const apercu = useMemo(() => {
-    if (!kit?.lignes?.length) return [];
+    if (!kit.lignes?.length) return [];
     const n = Number(nbKits);
     if (!Number.isInteger(n) || n <= 0) return [];
     const parArticle = new Map(kit.lignes.map(l => [l.article_id, l.article?.nom ?? l.article_id]));
@@ -53,8 +45,6 @@ export function KitMouvementModal({
       quantite: l.quantite,
     }));
   }, [kit, nbKits]);
-
-  if (!isOpen || !kit) return null;
 
   const envoyer = async (force: boolean) => {
     const n = Number(nbKits);

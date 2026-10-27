@@ -84,7 +84,11 @@ Câble coaxial (m) — requis 80, disponible 50
 Deux choix :
 
 - **Annuler**, réapprovisionner, recommencer.
-- **Forcer la sortie** : la sortie est enregistrée quand même, et tout stock qui passerait sous zéro est ramené à 0. À réserver aux régularisations, quand le matériel est physiquement parti mais que le stock informatique était faux.
+- **Forcer la sortie** : la sortie est enregistrée quand même, et tout stock qui passerait sous zéro est ramené à 0. À réserver aux régularisations, quand le matériel est physiquement parti mais que le stock informatique était faux. **Réservé aux rôles Admin et Manager** — un technicien reçoit un refus.
+
+Le tout-ou-rien est garanti par une transaction : soit les composants sont tous déduits, soit aucun ne l'est, même si la base tombe en cours d'écriture. Les articles concernés sont par ailleurs verrouillés le temps de l'opération, donc deux sorties simultanées du même kit se suivent au lieu de s'écraser.
+
+Le nombre de kits par mouvement est plafonné à **10 000**, une borne technique destinée à transformer une saisie aberrante en message d'erreur clair plutôt qu'en erreur serveur.
 
 ### Modifier une nomenclature
 
@@ -158,6 +162,7 @@ Le domaine de `RESEND_FROM_EMAIL` doit être vérifié dans Resend, sinon les e-
 | Voir les kits et imprimer les QR | ✅ | ✅ | ✅ |
 | Scanner un kit (entrée/sortie) | ✅ | ✅ | ✅ |
 | Créer / modifier une nomenclature | ✅ | ✅ | ❌ |
+| Forcer une sortie en stock insuffisant | ✅ | ✅ | ❌ |
 | Supprimer un kit | ✅ | ❌ | ❌ |
 | Recevoir les alertes e-mail | ✅ | ✅ | ❌ |
 
@@ -193,7 +198,7 @@ Pour les développeurs qui reprendront le sujet :
 | Écran Kits | `src-pages/Kits.tsx`, `app/(app)/kits/page.tsx` |
 | Fenêtres | `components/KitModal.tsx`, `components/KitMouvementModal.tsx` |
 | Scan des QR de kit | `src-pages/Scanner.tsx` |
-| Tests | `lib/kits.test.ts`, `app/api/kits/mouvement/route.test.ts` |
+| Tests | `lib/kits.test.ts`, `app/api/kits/route.test.ts`, `app/api/kits/[id]/route.test.ts`, `app/api/kits/mouvement/route.test.ts` |
 
 ### API — sortie de kits
 
@@ -212,7 +217,7 @@ Content-Type: application/json
 }
 ```
 
-Réponses : `201` avec les mouvements créés et les articles mis à jour · `404` kit inconnu · `409` kit désactivé, ou `code: "STOCK_INSUFFISANT"` accompagné de la liste `manques`.
+Réponses : `201` avec les mouvements créés et les articles mis à jour · `400` saisie invalide (quantité non entière, au-delà du plafond, composant hors du compte) · `403` technicien tentant de forcer · `404` kit inconnu · `409` kit désactivé, ou `code: "STOCK_INSUFFISANT"` accompagné de la liste `manques`.
 
 ### Schéma de base
 

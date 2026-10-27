@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createFakeRepo } from '../../../../test/helpers/fakeDb';
+import { createFakeRepo, createFakeDataSource } from '../../../../test/helpers/fakeDb';
 import { makeAuthHeader } from '../../../../test/helpers/authRequest';
 import { UserRole } from '@/entities/User';
+import { MAX_KITS_PAR_MOUVEMENT } from '@/lib/kits';
 
 vi.mock('@/lib/db', () => ({ getDb: vi.fn() }));
 vi.mock('@/lib/realtime', () => ({ publishChange: vi.fn().mockResolvedValue(undefined) }));
@@ -46,16 +47,15 @@ function setupDb(opts: { tenants?: any[]; kits?: any[]; articles?: any[]; users?
   const articleRepo = createFakeRepo(opts.articles ?? []);
   const mouvementRepo = createFakeRepo([] as any[]);
   const userRepo = createFakeRepo(opts.users ?? []);
-  vi.mocked(getDb).mockResolvedValue({
-    getRepository: (entity: any) => {
-      if (entity.name === 'Tenant') return tenantRepo as any;
-      if (entity.name === 'Kit') return kitRepo as any;
-      if (entity.name === 'Article') return articleRepo as any;
-      if (entity.name === 'Mouvement') return mouvementRepo as any;
-      if (entity.name === 'User') return userRepo as any;
-      throw new Error(`Unexpected repo: ${entity.name}`);
-    },
-  } as any);
+  vi.mocked(getDb).mockResolvedValue(
+    createFakeDataSource({
+      Tenant: tenantRepo,
+      Kit: kitRepo,
+      Article: articleRepo,
+      Mouvement: mouvementRepo,
+      User: userRepo,
+    }) as any
+  );
   return { tenantRepo, kitRepo, articleRepo, mouvementRepo, userRepo };
 }
 
@@ -284,6 +284,67 @@ describe('POST /api/kits/mouvement', () => {
       {}
     );
     expect(res.status).toBe(400);
+  });
+
+  it('refuses a technicien forcing an exit past available stock', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.TECHNICIEN as any });
+    const articles = articlesEnStock(tenantId);
+    articles.find(a => a.id === 'cable')!.quantite_stock = 0;
+    const { articleRepo } = setupDb({
+      tenants: [{ id: tenantId, nom: 'Acme', is_active: true }],
+      kits: [kitDirectionnel(tenantId)],
+      articles,
+    });
+
+    const res = await POST(
+      makeRequest(Authorization, {
+        code: 'KIT-NAT-DIR', quantite: 1, type: 'SORTIE', utilisateur: 'Tech', force: true,
+      }),
+      {}
+    );
+
+    expect(res.status).toBe(403);
+    // Aucune ecriture : le refus intervient avant la transaction.
+    expect(articleRepo._all().find(a => a.id === 'antenne')!.quantite_stock).toBe(10);
+  });
+
+  it('rejects a kit count above the int4 safety cap', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    setupDb({
+      tenants: [{ id: tenantId, nom: 'Acme', is_active: true }],
+      kits: [kitDirectionnel(tenantId)],
+      articles: articlesEnStock(tenantId),
+    });
+
+    const res = await POST(
+      makeRequest(Authorization, {
+        code: 'KIT-NAT-DIR', quantite: MAX_KITS_PAR_MOUVEMENT + 1, type: 'ENTREE', utilisateur: 'Jane Doe',
+      }),
+      {}
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('ignores a component belonging to another tenant', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const articles = articlesEnStock(tenantId);
+    // Le cable appartient a un AUTRE tenant : la nomenclature le reference
+    // encore, mais il ne doit jamais etre decremente depuis ce compte.
+    articles.find(a => a.id === 'cable')!.tenant_id = 'autre-tenant';
+    const { articleRepo } = setupDb({
+      tenants: [{ id: tenantId, nom: 'Acme', is_active: true }],
+      kits: [kitDirectionnel(tenantId)],
+      articles,
+    });
+
+    const res = await POST(
+      makeRequest(Authorization, { code: 'KIT-NAT-DIR', quantite: 1, type: 'SORTIE', utilisateur: 'Jane Doe' }),
+      {}
+    );
+
+    expect(res.status).toBe(400);
+    expect(articleRepo._all().find(a => a.id === 'cable')!.quantite_stock).toBe(500);
+    expect(articleRepo._all().find(a => a.id === 'antenne')!.quantite_stock).toBe(10);
   });
 
   it('lets a technicien record a kit movement', async () => {

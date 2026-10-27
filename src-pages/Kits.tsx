@@ -182,24 +182,30 @@ export function Kits({
         })}
       </div>
 
-      <KitModal
-        isOpen={modalOuverte}
-        onClose={() => setModalOuverte(false)}
-        articles={articles}
-        kit={kitEnEdition}
-        onSave={async input => {
-          if (kitEnEdition) await onUpdate(kitEnEdition.id, input);
-          else await onCreate(input);
-        }}
-      />
+      {/* Montees a l'ouverture : la `key` force un remontage quand on passe
+          d'un kit a l'autre, ce qui reinitialise le formulaire sans effet. */}
+      {modalOuverte && (
+        <KitModal
+          key={kitEnEdition?.id ?? 'nouveau'}
+          onClose={() => setModalOuverte(false)}
+          articles={articles}
+          kit={kitEnEdition}
+          onSave={async input => {
+            if (kitEnEdition) await onUpdate(kitEnEdition.id, input);
+            else await onCreate(input);
+          }}
+        />
+      )}
 
-      <KitMouvementModal
-        isOpen={!!kitEnMouvement}
-        onClose={() => setKitEnMouvement(undefined)}
-        kit={kitEnMouvement}
-        utilisateur={utilisateur}
-        onSubmit={onMove}
-      />
+      {kitEnMouvement && (
+        <KitMouvementModal
+          key={kitEnMouvement.id}
+          onClose={() => setKitEnMouvement(undefined)}
+          kit={kitEnMouvement}
+          utilisateur={utilisateur}
+          onSubmit={onMove}
+        />
+      )}
 
       {/* Feuille de QR codes : masquee a l'ecran, seule visible a l'impression. */}
       {impression && (

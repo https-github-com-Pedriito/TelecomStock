@@ -9,6 +9,16 @@
 /** Préfixe qui distingue un QR de kit d'un code-barres d'article. */
 export const KIT_QR_PREFIX = 'KIT:';
 
+/**
+ * Plafond du nombre de kits par mouvement.
+ *
+ * Les quantités éclatées atterrissent dans des colonnes `int4` : au-delà, c'est
+ * la base qui refuserait l'écriture, avec une 500 incompréhensible plutôt
+ * qu'une erreur de saisie claire. 10 000 kits d'un coup dépasse déjà largement
+ * tout usage réel.
+ */
+export const MAX_KITS_PAR_MOUVEMENT = 10_000;
+
 /** Un article consommé par un kit, et en quelle quantité pour UN kit. */
 export interface KitLigneLike {
   article_id: string;

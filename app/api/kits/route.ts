@@ -68,17 +68,23 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
     return Response.json({ message: `Article inconnu dans la nomenclature : ${inconnu.article_id}` }, { status: 400 });
   }
 
-  const kit = kitRepo.create({
-    tenant_id: tenantId,
-    code,
-    nom: body.nom,
-    description: body.description,
-    est_actif: body.est_actif ?? true,
+  // Kit et nomenclature dans la meme transaction : un kit enregistre sans ses
+  // lignes serait scannable tout en ne deduisant rien du stock.
+  const saved = await db.transaction(async manager => {
+    const txKitRepo = manager.getRepository(Kit);
+    const ligneRepo = manager.getRepository(KitLigne);
+    const cree = await txKitRepo.save(
+      txKitRepo.create({
+        tenant_id: tenantId,
+        code,
+        nom: body.nom,
+        description: body.description,
+        est_actif: body.est_actif ?? true,
+      })
+    );
+    await ligneRepo.save(lignes.map(l => ligneRepo.create({ kit_id: cree.id, ...l })));
+    return cree;
   });
-  const saved = await kitRepo.save(kit);
-
-  const ligneRepo = db.getRepository(KitLigne);
-  await ligneRepo.save(lignes.map(l => ligneRepo.create({ kit_id: saved.id, ...l })));
 
   const complet = await kitRepo.findOne({
     where: { id: saved.id },

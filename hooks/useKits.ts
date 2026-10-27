@@ -18,9 +18,13 @@ export function useKits() {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    // Aucun setState avant le premier await : appele depuis un effet, un
+    // setState synchrone declencherait un rendu en cascade (react-hooks/
+    // set-state-in-effect).
     try {
+      const data = await api.get<Kit[]>('/kits');
+      setKits(data);
       setError(null);
-      setKits(await api.get<Kit[]>('/kits'));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {

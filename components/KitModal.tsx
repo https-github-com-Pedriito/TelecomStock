@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import type { Article, Kit, KitInput } from '@/types';
 import { normalizeKitCode } from '@/lib/kits';
@@ -10,8 +10,13 @@ interface LigneForm {
   quantite: string;
 }
 
+/**
+ * La modale est montee par le parent uniquement lorsqu'elle doit s'afficher
+ * (et remontee via `key` quand on change de kit). Son etat initial vient donc
+ * directement des props : pas d'effet de remise a zero, donc pas de rendu en
+ * cascade a chaque ouverture.
+ */
 interface KitModalProps {
-  isOpen: boolean;
   onClose: () => void;
   onSave: (input: KitInput) => Promise<void>;
   articles: Article[];
@@ -20,43 +25,23 @@ interface KitModalProps {
 
 const LIGNE_VIDE: LigneForm = { article_id: '', quantite: '1' };
 
-export function KitModal({ isOpen, onClose, onSave, articles, kit }: KitModalProps) {
-  const [code, setCode] = useState('');
-  const [nom, setNom] = useState('');
-  const [description, setDescription] = useState('');
-  const [estActif, setEstActif] = useState(true);
-  const [lignes, setLignes] = useState<LigneForm[]>([{ ...LIGNE_VIDE }]);
+export function KitModal({ onClose, onSave, articles, kit }: KitModalProps) {
+  const [code, setCode] = useState(kit?.code ?? '');
+  const [nom, setNom] = useState(kit?.nom ?? '');
+  const [description, setDescription] = useState(kit?.description ?? '');
+  const [estActif, setEstActif] = useState(kit?.est_actif ?? true);
+  const [lignes, setLignes] = useState<LigneForm[]>(() =>
+    kit?.lignes?.length
+      ? kit.lignes.map(l => ({ article_id: l.article_id, quantite: String(l.quantite) }))
+      : [{ ...LIGNE_VIDE }]
+  );
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setErreur(null);
-    if (kit) {
-      setCode(kit.code);
-      setNom(kit.nom);
-      setDescription(kit.description ?? '');
-      setEstActif(kit.est_actif);
-      setLignes(
-        kit.lignes?.length
-          ? kit.lignes.map(l => ({ article_id: l.article_id, quantite: String(l.quantite) }))
-          : [{ ...LIGNE_VIDE }]
-      );
-    } else {
-      setCode('');
-      setNom('');
-      setDescription('');
-      setEstActif(true);
-      setLignes([{ ...LIGNE_VIDE }]);
-    }
-  }, [isOpen, kit]);
 
   const articlesTries = useMemo(
     () => [...articles].sort((a, b) => a.nom.localeCompare(b.nom)),
     [articles]
   );
-
-  if (!isOpen) return null;
 
   const majLigne = (index: number, patch: Partial<LigneForm>) => {
     setLignes(prev => prev.map((l, i) => (i === index ? { ...l, ...patch } : l)));

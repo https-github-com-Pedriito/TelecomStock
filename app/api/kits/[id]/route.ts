@@ -75,9 +75,14 @@ export const PUT = withAuth<Ctx>(async (request: NextRequest, auth, { params }) 
       return Response.json({ message: `Article inconnu dans la nomenclature : ${inconnu.article_id}` }, { status: 400 });
     }
 
-    const ligneRepo = db.getRepository(KitLigne);
-    await ligneRepo.delete({ kit_id: kit.id });
-    await ligneRepo.save(lignes.map(l => ligneRepo.create({ kit_id: kit.id, ...l })));
+    // Remplacement en transaction : entre le DELETE et le SAVE, le kit n'a plus
+    // aucune ligne. Une panne a cet instant hors transaction laisserait une
+    // nomenclature vide, donc un kit qui ne deduit plus rien du stock.
+    await db.transaction(async manager => {
+      const ligneRepo = manager.getRepository(KitLigne);
+      await ligneRepo.delete({ kit_id: kit.id });
+      await ligneRepo.save(lignes.map(l => ligneRepo.create({ kit_id: kit.id, ...l })));
+    });
   }
 
   const complet = await kitRepo.findOne({
@@ -100,9 +105,12 @@ export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
 
   // Les lignes sont supprimées explicitement : la cascade SQL n'est posée que
   // si `synchronize` a bien créé la contrainte, ce qui n'est pas garanti sur
-  // une base déjà existante.
-  await db.getRepository(KitLigne).delete({ kit_id: kit.id });
-  await kitRepo.remove(kit);
+  // une base déjà existante. En transaction pour ne pas laisser de lignes
+  // orphelines si la suppression du kit échoue.
+  await db.transaction(async manager => {
+    await manager.getRepository(KitLigne).delete({ kit_id: kit.id });
+    await manager.getRepository(Kit).remove(kit);
+  });
   await publishChange(kit.tenant_id, 'kit', 'delete', { id });
   return new Response(null, { status: 204 });
 });

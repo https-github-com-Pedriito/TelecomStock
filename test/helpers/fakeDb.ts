@@ -122,3 +122,25 @@ export function createFakeRepo<T extends { id?: string; [key: string]: any }>(in
 }
 
 export type FakeRepo<T extends Record<string, any>> = ReturnType<typeof createFakeRepo<T>>;
+
+/**
+ * Construit un faux DataSource exposant `getRepository` ET `transaction`.
+ *
+ * La transaction simulee applique les ecritures sur les memes faux depots, puis
+ * propage l'erreur si le callback echoue. Elle ne rejoue donc PAS un rollback :
+ * un test qui veut prouver qu'aucune ecriture n'a eu lieu doit verifier que le
+ * code a refuse AVANT d'ecrire, ce qui est precisement le contrat de la route
+ * kit (controle de disponibilite avant toute sauvegarde).
+ */
+export function createFakeDataSource(repos: Record<string, unknown>) {
+  const getRepository = (entity: { name: string }) => {
+    const repo = repos[entity.name];
+    if (!repo) throw new Error(`Unexpected repo: ${entity.name}`);
+    return repo as any;
+  };
+  return {
+    getRepository,
+    transaction: async <T>(cb: (manager: { getRepository: typeof getRepository }) => Promise<T>): Promise<T> =>
+      cb({ getRepository }),
+  };
+}

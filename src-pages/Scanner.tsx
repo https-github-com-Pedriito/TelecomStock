@@ -275,10 +275,11 @@ export function Scanner(props: ScannerProps) {
         currentUser={currentUser}
       />
 
-      {/* Mouvement de kit (QR KIT:...) */}
-      {onKitMouvement && (
+      {/* Mouvement de kit (QR KIT:...) : monte seulement apres un scan reconnu,
+          remonte a chaque nouveau kit scanne via la `key`. */}
+      {onKitMouvement && scannedKit && (
         <KitMouvementModal
-          isOpen={!!scannedKit}
+          key={scannedKit.id}
           onClose={() => setScannedKit(undefined)}
           kit={scannedKit}
           typeInitial={mouvementType}
