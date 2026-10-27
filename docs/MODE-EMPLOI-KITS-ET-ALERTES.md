@@ -198,7 +198,8 @@ Pour les développeurs qui reprendront le sujet :
 | Écran Kits | `src-pages/Kits.tsx`, `app/(app)/kits/page.tsx` |
 | Fenêtres | `components/KitModal.tsx`, `components/KitMouvementModal.tsx` |
 | Scan des QR de kit | `src-pages/Scanner.tsx` |
-| Tests | `lib/kits.test.ts`, `app/api/kits/route.test.ts`, `app/api/kits/[id]/route.test.ts`, `app/api/kits/mouvement/route.test.ts` |
+| Tests unitaires | `lib/kits.test.ts`, `app/api/kits/route.test.ts`, `app/api/kits/[id]/route.test.ts`, `app/api/kits/mouvement/route.test.ts` |
+| Tests d'intégration (vrai Postgres) | `test/integration/kit-concurrency.test.ts` |
 
 ### API — sortie de kits
 
@@ -221,4 +222,26 @@ Réponses : `201` avec les mouvements créés et les articles mis à jour · `40
 
 ### Schéma de base
 
-Les tables `kits` et `kit_lignes` sont créées automatiquement au démarrage (`synchronize: true` dans `lib/db.ts`). Aucune migration manuelle n'est nécessaire.
+Les tables `kits` et `kit_lignes` sont créées automatiquement au démarrage (`synchronize: true` dans `lib/db.ts`). Aucune migration manuelle n'est nécessaire. Création vérifiée sur une base vierge par le test d'intégration.
+
+### Tests d'intégration
+
+Les tests unitaires utilisent un faux dépôt en mémoire : ils valident la logique, jamais les garanties de la base. Or le tout-ou-rien d'une sortie de kit est précisément une garantie base. Un second jeu de tests s'exécute donc contre un vrai PostgreSQL 17 :
+
+```bash
+npm run test:int:up     # démarre un postgres:17-alpine jetable sur le port 55432
+npm run test:int        # rejoue les scénarios de concurrence
+npm run test:int:down   # arrête et supprime le conteneur
+```
+
+Sans conteneur joignable, la suite s'ignore d'elle-même — la CI n'a pas besoin de Docker.
+
+Ce que ces tests démontrent, mesuré en retirant le verrou du code :
+
+| Scénario | Avec verrou | Sans verrou |
+|---|---|---|
+| 2 sorties simultanées sur 10 antennes | 8 restantes | 9 — une déduction perdue |
+| Stock d'un seul kit, 2 sorties simultanées | 1 acceptée, 1 refusée | **2 acceptées** |
+| 10 sorties simultanées sur 10 antennes | 0 restante | 9 — neuf déductions perdues |
+
+Autrement dit, sans `SELECT … FOR UPDATE`, deux techniciens scannant le même kit au même instant produisent un stock faux. C'est le défaut que cette suite verrouille.

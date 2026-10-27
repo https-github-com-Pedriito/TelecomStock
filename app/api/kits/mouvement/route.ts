@@ -114,6 +114,15 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
       // une sortie concurrente attend au lieu d'ecraser notre deduction.
       const articles = await articleRepo.find({
         where: { id: In(aDeduire.map(l => l.article_id)), tenant_id: tenantId },
+        // Ordre de verrouillage explicite. Le test d'integration montre qu'il
+        // n'est pas necessaire aujourd'hui : un seul SELECT ... IN (...) FOR
+        // UPDATE verrouille dans l'ordre de parcours de Postgres, le meme pour
+        // toutes les transactions, et 20 sorties croisees sur deux kits
+        // partageant leurs composants ne produisent aucun deadlock sans lui.
+        // On le garde comme garde-fou bon marche : il deviendrait necessaire
+        // si le verrouillage passait un jour par plusieurs requetes ou par une
+        // seconde table.
+        order: { id: 'ASC' },
         lock: { mode: 'pessimistic_write' },
       });
       const articlesById = new Map(articles.map(a => [a.id, a]));
