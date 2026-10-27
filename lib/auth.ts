@@ -76,6 +76,25 @@ export function requireRole(payload: JwtPayload, ...roles: UserRole[]): void {
   }
 }
 
+/**
+ * Renvoie le tenant du porteur du jeton, ou null pour un SUPER_ADMIN.
+ *
+ * Ce null est VOLONTAIRE et porte une consequence qu'il vaut mieux connaitre
+ * avant de debugger : un super admin n'appartient a aucun tenant, donc toutes
+ * les routes qui ecrivent des donnees metier le refusent avec « Aucun tenant
+ * selectionne » (articles, mouvements, kits, fournisseurs, localisations,
+ * inventaires, utilisateurs). Il lit en revanche les donnees de tous les
+ * comptes, les routes GET n'appliquant pas de filtre quand le tenant est null.
+ *
+ * Autrement dit : le super admin est en LECTURE SEULE sur les donnees metier.
+ * Pour agir dans un compte, il faut un utilisateur rattache a ce compte.
+ *
+ * A noter : app/(app)/layout.tsx traduit `super_admin` en `admin` cote
+ * permissions d'affichage, si bien que l'interface de gestion de stock s'ouvre
+ * entierement a un super admin alors que l'API en refuse chaque ecriture.
+ * Lever cette asymetrie demanderait un selecteur de tenant explicite — c'est
+ * un choix produit, pas un oubli.
+ */
 export function requireTenant(payload: JwtPayload): string | null {
   if (payload.role === UserRole.SUPER_ADMIN) return null;
   if (!payload.tenantId) throw new AuthError('Aucun tenant associé', 403);

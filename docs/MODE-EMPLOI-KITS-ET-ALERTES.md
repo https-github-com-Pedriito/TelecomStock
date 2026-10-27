@@ -168,6 +168,18 @@ Le domaine de `RESEND_FROM_EMAIL` doit être vérifié dans Resend, sinon les e-
 
 Un technicien peut donc exécuter les expéditions au scanner sans pouvoir altérer ce qui est déduit du stock.
 
+### Le compte Super Admin ne peut rien écrire
+
+Un **Super Admin** n'est rattaché à aucun compte client. Il voit les données de tous les comptes, mais **toute écriture lui est refusée** avec le message :
+
+> Aucun tenant sélectionné
+
+Cela vaut pour les kits comme pour le reste de l'application : articles, mouvements, fournisseurs, dépôts, inventaires, utilisateurs. Ce n'est pas un défaut des kits, c'est la règle générale de l'application — un super admin administre les comptes, il n'opère pas dedans.
+
+L'interface peut induire en erreur : elle ouvre au Super Admin l'ensemble des écrans de gestion de stock, et ce n'est qu'au moment de valider que le serveur refuse.
+
+**Pour agir dans un compte, connectez-vous avec un utilisateur de ce compte** (rôle Admin ou Manager). C'est la seule façon aujourd'hui de créer un kit, d'enregistrer un mouvement ou de modifier un article.
+
 ---
 
 ## 6. En cas de problème
