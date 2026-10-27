@@ -608,54 +608,53 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
   };
 
   const downloadExcel = async (entries: any[]) => {
-    const XLSX = await import('xlsx');
-    // Préparer les données pour Excel
-    const headers = [
-      'Article',
-      'Référence',
-      'Stock Théorique',
-      'Quantité Comptée',
-      'Différence',
-      'Utilisateur',
-      'Commentaire',
-      'Date de Comptage'
-    ];
+    // ExcelJS plutot que xlsx : SheetJS ne publie plus de correctif sur npm
+    // pour les avertissements de prototype pollution et de ReDoS de 0.18.5,
+    // et ExcelJS est deja la dependance d'export du projet (voir
+    // components/InventaireDetailModal.tsx).
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Inventaire');
 
-    const rows = entries.map((entry: any) => {
+    worksheet.columns = [
+      { header: 'Article', key: 'article', width: 30 },
+      { header: 'Référence', key: 'reference', width: 15 },
+      { header: 'Stock Théorique', key: 'theorique', width: 15 },
+      { header: 'Quantité Comptée', key: 'comptee', width: 15 },
+      { header: 'Différence', key: 'difference', width: 12 },
+      { header: 'Utilisateur', key: 'utilisateur', width: 20 },
+      { header: 'Commentaire', key: 'commentaire', width: 30 },
+      { header: 'Date de Comptage', key: 'date', width: 15 },
+    ];
+    worksheet.getRow(1).font = { bold: true };
+
+    for (const entry of entries as any[]) {
       const article = articles.find(a => a.id === entry.article_id);
       const user = users.find(u => u.id === entry.utilisateur_id);
-      const difference = entry.quantite_comptee - entry.quantite_theorique;
+      worksheet.addRow({
+        article: article?.nom || 'Inconnu',
+        reference: article?.code_barres || 'N/A',
+        theorique: entry.quantite_theorique,
+        comptee: entry.quantite_comptee,
+        difference: entry.quantite_comptee - entry.quantite_theorique,
+        utilisateur: user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id,
+        commentaire: entry.commentaire || '',
+        date: new Date(entry.created_at).toLocaleDateString('fr-FR'),
+      });
+    }
 
-      return [
-        article?.nom || 'Inconnu',
-        article?.code_barres || 'N/A',
-        entry.quantite_theorique,
-        entry.quantite_comptee,
-        difference,
-        user ? `${user.prenom} ${user.nom}` : entry.utilisateur_id,
-        entry.commentaire || '',
-        new Date(entry.created_at).toLocaleDateString('fr-FR')
-      ];
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Inventaire");
-
-    // Ajuster les largeurs de colonnes
-    ws['!cols'] = [
-      { wch: 30 }, // Article
-      { wch: 15 }, // Code Barre
-      { wch: 15 }, // Stock Théorique
-      { wch: 15 }, // Quantité Comptée
-      { wch: 12 }, // Différence
-      { wch: 20 }, // Utilisateur
-      { wch: 30 }, // Commentaire
-      { wch: 15 }  // Date
-    ];
-
-    const filename = `inventaire_${currentInventaire?.nom}_${Date.now()}.xlsx`;
-    XLSX.writeFile(wb, filename);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventaire_${currentInventaire?.nom}_${Date.now()}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   const handleFinalize = async () => {

@@ -40,8 +40,7 @@
     "resend": "^6.17.2",
     "stripe": "^22.3.1",
     "typeorm": "^1.0.0",
-    "uuid": "^11.1.1",
-    "xlsx": "^0.18.5"
+    "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
