@@ -15,6 +15,7 @@ import {
   normalizeKitCode,
   type ManqueStock,
 } from '@/lib/kits';
+import { chargerLignesDuKit } from '@/lib/kitsRepo';
 
 /** Abandon volontaire de la transaction quand le stock ne couvre pas la sortie. */
 class StockInsuffisantError extends Error {
@@ -81,12 +82,14 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
   }
 
   const db = await getDb();
-  const kit = await db.getRepository(Kit).findOne({
-    where: body.kit_id
-      ? { id: String(body.kit_id), tenant_id: tenantId }
-      : { code: normalizeKitCode(body.code), tenant_id: tenantId },
-    relations: { lignes: { article: true } },
-  });
+  const kit = await chargerLignesDuKit(
+    db,
+    await db.getRepository(Kit).findOne({
+      where: body.kit_id
+        ? { id: String(body.kit_id), tenant_id: tenantId }
+        : { code: normalizeKitCode(body.code), tenant_id: tenantId },
+    })
+  );
 
   if (!kit) return Response.json({ message: 'Kit introuvable' }, { status: 404 });
   if (!kit.est_actif) {

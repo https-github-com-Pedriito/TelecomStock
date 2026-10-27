@@ -13,7 +13,7 @@ import { getDb } from '@/lib/db';
 import { sendStockAlertEmail } from '@/lib/mailer';
 import { POST } from './route';
 
-/** Nomenclature de l'exemple métier : 1 kit directionnel. */
+/** Le kit lui-meme. Ses lignes vivent dans la table kit_lignes (cf. lignesDirectionnel). */
 function kitDirectionnel(tenantId: string | null) {
   return {
     id: 'kit-dir',
@@ -21,14 +21,18 @@ function kitDirectionnel(tenantId: string | null) {
     code: 'KIT-NAT-DIR',
     nom: 'Kit antenne directionnelle',
     est_actif: true,
-    lignes: [
-      { id: 'l1', kit_id: 'kit-dir', article_id: 'antenne', quantite: 1 },
-      { id: 'l2', kit_id: 'kit-dir', article_id: 'manchon', quantite: 2 },
-      { id: 'l3', kit_id: 'kit-dir', article_id: 'collier', quantite: 1 },
-      { id: 'l4', kit_id: 'kit-dir', article_id: 'cable', quantite: 40 },
-      { id: 'l5', kit_id: 'kit-dir', article_id: 'connecteur', quantite: 4 },
-    ],
   };
+}
+
+/** Nomenclature de l'exemple métier : 1 kit directionnel. */
+function lignesDirectionnel() {
+  return [
+    { id: 'l1', kit_id: 'kit-dir', article_id: 'antenne', quantite: 1 },
+    { id: 'l2', kit_id: 'kit-dir', article_id: 'manchon', quantite: 2 },
+    { id: 'l3', kit_id: 'kit-dir', article_id: 'collier', quantite: 1 },
+    { id: 'l4', kit_id: 'kit-dir', article_id: 'cable', quantite: 40 },
+    { id: 'l5', kit_id: 'kit-dir', article_id: 'connecteur', quantite: 4 },
+  ];
 }
 
 function articlesEnStock(tenantId: string | null) {
@@ -41,9 +45,13 @@ function articlesEnStock(tenantId: string | null) {
   ];
 }
 
-function setupDb(opts: { tenants?: any[]; kits?: any[]; articles?: any[]; users?: any[] }) {
+function setupDb(opts: { tenants?: any[]; kits?: any[]; kitLignes?: any[]; articles?: any[]; users?: any[] }) {
   const tenantRepo = createFakeRepo(opts.tenants ?? []);
   const kitRepo = createFakeRepo(opts.kits ?? []);
+  // Les lignes sont lues dans leur propre table : Kit ne porte plus de
+  // @OneToMany (cf. entities/Kit.ts). Par defaut on sert la nomenclature
+  // directionnelle, que la quasi-totalite des scenarios utilise.
+  const kitLigneRepo = createFakeRepo(opts.kitLignes ?? lignesDirectionnel());
   const articleRepo = createFakeRepo(opts.articles ?? []);
   const mouvementRepo = createFakeRepo([] as any[]);
   const userRepo = createFakeRepo(opts.users ?? []);
@@ -51,12 +59,13 @@ function setupDb(opts: { tenants?: any[]; kits?: any[]; articles?: any[]; users?
     createFakeDataSource({
       Tenant: tenantRepo,
       Kit: kitRepo,
+      KitLigne: kitLigneRepo,
       Article: articleRepo,
       Mouvement: mouvementRepo,
       User: userRepo,
     }) as any
   );
-  return { tenantRepo, kitRepo, articleRepo, mouvementRepo, userRepo };
+  return { tenantRepo, kitRepo, kitLigneRepo, articleRepo, mouvementRepo, userRepo };
 }
 
 function makeRequest(Authorization: string, body: unknown) {

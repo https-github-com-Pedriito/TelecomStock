@@ -7,6 +7,7 @@ import { Article } from '@/entities/Article';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
 import { normalizeKitCode } from '@/lib/kits';
+import { chargerLignesDesKits, chargerLignesDuKit } from '@/lib/kitsRepo';
 
 /** Valide et normalise les lignes de nomenclature reçues du client. */
 function parseLignes(body: any): { article_id: string; quantite: number }[] | string {
@@ -31,9 +32,9 @@ export const GET = withAuth(async (_request, auth) => {
   const db = await getDb();
   const kits = await db.getRepository(Kit).find({
     where: tenantId ? { tenant_id: tenantId } : {},
-    relations: { lignes: { article: true } },
     order: { code: 'ASC' },
   });
+  await chargerLignesDesKits(db, kits);
   return Response.json(kits);
 });
 
@@ -86,10 +87,7 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
     return cree;
   });
 
-  const complet = await kitRepo.findOne({
-    where: { id: saved.id },
-    relations: { lignes: { article: true } },
-  });
+  const complet = await chargerLignesDuKit(db, await kitRepo.findOne({ where: { id: saved.id } }));
   await publishChange(tenantId, 'kit', 'create', complet ?? saved);
   return Response.json(complet ?? saved, { status: 201 });
 });

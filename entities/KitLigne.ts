@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index, type Relation } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
 import { Article } from './Article';
-import type { Kit } from './Kit';
+import { Kit } from './Kit';
 
 /** Une ligne de nomenclature : N unités d'un article dans un kit. */
 @Entity('kit_lignes')
@@ -13,17 +13,14 @@ export class KitLigne {
   kit_id!: string;
 
   /**
-   * Kit parent, référencé par son NOM d'entité et non par la classe.
-   *
-   * Kit déclare déjà `@OneToMany(() => KitLigne)` : importer la classe Kit ici
-   * refermerait le cycle d'imports, et le bundler serveur de Next évalue alors
-   * `Kit` avant son initialisation ("Cannot access 'l' before initialization").
-   * Le nom en chaîne est résolu par TypeORM au moment de construire les
-   * metadata, bien après le chargement des modules.
+   * Référence par classe, et non par nom en chaîne : le build de production
+   * minifie les noms de classe, donc `@ManyToOne('Kit', …)` ne se résout plus
+   * à l'exécution. L'import de Kit est sans danger car Kit ne déclare aucun
+   * `@OneToMany` en retour : il n'y a pas de cycle d'imports.
    */
-  @ManyToOne('Kit', 'lignes', { onDelete: 'CASCADE' })
+  @ManyToOne(() => Kit, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'kit_id' })
-  kit!: Relation<Kit>;
+  kit!: Kit;
 
   @Column({ type: 'uuid' })
   article_id!: string;

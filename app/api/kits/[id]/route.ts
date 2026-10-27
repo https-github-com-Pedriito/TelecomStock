@@ -7,6 +7,7 @@ import { Article } from '@/entities/Article';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
 import { normalizeKitCode } from '@/lib/kits';
+import { chargerLignesDuKit } from '@/lib/kitsRepo';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -14,10 +15,10 @@ export const GET = withAuth<Ctx>(async (_request, auth, { params }) => {
   const tenantId = requireTenant(auth);
   const { id } = await params;
   const db = await getDb();
-  const kit = await db.getRepository(Kit).findOne({
-    where: tenantId ? { id, tenant_id: tenantId } : { id },
-    relations: { lignes: { article: true } },
-  });
+  const kit = await chargerLignesDuKit(
+    db,
+    await db.getRepository(Kit).findOne({ where: tenantId ? { id, tenant_id: tenantId } : { id } })
+  );
   if (!kit) return Response.json({ message: 'Kit introuvable' }, { status: 404 });
   return Response.json(kit);
 });
@@ -85,10 +86,7 @@ export const PUT = withAuth<Ctx>(async (request: NextRequest, auth, { params }) 
     });
   }
 
-  const complet = await kitRepo.findOne({
-    where: { id: kit.id },
-    relations: { lignes: { article: true } },
-  });
+  const complet = await chargerLignesDuKit(db, await kitRepo.findOne({ where: { id: kit.id } }));
   await publishChange(kit.tenant_id, 'kit', 'update', complet ?? kit);
   return Response.json(complet ?? kit);
 });
