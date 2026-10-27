@@ -40,3 +40,7 @@ coverage/
 account.md
 # graphify knowledge graph (local only)
 graphify-out/
+
+# Skills agents installés localement
+.claude/skills/
+skills-lock.json
