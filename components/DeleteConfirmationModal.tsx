@@ -9,6 +9,8 @@ interface DeleteConfirmationModalProps {
   articleName: string;
   hasMovements: boolean;
   movementCount?: number;
+  /** Kits dont l'article fait partie : leur nomenclature perdrait ce composant. */
+  kits?: Array<{ code: string; nom: string }>;
   warningMessage?: string;
   isDeleting?: boolean;
 }
@@ -20,11 +22,13 @@ export function DeleteConfirmationModal({
   articleName,
   hasMovements,
   movementCount,
+  kits = [],
   isDeleting = false
 }: DeleteConfirmationModalProps) {
   if (!isOpen) return null;
 
-  const themeColor = hasMovements ? 'red' : 'orange';
+  const aDesConsequences = hasMovements || kits.length > 0;
+  const themeColor = aDesConsequences ? 'red' : 'orange';
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom))]">
@@ -89,7 +93,27 @@ export function DeleteConfirmationModal({
               </div>
             )}
 
-            {!hasMovements && (
+            {kits.length > 0 && (
+              <div className="glass p-5 rounded-3xl border border-red-200/50 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/20 space-y-3">
+                <div className="flex gap-3 items-start">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/50 rounded-xl text-red-600 dark:text-red-400">
+                    <AlertTriangle size={18} strokeWidth={3} />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest">
+                      Utilisé par {kits.length} kit(s)
+                    </h4>
+                    <p className="text-xs text-red-600/80 dark:text-red-400/80 leading-relaxed">
+                      {kits.map(k => `${k.code} (${k.nom})`).join(', ')}.
+                      Après suppression, ces kits continueront d&apos;être scannés mais{' '}
+                      <span className="font-black">ne déduiront plus ce composant</span>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!aDesConsequences && (
               <div className="flex items-center gap-3 justify-center sm:justify-start px-4 py-3 glass rounded-2xl border border-white/20 dark:border-gray-800/50 bg-orange-50/20 dark:bg-orange-950/20">
                 <AlertTriangle size={16} className="text-orange-500" strokeWidth={3} />
                 <span className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">
@@ -122,7 +146,7 @@ export function DeleteConfirmationModal({
               </>
             ) : (
               <>
-                <span>{hasMovements ? 'Tout Supprimer' : 'Confirmer'}</span>
+                <span>{aDesConsequences ? 'Tout Supprimer' : 'Confirmer'}</span>
                 <ChevronRight size={18} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
               </>
             )}

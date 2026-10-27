@@ -48,6 +48,7 @@ export function ArticleCard({
   const [deleteInfo, setDeleteInfo] = useState<{
     hasMovements: boolean;
     movementCount: number;
+    kits: Array<{ code: string; nom: string }>;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showBarcode, setShowBarcode] = useState(false);
@@ -67,9 +68,15 @@ export function ArticleCard({
       }
     } catch (error: any) {
       if (error.canForceDelete) {
+        // L'API renvoie { message, mouvementsCount } ou { message, code, kits }.
+        // L'ancienne lecture passait par un champ `details` qui n'a jamais
+        // existe : `.match()` sur undefined levait une TypeError dans ce catch,
+        // et la modale de confirmation ne s'ouvrait donc jamais.
+        const data = error.data ?? {};
         setDeleteInfo({
-          hasMovements: true,
-          movementCount: parseInt(error.data.details.match(/\d+/)?.[0] || '0')
+          hasMovements: Number(data.mouvementsCount ?? 0) > 0,
+          movementCount: Number(data.mouvementsCount ?? 0),
+          kits: Array.isArray(data.kits) ? data.kits : [],
         });
         setShowDeleteModal(true);
         return;
@@ -330,6 +337,7 @@ export function ArticleCard({
         articleName={article.nom}
         hasMovements={deleteInfo?.hasMovements || false}
         movementCount={deleteInfo?.movementCount || 0}
+        kits={deleteInfo?.kits ?? []}
         isDeleting={isDeleting}
       />
     </div>

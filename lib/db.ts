@@ -8,6 +8,8 @@ import { Inventaire } from '@/entities/Inventaire';
 import { InventaireEntry } from '@/entities/InventaireEntry';
 import { Localisation } from '@/entities/Localisation';
 import { Tenant } from '@/entities/Tenant';
+import { Kit } from '@/entities/Kit';
+import { KitLigne } from '@/entities/KitLigne';
 
 // Singleton global pour réutiliser la connexion entre les invocations serverless
 declare global {
@@ -28,7 +30,7 @@ function createDataSource(): DataSource {
       : false,
     synchronize: true,
     logging: process.env.NODE_ENV === 'development',
-    entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation, Tenant],
+    entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation, Tenant, Kit, KitLigne],
   });
 }
 
