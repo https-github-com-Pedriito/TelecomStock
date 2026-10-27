@@ -1,5 +1,12 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+// Import STATIQUE du pilote, volontaire. TypeORM le chargerait sinon par un
+// `require('pg')` dynamique (PostgresDriver.loadDependencies), invisible a
+// l'analyse statique : sur Vercel, le traçage de fichiers n'embarque alors pas
+// `pg` dans la fonction serverless et l'application tombe en
+// DriverPackageNotInstalledError, alors que tout fonctionne en local ou
+// node_modules est present en entier.
+import pg from 'pg';
 import { User } from '@/entities/User';
 import { Article } from '@/entities/Article';
 import { Mouvement } from '@/entities/Mouvement';
@@ -19,6 +26,9 @@ declare global {
 function createDataSource(): DataSource {
   return new DataSource({
     type: 'postgres',
+    // Pilote fourni explicitement : court-circuite le chargement dynamique de
+    // TypeORM (cf. import ci-dessus).
+    driver: pg,
     url: process.env.DATABASE_URL,
     host: process.env.DATABASE_URL ? undefined : (process.env.DB_HOST || 'localhost'),
     port: process.env.DATABASE_URL ? undefined : parseInt(process.env.DB_PORT || '5432'),
