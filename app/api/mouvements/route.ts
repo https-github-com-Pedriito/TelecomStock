@@ -4,11 +4,9 @@ import { withAuth, requireRole, requireTenant } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { Mouvement, MouvementType } from '@/entities/Mouvement';
 import { Article } from '@/entities/Article';
-import { User, UserRole } from '@/entities/User';
-import { Tenant } from '@/entities/Tenant';
+import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
-import { sendStockAlertEmail } from '@/lib/mailer';
-import { getStockLevel } from '@/lib/stock';
+import { notifyStockAlerts } from '@/lib/stockAlerts';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
@@ -93,26 +91,7 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
     publishChange(tenantId, 'article', 'update', article),
   ]);
 
-  const niveau = getStockLevel(article.quantite_stock, article.seuil_minimum);
-  if (niveau !== 'ok') {
-    try {
-      const [tenant, recipients] = await Promise.all([
-        db.getRepository(Tenant).findOne({ where: { id: tenantId } }),
-        db.getRepository(User).find({
-          where: [
-            { tenant_id: tenantId, role: UserRole.ADMIN, is_active: true },
-            { tenant_id: tenantId, role: UserRole.MANAGER, is_active: true },
-          ],
-        }),
-      ]);
-      const emails = recipients.map(u => u.email).filter(Boolean);
-      if (tenant && emails.length > 0) {
-        await sendStockAlertEmail(emails, tenant.nom, article.nom, article.quantite_stock, niveau);
-      }
-    } catch (e) {
-      console.error('Erreur envoi email alerte stock:', e);
-    }
-  }
+  await notifyStockAlerts(db, tenantId, [article]);
 
   return Response.json(saved, { status: 201 });
 });

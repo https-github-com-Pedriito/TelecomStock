@@ -14,7 +14,7 @@ import { hasPermissionFn, getDefaultRouteForRole } from '@/lib/permissions';
 const pathnameToView = (pathname: string): ViewMode => {
   const segment = pathname.split('/')[1];
   const map: Record<string, ViewMode> = {
-    dashboard: 'dashboard', articles: 'articles', mouvements: 'mouvements',
+    dashboard: 'dashboard', articles: 'articles', kits: 'kits', mouvements: 'mouvements',
     scanner: 'scanner', historique: 'historique', fournisseurs: 'fournisseurs',
     entrepots: 'entrepots', utilisateurs: 'utilisateurs', inventaires: 'inventory',
   };
@@ -121,7 +121,7 @@ function AppLayoutInner({ children, NotificationContainer }: { children: React.R
 
   const handleViewChange = (view: ViewMode) => {
     const routeMap: Partial<Record<ViewMode, string>> = {
-      dashboard: '/dashboard', articles: '/articles', mouvements: '/mouvements',
+      dashboard: '/dashboard', articles: '/articles', kits: '/kits', mouvements: '/mouvements',
       scanner: '/scanner', historique: '/historique', fournisseurs: '/fournisseurs',
       entrepots: '/entrepots', utilisateurs: '/utilisateurs', inventory: '/inventaires',
     };

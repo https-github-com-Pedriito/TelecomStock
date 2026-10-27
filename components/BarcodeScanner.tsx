@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { X, Camera, Keyboard, Flashlight, RotateCcw, CheckCircle, ScanLine } from "lucide-react";
 
@@ -17,33 +17,73 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('camera');
   const detectedRef = useRef(false);
+  // Mirrors detectedRef for UI purposes (refs can't be read during render).
+  const [isLocked, setIsLocked] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [torch, setTorch] = useState(false);
   const [lastScanned, setLastScanned] = useState<string>('');
   const [scanSuccess, setScanSuccess] = useState(false);
   const [cameraError, setCameraError] = useState<string>('');
 
-  useEffect(() => {
-    isMounted.current = true;
-    if (scanMode === 'camera') {
-      startScanner();
-    }
-    return () => {
-      isMounted.current = false;
-      stopScanner();
-    };
-  }, [scanMode]);
+  // NETTOYAGE SYNCHRONE (Crucial pour MacOS/Safari)
+  const stopTracksSync = useCallback(() => {
+    console.log("�️ Nettoyage synchrone des tracks...");
 
-  // Auto-focus input when in manual mode
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  useEffect(() => {
-    if (scanMode === 'manual') {
-      detectedRef.current = false; // Réinitialiser pour permettre la saisie manuelle
-      inputRef.current?.focus();
+    // 1. Arrêt via streamRef
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        track.enabled = false;
+      });
+      streamRef.current = null;
     }
-  }, [scanMode]);
 
-  const startScanner = async () => {
+    // 2. Recherche sauvage de tous les éléments vidéo
+    const videos = document.getElementsByTagName('video');
+    for (let i = 0; i < videos.length; i++) {
+      const v = videos[i];
+      v.pause();
+      if (v.srcObject instanceof MediaStream) {
+        v.srcObject.getTracks().forEach(t => {
+          t.stop();
+          t.enabled = false;
+        });
+        v.srcObject = null;
+      }
+    }
+  }, []);
+
+  const stopScanner = useCallback(async () => {
+    console.log("🛑 Arrêt du scanner...");
+    detectedRef.current = true;
+
+    // Étape 1 : Libération immédiate et synchrone du matériel
+    stopTracksSync();
+
+    // Étape 2 : Nettoyage de la librairie (asynchrone)
+    if (scannerRef.current) {
+      try {
+        const state = (scannerRef.current as any).getState?.() || (scannerRef.current as any).state;
+        if (state === 2 || (scannerRef.current as any).isScanning === true) {
+          await scannerRef.current.stop();
+        }
+        await scannerRef.current.clear();
+      } catch (err) {
+        console.warn("⚠️ scanner.stop/clear a échoué (normal si déjà disposé)", err);
+      }
+      scannerRef.current = null;
+    }
+
+    // Étape 3 : Nettoyage final du DOM
+    const reader = document.getElementById('reader');
+    if (reader) reader.innerHTML = '';
+
+    if (isMounted.current) {
+      setIsScanning(false);
+    }
+  }, [stopTracksSync]);
+
+  const startScanner = useCallback(async () => {
     setCameraError('');
     try {
       // SÉCURITÉ : Arrêter toute instance précédente avant de commencer
@@ -120,65 +160,28 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       setCameraError(err.message || 'Impossible d\'accéder à la caméra');
       setScanMode('manual'); // Fallback vers manuel
     }
-  };
+  }, [stopScanner, onScan]);
 
-  // NETTOYAGE SYNCHRONE (Crucial pour MacOS/Safari)
-  const stopTracksSync = () => {
-    console.log("�️ Nettoyage synchrone des tracks...");
-
-    // 1. Arrêt via streamRef
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => {
-        track.stop();
-        track.enabled = false;
-      });
-      streamRef.current = null;
+  useEffect(() => {
+    isMounted.current = true;
+    if (scanMode === 'camera') {
+      startScanner();
     }
+    return () => {
+      isMounted.current = false;
+      stopScanner();
+    };
+  }, [scanMode, startScanner, stopScanner]);
 
-    // 2. Recherche sauvage de tous les éléments vidéo
-    const videos = document.getElementsByTagName('video');
-    for (let i = 0; i < videos.length; i++) {
-      const v = videos[i];
-      v.pause();
-      if (v.srcObject instanceof MediaStream) {
-        v.srcObject.getTracks().forEach(t => {
-          t.stop();
-          t.enabled = false;
-        });
-        v.srcObject = null;
-      }
+  // Auto-focus input when in manual mode
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    if (scanMode === 'manual') {
+      detectedRef.current = false; // Réinitialiser pour permettre la saisie manuelle
+      setIsLocked(false);
+      inputRef.current?.focus();
     }
-  };
-
-  const stopScanner = async () => {
-    console.log("🛑 Arrêt du scanner...");
-    detectedRef.current = true;
-
-    // Étape 1 : Libération immédiate et synchrone du matériel
-    stopTracksSync();
-
-    // Étape 2 : Nettoyage de la librairie (asynchrone)
-    if (scannerRef.current) {
-      try {
-        const state = (scannerRef.current as any).getState?.() || (scannerRef.current as any).state;
-        if (state === 2 || (scannerRef.current as any).isScanning === true) {
-          await scannerRef.current.stop();
-        }
-        await scannerRef.current.clear();
-      } catch (err) {
-        console.warn("⚠️ scanner.stop/clear a échoué (normal si déjà disposé)", err);
-      }
-      scannerRef.current = null;
-    }
-
-    // Étape 3 : Nettoyage final du DOM
-    const reader = document.getElementById('reader');
-    if (reader) reader.innerHTML = '';
-
-    if (isMounted.current) {
-      setIsScanning(false);
-    }
-  };
+  }, [scanMode]);
 
   const toggleTorch = async () => {
     if (scannerRef.current && isScanning) {
@@ -240,6 +243,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     if (!manualCode.trim() || detectedRef.current) return;
 
     detectedRef.current = true;
+    setIsLocked(true);
     console.log('⌨️ Code manuel soumis:', manualCode);
 
     setLastScanned(manualCode);
@@ -255,6 +259,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
     setLastScanned('');
     setCameraError('');
     detectedRef.current = false; // Réinitialiser pour permettre une nouvelle détection
+    setIsLocked(false);
     if (scanMode === 'camera') {
       startScanner();
     }
@@ -422,7 +427,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
 
                 <button
                   type="submit"
-                  disabled={!manualCode.trim() || detectedRef.current}
+                  disabled={!manualCode.trim() || isLocked}
                   className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-800 disabled:to-gray-800 disabled:text-gray-600 text-white rounded-xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 group"
                 >
                   <CheckCircle size={18} strokeWidth={3} />

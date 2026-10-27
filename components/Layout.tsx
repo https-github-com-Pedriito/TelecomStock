@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ViewMode } from '@/types';
 import {
   LayoutDashboard,
   Package,
+  Boxes,
   ArrowUpDown,
   ScanLine,
   AlertTriangle,
@@ -68,6 +70,12 @@ export function Layout({
       permission: 'view_articles'
     },
     {
+      id: 'kits' as ViewMode,
+      label: 'Kits',
+      icon: Boxes,
+      permission: 'view_kits'
+    },
+    {
       id: 'mouvements' as ViewMode,
       label: 'Flux de stock',
       icon: ArrowUpDown,
@@ -125,10 +133,12 @@ export function Layout({
             <div className="relative group cursor-pointer" onClick={() => onViewChange('dashboard')}>
               <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative w-12 h-12 rounded-2xl shadow-md dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800">
-                <img
+                <Image
                   src="/decimalestock.png"
                   alt="Logo Telecom Stock"
-                  className="w-12 h-12 rounded-2xl object-cover"
+                  fill
+                  sizes="48px"
+                  className="rounded-2xl object-cover"
                 />
               </div>
             </div>

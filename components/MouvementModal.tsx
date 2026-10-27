@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Article } from '@/types';
 import { Portal } from '@/components/Portal';
 import {
@@ -72,13 +72,12 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
   const [showDetails, setShowDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const prevArticleIdRef = React.useRef<string | undefined>(undefined);
-
-  useEffect(() => {
-    const currentId = article?.id;
-    if (prevArticleIdRef.current === currentId) return;
-
-    prevArticleIdRef.current = currentId;
+  // Resynchronise le formulaire quand l'article ciblé change — ajustement
+  // pendant le rendu plutôt que dans un effect
+  // (cf. https://react.dev/learn/you-might-not-need-an-effect).
+  const [prevArticleId, setPrevArticleId] = useState<string | undefined>(article?.id);
+  if (article?.id !== prevArticleId) {
+    setPrevArticleId(article?.id);
 
     if (isNewArticle) {
       setFormData({
@@ -106,7 +105,7 @@ export function MouvementModal({ isOpen, onClose, onSave, article, type, current
       });
     }
     setShowDetails(false);
-  }, [article, isNewArticle, type, currentUser]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

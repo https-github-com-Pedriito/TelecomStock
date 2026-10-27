@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { Article } from '@/types';
@@ -47,6 +48,7 @@ export function ArticleCard({
   const [deleteInfo, setDeleteInfo] = useState<{
     hasMovements: boolean;
     movementCount: number;
+    kits: Array<{ code: string; nom: string }>;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showBarcode, setShowBarcode] = useState(false);
@@ -66,9 +68,15 @@ export function ArticleCard({
       }
     } catch (error: any) {
       if (error.canForceDelete) {
+        // L'API renvoie { message, mouvementsCount } ou { message, code, kits }.
+        // L'ancienne lecture passait par un champ `details` qui n'a jamais
+        // existe : `.match()` sur undefined levait une TypeError dans ce catch,
+        // et la modale de confirmation ne s'ouvrait donc jamais.
+        const data = error.data ?? {};
         setDeleteInfo({
-          hasMovements: true,
-          movementCount: parseInt(error.data.details.match(/\d+/)?.[0] || '0')
+          hasMovements: Number(data.mouvementsCount ?? 0) > 0,
+          movementCount: Number(data.mouvementsCount ?? 0),
+          kits: Array.isArray(data.kits) ? data.kits : [],
         });
         setShowDeleteModal(true);
         return;
@@ -186,10 +194,12 @@ export function ArticleCard({
       {/* Image Area */}
       <div className="relative aspect-[4/3] w-full bg-gray-100/50 dark:bg-gray-950/50 flex items-center justify-center overflow-hidden border-b border-white/10 dark:border-gray-800/50">
         {article.image_url ? (
-          <img
+          <Image
             src={article.image_url}
             alt={article.nom}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-gray-400/50">
@@ -327,6 +337,7 @@ export function ArticleCard({
         articleName={article.nom}
         hasMovements={deleteInfo?.hasMovements || false}
         movementCount={deleteInfo?.movementCount || 0}
+        kits={deleteInfo?.kits ?? []}
         isDeleting={isDeleting}
       />
     </div>

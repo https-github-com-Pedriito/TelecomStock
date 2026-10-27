@@ -1,5 +1,12 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
+// Import STATIQUE du pilote, volontaire. TypeORM le chargerait sinon par un
+// `require('pg')` dynamique (PostgresDriver.loadDependencies), invisible a
+// l'analyse statique : sur Vercel, le traçage de fichiers n'embarque alors pas
+// `pg` dans la fonction serverless et l'application tombe en
+// DriverPackageNotInstalledError, alors que tout fonctionne en local ou
+// node_modules est present en entier.
+import pg from 'pg';
 import { User } from '@/entities/User';
 import { Article } from '@/entities/Article';
 import { Mouvement } from '@/entities/Mouvement';
@@ -8,28 +15,40 @@ import { Inventaire } from '@/entities/Inventaire';
 import { InventaireEntry } from '@/entities/InventaireEntry';
 import { Localisation } from '@/entities/Localisation';
 import { Tenant } from '@/entities/Tenant';
+import { Kit } from '@/entities/Kit';
+import { KitLigne } from '@/entities/KitLigne';
 
 // Singleton global pour réutiliser la connexion entre les invocations serverless
 declare global {
-  // eslint-disable-next-line no-var
   var _dataSource: DataSource | undefined;
 }
 
 function createDataSource(): DataSource {
   return new DataSource({
     type: 'postgres',
+    // Pilote fourni explicitement : court-circuite le chargement dynamique de
+    // TypeORM (cf. import ci-dessus).
+    driver: pg,
     url: process.env.DATABASE_URL,
     host: process.env.DATABASE_URL ? undefined : (process.env.DB_HOST || 'localhost'),
     port: process.env.DATABASE_URL ? undefined : parseInt(process.env.DB_PORT || '5432'),
     username: process.env.DATABASE_URL ? undefined : process.env.DB_USER,
     password: process.env.DATABASE_URL ? undefined : process.env.DB_PASSWORD,
     database: process.env.DATABASE_URL ? undefined : process.env.DB_NAME,
-    ssl: process.env.DB_SSL === 'true' || !!process.env.DATABASE_URL
-      ? { rejectUnauthorized: false }
-      : false,
+    // DB_SSL='false' force l'absence de TLS meme quand DATABASE_URL est
+    // defini. Sans cette echappatoire, impossible de pointer l'application
+    // vers un Postgres local (conteneur de test, docker-compose) autrement
+    // qu'en retirant DATABASE_URL — ce que Next rend illusoire puisqu'il
+    // recharge .env par-dessus. Les hebergeurs gardent le comportement par
+    // defaut : TLS des qu'une URL est fournie.
+    ssl: process.env.DB_SSL === 'false'
+      ? false
+      : process.env.DB_SSL === 'true' || !!process.env.DATABASE_URL
+        ? { rejectUnauthorized: false }
+        : false,
     synchronize: true,
     logging: process.env.NODE_ENV === 'development',
-    entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation, Tenant],
+    entities: [User, Article, Mouvement, Fournisseur, Inventaire, InventaireEntry, Localisation, Tenant, Kit, KitLigne],
   });
 }
 

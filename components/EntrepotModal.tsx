@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Localisation, LocalisationInput } from '@/types';
 import { X, Building2, ChevronRight, Info, MapPin, Activity } from 'lucide-react';
 
@@ -29,7 +29,13 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
+  // Resynchronise le formulaire avec le lieu édité à chaque changement/ouverture —
+  // ajustement pendant le rendu plutôt que dans un effect
+  // (cf. https://react.dev/learn/you-might-not-need-an-effect).
+  const resetKey = `${localisation?.id ?? 'new'}|${isOpen}`;
+  const [prevResetKey, setPrevResetKey] = useState(resetKey);
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey);
     if (localisation) {
       setFormData({
         nom: localisation.nom,
@@ -46,7 +52,7 @@ export function EntrepotModal({ isOpen, onClose, onSave, localisation, isSaving 
       });
     }
     setErrorMessage(null);
-  }, [localisation, isOpen]);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

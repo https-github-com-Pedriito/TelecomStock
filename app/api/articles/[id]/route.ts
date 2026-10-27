@@ -1,8 +1,11 @@
 import { NextRequest } from 'next/server';
+import { In } from 'typeorm';
 import { withAuth, requireRole, requireTenant } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { Article } from '@/entities/Article';
 import { Mouvement } from '@/entities/Mouvement';
+import { KitLigne } from '@/entities/KitLigne';
+import { Kit } from '@/entities/Kit';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
 
@@ -48,6 +51,31 @@ export const DELETE = withAuth<Ctx>(async (request: NextRequest, auth, { params 
     where: tenantId ? { id, tenant_id: tenantId } : { id },
   });
   if (!article) return Response.json({ message: 'Article introuvable' }, { status: 404 });
+
+  // kit_lignes.article_id est en ON DELETE CASCADE : sans ce garde-fou, la
+  // suppression retirerait l'article de toutes les nomenclatures sans rien
+  // dire, et les kits concernes continueraient d'etre scannes en deduisant un
+  // composant de moins — un stock faux, sans trace.
+  const lignesKit = await db.getRepository(KitLigne).find({ where: { article_id: id } });
+  if (lignesKit.length > 0) {
+    const kits = await db.getRepository(Kit).find({
+      where: { id: In(lignesKit.map(l => l.kit_id)) },
+    });
+    const kitsConcernes = kits
+      .filter(k => !tenantId || k.tenant_id === tenantId)
+      .map(k => ({ id: k.id, code: k.code, nom: k.nom }));
+
+    if (kitsConcernes.length > 0 && !force) {
+      return Response.json(
+        {
+          message: `Cet article fait partie de ${kitsConcernes.length} kit(s)`,
+          code: 'ARTICLE_UTILISE_PAR_KIT',
+          kits: kitsConcernes,
+        },
+        { status: 409 }
+      );
+    }
+  }
 
   const mouvementsWhere = tenantId ? { article: { id }, tenant_id: tenantId } : { article: { id } };
   const mouvementsCount = await db.getRepository(Mouvement).count({ where: mouvementsWhere });

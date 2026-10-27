@@ -15,6 +15,12 @@ export const hasPermissionFn = (role: string, permission: string): boolean => {
       return r === 'admin' || r === 'manager';
     case 'manage_articles':
       return r === 'admin' || r === 'manager';
+    // Les kits definissent ce qui est deduit du stock : seuls admin et manager
+    // editent la nomenclature, mais tout technicien peut scanner un kit.
+    case 'manage_kits':
+      return r === 'admin' || r === 'manager';
+    case 'view_kits':
+      return ['admin', 'manager', 'technicien'].includes(r);
     case 'view_mouvements':
     case 'view_historique':
     case 'view_inventory':

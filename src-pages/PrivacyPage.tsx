@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import Image from 'next/image';
 import { ArrowLeft, Shield, Lock, Eye, Database, Share2, Mail } from 'lucide-react';
 
 interface PrivacyPageProps {
@@ -49,8 +50,8 @@ export function PrivacyPage({ onBack, onLogin }: PrivacyPageProps) {
               <span className="font-semibold">Retour</span>
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-                <img src="/decimalestock.png" alt="Logo" className="w-full h-full rounded-lg object-cover" />
+              <div className="relative w-8 h-8 bg-white rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <Image src="/decimalestock.png" alt="Logo" fill sizes="32px" className="rounded-lg object-cover" />
               </div>
               <span className="font-bold text-lg tracking-tight hidden sm:block text-gray-900 dark:text-white">Telecom Stock</span>
             </div>

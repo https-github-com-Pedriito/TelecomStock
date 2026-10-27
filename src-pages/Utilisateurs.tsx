@@ -28,7 +28,7 @@ export function Utilisateurs({ users, currentUser, onAddUser, onUpdateUser, onDe
     if (onRefreshUsers) {
       onRefreshUsers();
     }
-  }, []); // Se déclenche uniquement au montage du composant
+  }, [onRefreshUsers]);
 
   const filteredUsers = users.filter(user =>
     user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
