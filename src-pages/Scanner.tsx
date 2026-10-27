@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Article, CreateMouvementData } from '@/types';
+import { Article, CreateMouvementData, Kit, KitMouvementData } from '@/types';
 import { MouvementModal } from '@/components/MouvementModal';
+import { KitMouvementModal } from '@/components/KitMouvementModal';
+import { parseKitQrPayload } from '@/lib/kits';
 
 const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner').then(m => m.BarcodeScanner), { ssr: false });
 import { ArrowUp, ArrowDown, ScanLine, Keyboard, CheckCircle } from 'lucide-react';
@@ -16,20 +18,46 @@ interface ScannerProps {
   addNotification?: (notif: { type: string; title: string; message: string; duration?: number }) => void;
   fournisseurs: Array<{ id: string; nom: string; }>;
   currentUser: { id: string; nom: string; prenom: string; };
+  /** Retrouve un kit a partir du code lu dans le QR (ex. KIT-NAT-DIR). */
+  getKitByCode?: (code: string) => Kit | undefined;
+  /** Enregistre l'entree/sortie de N kits en eclatant la nomenclature. */
+  onKitMouvement?: (data: KitMouvementData) => Promise<void>;
 }
 
 export function Scanner(props: ScannerProps) {
-  const { getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [], currentUser } = props;
+  const { getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [], currentUser, getKitByCode, onKitMouvement } = props;
   /* Removed unused Article loading state */
   // Use addNotification from props
   const [showScanner, setShowScanner] = useState(false);
   const [showMouvementModal, setShowMouvementModal] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>();
   const [mouvementType, setMouvementType] = useState<'ENTREE' | 'SORTIE'>('ENTREE');
+  const [scannedKit, setScannedKit] = useState<Kit | undefined>();
 
   const handleScan = (barcode: string) => {
     setShowScanner(false);
-    console.log('🔍 Code-barres scanné:', barcode);
+
+    // Un QR de kit est traite en premier : son contenu (KIT:...) ne peut pas
+    // etre un code-barres d'article, et l'ouvrir comme un article creerait un
+    // article fantome nomme d'apres le kit.
+    const codeKit = parseKitQrPayload(barcode);
+    if (codeKit && getKitByCode) {
+      const kit = getKitByCode(codeKit);
+      if (kit) {
+        setScannedKit(kit);
+        return;
+      }
+      if (typeof (props as any).addNotification === 'function') {
+        (props as any).addNotification({
+          type: 'error',
+          title: 'Kit inconnu',
+          message: `Aucun kit ne correspond au code ${codeKit}.`,
+          duration: 5000,
+        });
+      }
+      return;
+    }
+
     const article = getArticleByCodeBarres(barcode);
     console.log('📦 Article trouvé:', article);
 
@@ -246,6 +274,18 @@ export function Scanner(props: ScannerProps) {
         fournisseurs={fournisseurs}
         currentUser={currentUser}
       />
+
+      {/* Mouvement de kit (QR KIT:...) */}
+      {onKitMouvement && (
+        <KitMouvementModal
+          isOpen={!!scannedKit}
+          onClose={() => setScannedKit(undefined)}
+          kit={scannedKit}
+          typeInitial={mouvementType}
+          utilisateur={currentUser ? `${currentUser.prenom} ${currentUser.nom}`.trim() : 'Utilisateur inconnu'}
+          onSubmit={onKitMouvement}
+        />
+      )}
     </div>
   );
 }

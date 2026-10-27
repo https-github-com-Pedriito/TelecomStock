@@ -20,6 +20,8 @@ function matchesOperator(fieldValue: any, op: FindOperator<any>): boolean {
       return fv > toComparable(op.value);
     case 'lessThan':
       return fv < toComparable(op.value);
+    case 'in':
+      return (op.value as any[]).map(toComparable).includes(fv);
     default:
       return true;
   }

@@ -150,4 +150,64 @@ export interface InventoryReport {
   createdAt: Date;
 }
 
-export type ViewMode = 'dashboard' | 'adminPortal' | 'articles' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'entrepots' | 'utilisateurs' | 'rapports' | 'inventory';
+
+// --- Kits (nomenclatures) ---
+
+export interface KitLigne {
+  id: string;
+  kit_id: string;
+  article_id: string;
+  article?: Article;
+  quantite: number;
+}
+
+export interface Kit {
+  id: string;
+  code: string;
+  nom: string;
+  description?: string;
+  est_actif: boolean;
+  lignes: KitLigne[];
+  created_at: Date;
+  updated_at: Date;
+}
+
+/** Payload d'ecriture d'un kit (creation comme edition). */
+export interface KitInput {
+  code: string;
+  nom: string;
+  description?: string;
+  est_actif: boolean;
+  lignes: { article_id: string; quantite: number }[];
+}
+
+/** Sortie ou entree de N kits, declenchee par un scan ou la saisie du code. */
+export interface KitMouvementData {
+  code?: string;
+  kit_id?: string;
+  quantite: number;
+  type: 'ENTREE' | 'SORTIE';
+  utilisateur: string;
+  projet?: string;
+  technicien?: string;
+  commentaire?: string;
+  force?: boolean;
+}
+
+/** Composant qu'une sortie de kit ne peut pas couvrir. */
+export interface ManqueStock {
+  article_id: string;
+  nom: string;
+  requis: number;
+  disponible: number;
+}
+
+export interface KitMouvementResult {
+  kit: { id: string; code: string; nom: string };
+  nb_kits: number;
+  type: 'ENTREE' | 'SORTIE';
+  mouvements: Mouvement[];
+  articles: Article[];
+}
+
+export type ViewMode = 'dashboard' | 'adminPortal' | 'articles' | 'kits' | 'mouvements' | 'scanner' | 'historique' | 'fournisseurs' | 'entrepots' | 'utilisateurs' | 'rapports' | 'inventory';

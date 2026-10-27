@@ -38,3 +38,5 @@ coverage/
 # Deployment
 .vercel
 account.md
+# graphify knowledge graph (local only)
+graphify-out/

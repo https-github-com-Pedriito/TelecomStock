@@ -7,6 +7,7 @@ import { ViewMode } from '@/types';
 import {
   LayoutDashboard,
   Package,
+  Boxes,
   ArrowUpDown,
   ScanLine,
   AlertTriangle,
@@ -67,6 +68,12 @@ export function Layout({
       label: 'Equipements',
       icon: Package,
       permission: 'view_articles'
+    },
+    {
+      id: 'kits' as ViewMode,
+      label: 'Kits',
+      icon: Boxes,
+      permission: 'view_kits'
     },
     {
       id: 'mouvements' as ViewMode,
