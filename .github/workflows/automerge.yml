@@ -1,0 +1,36 @@
+name: Auto-merge
+
+# Active la fusion automatique de GitHub sur chaque PR : la PR est fusionnee
+# (merge commit) des que les controles obligatoires de la branche main sont
+# verts (ici « verify », cf. ci.yml). Rien n'est fusionne tant qu'un controle
+# echoue ou est en cours.
+#
+# Pour exclure une PR : la passer en brouillon, ou lui ajouter l'etiquette
+# « no-auto-merge ».
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    # Les PR venant d'un fork n'ont pas de jeton en ecriture.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_URL: ${{ github.event.pull_request.html_url }}
+    steps:
+      - name: Activer la fusion automatique
+        if: ${{ !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'no-auto-merge') }}
+        run: gh pr merge --auto --merge "$PR_URL"
+
+      - name: Desactiver la fusion automatique (brouillon ou etiquette no-auto-merge)
+        if: ${{ github.event.pull_request.draft || contains(github.event.pull_request.labels.*.name, 'no-auto-merge') }}
+        # Erreur attendue si la fusion automatique n'etait pas activee : on l'ignore.
+        run: gh pr merge --disable-auto "$PR_URL" || echo "Fusion automatique deja desactivee."
