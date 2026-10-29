@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import type { Article, Kit, KitInput } from '@/types';
 import { normalizeKitCode } from '@/lib/kits';
+import { createPortal } from 'react-dom';
 
 interface LigneForm {
   article_id: string;
@@ -85,7 +86,9 @@ export function KitModal({ onClose, onSave, articles, kit }: KitModalProps) {
     }
   };
 
-  return (
+  // Rendue sous <body> : un parent (marge de space-y, animation, overflow) ne doit
+  // ni decaler ni rogner le fond.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:hidden">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-900 shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-6 py-4">
@@ -216,6 +219,7 @@ export function KitModal({ onClose, onSave, articles, kit }: KitModalProps) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

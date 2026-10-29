@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, PackageCheck, X } from 'lucide-react';
 import type { Kit, KitMouvementData, ManqueStock } from '@/types';
 import { explodeKit } from '@/lib/kits';
+import { createPortal } from 'react-dom';
 
 /**
  * Montee par le parent uniquement quand un kit est selectionne : l'etat part
@@ -78,7 +79,9 @@ export function KitMouvementModal({
     }
   };
 
-  return (
+  // Rendue sous <body> : un parent (marge de space-y, animation, overflow) ne doit
+  // ni decaler ni rogner le fond.
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 print:hidden">
       <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-gray-900 shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 px-6 py-4">
@@ -211,6 +214,7 @@ export function KitMouvementModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

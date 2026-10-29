@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { Article, Localisation } from '@/types';
@@ -8,6 +8,7 @@ import { ArticleCard } from '@/components/ArticleCard';
 import { ArticleModal } from '@/components/ArticleModal';
 import { CSVImport } from '@/components/CSVImport';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
+import { PrintSheet } from '@/components/PrintSheet';
 import {
   Plus, Search,
   Filter,
@@ -161,14 +162,20 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     }
   };
 
-  const handlePrintLabel = (article: Article) => {
-    setLabelToPrint(article);
-    // Dans une vraie app, ouvrir une fenêtre d'impression ou générer un PDF
-    setTimeout(() => {
-      window.print();
-      setLabelToPrint(null);
-    }, 100);
-  };
+  const handlePrintLabel = (article: Article) => setLabelToPrint(article);
+
+  useEffect(() => {
+    if (!labelToPrint) return;
+    const fin = () => setLabelToPrint(null);
+    window.addEventListener('afterprint', fin, { once: true });
+    // Le délai laisse au canvas QR le temps d'être dessiné ; l'étiquette n'est
+    // retirée qu'à afterprint (Safari ne bloque pas sur window.print()).
+    const minuteur = setTimeout(() => window.print(), 300);
+    return () => {
+      clearTimeout(minuteur);
+      window.removeEventListener('afterprint', fin);
+    };
+  }, [labelToPrint]);
 
   const exportToCSV = () => {
     const headers = ['Nom', 'Catégorie', 'Fournisseur', 'Localisation', 'Stock', 'Seuil', 'Code-barres'];
@@ -406,7 +413,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
       {/* Print Label (hidden, only for printing) */}
       {labelToPrint && (
-        <div className="fixed top-0 left-0 w-full h-full bg-white z-50 print:relative print:z-auto hidden print:block">
+        <PrintSheet>
           <div className="p-8 text-center">
             <h2 className="text-xl font-bold mb-4">{labelToPrint.nom}</h2>
             <div className="mb-4">
@@ -415,7 +422,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
             <p className="text-sm text-gray-600">{labelToPrint.categorie}</p>
             <p className="text-sm text-gray-600">{labelToPrint.localisation}</p>
           </div>
-        </div>
+        </PrintSheet>
       )}
     </div>
   );

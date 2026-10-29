@@ -1,10 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Boxes, Pencil, Plus, Printer, QrCode, ScanLine, Trash2 } from 'lucide-react';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { KitModal } from '@/components/KitModal';
 import { KitMouvementModal } from '@/components/KitMouvementModal';
+import { PrintSheet } from '@/components/PrintSheet';
 import { buildKitQrPayload } from '@/lib/kits';
 import type { Article, Kit, KitInput, KitMouvementData } from '@/types';
 
@@ -49,17 +50,25 @@ export function Kits({
   };
 
   /**
-   * Rend la feuille de QR codes puis declenche l'impression. Le delai laisse
-   * aux canvas QR le temps d'etre dessines : window.print() capture le DOM tel
-   * qu'il est a l'instant de l'appel.
+   * Rend la feuille de QR codes ; l'effet ci-dessous declenche ensuite
+   * l'impression, puis retire la feuille une fois l'impression terminee.
    */
-  const imprimer = (aImprimer: Kit[]) => {
-    setImpression(aImprimer);
-    setTimeout(() => {
-      window.print();
-      setImpression(null);
-    }, 300);
-  };
+  const imprimer = (aImprimer: Kit[]) => setImpression(aImprimer);
+
+  useEffect(() => {
+    if (!impression) return;
+    const fin = () => setImpression(null);
+    window.addEventListener('afterprint', fin, { once: true });
+    // Le delai laisse aux canvas QR le temps d'etre dessines : window.print()
+    // capture le DOM tel qu'il est a l'instant de l'appel. La feuille ne doit
+    // pas etre retiree juste apres (Safari ne bloque pas sur print()) mais sur
+    // afterprint.
+    const minuteur = setTimeout(() => window.print(), 300);
+    return () => {
+      clearTimeout(minuteur);
+      window.removeEventListener('afterprint', fin);
+    };
+  }, [impression]);
 
   const supprimer = async (kit: Kit) => {
     if (!window.confirm(`Supprimer le kit ${kit.code} ? Les mouvements déjà enregistrés sont conservés.`)) return;
@@ -209,7 +218,7 @@ export function Kits({
 
       {/* Feuille de QR codes : masquee a l'ecran, seule visible a l'impression. */}
       {impression && (
-        <div className="fixed inset-0 z-50 hidden bg-white print:relative print:z-auto print:block">
+        <PrintSheet>
           <div className="grid grid-cols-2 gap-6 p-8">
             {impression.map(kit => (
               <div key={kit.id} className="break-inside-avoid rounded-lg border border-gray-300 p-6 text-center">
@@ -228,7 +237,7 @@ export function Kits({
               </div>
             ))}
           </div>
-        </div>
+        </PrintSheet>
       )}
     </div>
   );
