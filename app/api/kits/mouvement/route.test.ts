@@ -217,6 +217,34 @@ describe('POST /api/kits/mouvement', () => {
     expect(niveau).toBe('critique');
   });
 
+  it('also alerts the tenant\'s extra alert addresses on a kit exit', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const articles = articlesEnStock(tenantId).map(a => (a.id === 'antenne' ? { ...a, quantite_stock: 4 } : a));
+    setupDb({
+      tenants: [{ id: tenantId, nom: 'Acme', is_active: true, alert_emails: ['achats@acme.fr', 'dir@acme.fr'] }],
+      kits: [kitDirectionnel(tenantId)],
+      articles,
+      users: [
+        { id: 'u1', tenant_id: tenantId, email: 'admin@acme.fr', role: UserRole.ADMIN, is_active: true },
+        { id: 'u2', tenant_id: tenantId, email: 'manager@acme.fr', role: UserRole.MANAGER, is_active: true },
+      ],
+    });
+
+    const res = await POST(
+      makeRequest(Authorization, { code: 'KIT-NAT-DIR', quantite: 2, type: 'SORTIE', utilisateur: 'Jane Doe' }),
+      {}
+    );
+
+    expect(res.status).toBe(201);
+    expect(sendStockAlertEmail).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sendStockAlertEmail).mock.calls[0][0]).toEqual([
+      'admin@acme.fr',
+      'manager@acme.fr',
+      'achats@acme.fr',
+      'dir@acme.fr',
+    ]);
+  });
+
   it('sends no email when every component stays above its threshold', async () => {
     const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
     setupDb({

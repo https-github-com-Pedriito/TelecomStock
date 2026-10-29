@@ -2,11 +2,13 @@ import type { DataSource } from 'typeorm';
 import { Article } from '@/entities/Article';
 import { Tenant } from '@/entities/Tenant';
 import { User, UserRole } from '@/entities/User';
+import { mergeRecipients } from '@/lib/alertEmails';
 import { sendStockAlertEmail } from '@/lib/mailer';
 import { getStockLevel } from '@/lib/stock';
 
 /**
- * Envoie une alerte e-mail aux admins et managers du tenant pour chaque article
+ * Envoie une alerte e-mail aux admins et managers du tenant, ainsi qu'aux
+ * adresses supplémentaires qu'il a configurées (2 max), pour chaque article
  * passé sous son seuil minimum.
  *
  * Partagé entre la sortie d'un article seul (POST /api/mouvements) et la sortie
@@ -37,7 +39,10 @@ export async function notifyStockAlerts(
       }),
     ]);
 
-    const emails = recipients.map(u => u.email).filter(Boolean);
+    const emails = mergeRecipients(
+      recipients.map(u => u.email).filter(Boolean),
+      tenant?.alert_emails ?? []
+    );
     if (!tenant || emails.length === 0) return;
 
     for (const article of enAlerte) {

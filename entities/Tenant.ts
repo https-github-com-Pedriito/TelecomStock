@@ -17,6 +17,10 @@ export class Tenant {
   @Column({ nullable: true })
   contact_email?: string;
 
+  /** Adresses supplementaires (2 max) qui recoivent les alertes de stock bas, en plus des comptes admin/manager. */
+  @Column({ type: 'simple-json', nullable: true })
+  alert_emails?: string[] | null;
+
   @Column({ type: 'varchar', nullable: true })
   stripe_customer_id?: string | null;
 
