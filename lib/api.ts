@@ -90,6 +90,9 @@ class ApiService {
   async forgotPassword(email: string) { return this.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }); }
 
   async getTenantInfo() { return this.request('/tenant'); }
+  async updateAlertEmails(alert_emails: string[]): Promise<{ alert_emails: string[] }> {
+    return this.put('/tenant', { alert_emails });
+  }
   async getBillingPortalUrl(): Promise<{ url: string }> { return this.request('/stripe/portal'); }
 
   async getAllUsers() { return this.request('/admin/users'); }

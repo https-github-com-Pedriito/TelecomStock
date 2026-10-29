@@ -137,6 +137,26 @@ describe('POST /api/mouvements', () => {
     expect(niveau).toBe('critique');
   });
 
+  it('also sends the alert to the tenant\'s extra alert addresses (2 max), once each', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    setupDb({
+      tenants: [{ id: tenantId, is_active: true, nom: 'ACME', alert_emails: ['achats@acme.com', 'ADMIN@acme.com'] }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble RJ45', quantite_stock: 5, seuil_minimum: 3 }],
+      users: [{ id: 'admin-1', tenant_id: tenantId, role: UserRole.ADMIN, is_active: true, email: 'admin@acme.com' }],
+    });
+    vi.mocked(sendStockAlertEmail).mockClear();
+    const req = new NextRequest('http://localhost/api/mouvements', {
+      method: 'POST',
+      headers: { Authorization },
+      body: JSON.stringify({ type: MouvementType.SORTIE, quantite: 3, article_id: 'a1', utilisateur: 'Jane' }),
+    });
+    const res = await POST(req, {});
+    expect(res.status).toBe(201);
+    expect(sendStockAlertEmail).toHaveBeenCalledTimes(1);
+    // le compte admin n'est pas prevenu deux fois, meme si son adresse figure aussi dans les adresses supplementaires
+    expect(vi.mocked(sendStockAlertEmail).mock.calls[0][0]).toEqual(['admin@acme.com', 'achats@acme.com']);
+  });
+
   it('reports "rupture" instead of "critique" once stock hits zero', async () => {
     const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
     setupDb({

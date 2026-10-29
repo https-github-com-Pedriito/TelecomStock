@@ -5,6 +5,7 @@ import {
   ScanLine,
   Package,
   ClipboardList,
+  Boxes,
   Users,
   Home
 } from 'lucide-react';
@@ -30,13 +31,18 @@ export function MobileBottomNav({
   const visibleNavItems = React.useMemo(() => {
     const role = userRole.toLowerCase();
 
-    // TECHNICIEN: Articles (lecture seule) et Scanner
+    // TECHNICIEN: Articles (lecture seule), Kits (scan) et Scanner
     if (role === 'technicien') {
       return [
         {
           id: 'articles' as ViewMode,
           icon: Package,
           label: 'Equipements'
+        },
+        {
+          id: 'kits' as ViewMode,
+          icon: Boxes,
+          label: 'Kits'
         },
         {
           id: 'scanner' as ViewMode,
@@ -47,13 +53,18 @@ export function MobileBottomNav({
       ];
     }
 
-    // MANAGER: Stock, Scanner, Inventaire
+    // MANAGER: Stock, Kits, Scanner, Inventaire
     if (role === 'manager') {
       return [
         {
           id: 'articles' as ViewMode,
           icon: Package,
           label: 'Equipements'
+        },
+        {
+          id: 'kits' as ViewMode,
+          icon: Boxes,
+          label: 'Kits'
         },
         {
           id: 'scanner' as ViewMode,
@@ -69,7 +80,7 @@ export function MobileBottomNav({
       ];
     }
 
-    // ADMIN: Accueil, Stock, Scanner, Inventaire, Utilisateurs
+    // ADMIN: Accueil, Stock, Kits, Scanner, Inventaire, Utilisateurs
     if (role === 'admin') {
       return [
         {
@@ -81,6 +92,11 @@ export function MobileBottomNav({
           id: 'articles' as ViewMode,
           icon: Package,
           label: 'Equipements'
+        },
+        {
+          id: 'kits' as ViewMode,
+          icon: Boxes,
+          label: 'Kits'
         },
         {
           id: 'scanner' as ViewMode,
@@ -122,6 +138,7 @@ export function MobileBottomNav({
             <button
               key={item.id}
               onClick={() => onViewChange(item.id)}
+              aria-label={item.label}
               className={`flex flex-col items-center justify-center flex-1 py-2.5 sm:py-3 rounded-xl transition-all duration-300 relative ${active
                 ? 'text-blue-600 dark:text-blue-400 font-bold'
                 : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'

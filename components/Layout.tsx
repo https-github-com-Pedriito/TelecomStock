@@ -16,9 +16,11 @@ import {
   FileText,
   Building2,
   Users,
-  ShieldCheck
+  ShieldCheck,
+  Bell
 } from 'lucide-react';
 import { UserProfileModal } from '@/components/UserProfileModal';
+import { AlertRecipientsModal } from '@/components/AlertRecipientsModal';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
 
 interface LayoutProps {
@@ -55,6 +57,9 @@ export function Layout({
   children
 }: LayoutProps) {
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showAlertSettings, setShowAlertSettings] = useState(false);
+  // Reserve aux admins d'un tenant : le super admin n'a pas de tenant.
+  const canConfigureAlerts = currentUser.role === 'admin' && !isSuperAdmin;
 
   const menuItems = [
     {
@@ -128,8 +133,8 @@ export function Layout({
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300">
       {/* Glassy Header */}
       <header className="sticky top-0 z-40 w-full glass shadow-sm transition-all duration-300">
-        <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div className="relative group cursor-pointer" onClick={() => onViewChange('dashboard')}>
               <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative w-12 h-12 rounded-2xl shadow-md dark:shadow-none overflow-hidden border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800">
@@ -145,8 +150,8 @@ export function Layout({
 
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Telecom Stock</h1>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold tracking-widest border border-purple-500/20">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white tracking-tight">Telecom Stock</h1>
+                <span className="hidden min-[480px]:inline-flex items-center px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-bold tracking-widest border border-purple-500/20">
                   BETA
                 </span>
               </div>
@@ -182,7 +187,7 @@ export function Layout({
             <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={toggleDarkMode}
-                className="p-2.5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-xl hover:bg-white dark:hover:bg-blue-900/20 transition-all active:scale-95"
+                className="shrink-0 p-2 sm:p-2.5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-xl hover:bg-white dark:hover:bg-blue-900/20 transition-all active:scale-95"
                 title={isDarkMode ? 'Mode clair' : 'Mode sombre'}
               >
                 {isDarkMode ? (
@@ -195,6 +200,17 @@ export function Layout({
                   </svg>
                 )}
               </button>
+
+              {canConfigureAlerts && (
+                <button
+                  onClick={() => setShowAlertSettings(true)}
+                  className="shrink-0 p-2 sm:p-2.5 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-xl hover:bg-white dark:hover:bg-blue-900/20 transition-all active:scale-95"
+                  title="Destinataires des alertes de stock"
+                  aria-label="Destinataires des alertes de stock"
+                >
+                  <Bell size={20} />
+                </button>
+              )}
 
               <button
                 onClick={() => setShowProfileModal(true)}
@@ -215,7 +231,7 @@ export function Layout({
 
               <button
                 onClick={onLogout}
-                className="p-2.5 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-xl hover:bg-white dark:hover:bg-blue-900/20 transition-all active:scale-95"
+                className="shrink-0 p-2 sm:p-2.5 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 rounded-xl hover:bg-white dark:hover:bg-blue-900/20 transition-all active:scale-95"
                 title="Se déconnecter"
               >
                 <LogOut size={20} />
@@ -280,6 +296,10 @@ export function Layout({
         userRole={currentUser.role}
         alertsCount={alertsCount}
       />
+
+      {canConfigureAlerts && showAlertSettings && (
+        <AlertRecipientsModal onClose={() => setShowAlertSettings(false)} />
+      )}
 
       {/* Profile Modal */}
       <UserProfileModal

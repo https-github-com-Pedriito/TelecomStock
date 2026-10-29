@@ -168,6 +168,14 @@ export async function sendPasswordChangedEmail(email: string): Promise<void> {
   });
 }
 
+// Limite de l'API batch de Resend.
+const BATCH_MAX = 100;
+
+/**
+ * Un e-mail individuel (gabarit de marque emailShell) par destinataire : les
+ * adresses supplementaires sont parfois externes a l'entreprise et ne doivent
+ * pas voir les autres destinataires.
+ */
 export async function sendStockAlertEmail(
   recipients: string[],
   tenantNom: string,
@@ -182,22 +190,25 @@ export async function sendStockAlertEmail(
   }
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   const isRupture = niveau === 'rupture';
-  await client.emails.send({
-    from: getFromAddress(),
-    to: recipients,
-    subject: `${isRupture ? '🔴 Rupture de stock' : '⚠️ Stock critique'} — ${articleNom} (${tenantNom})`,
-    html: emailShell(
-      isRupture ? 'Rupture de stock' : 'Stock critique',
-      `<p>Bonjour,</p>
+  const subject = `${isRupture ? '🔴 Rupture de stock' : '⚠️ Stock critique'} — ${articleNom} (${tenantNom})`;
+  const html = emailShell(
+    isRupture ? 'Rupture de stock' : 'Stock critique',
+    `<p>Bonjour,</p>
        <p>L'article <strong>${articleNom}</strong> ${
          isRupture
            ? 'est en <strong>rupture de stock</strong> (0 unité disponible).'
            : `a atteint un niveau de stock critique : <strong>${quantite} unité(s)</strong> restante(s).`
        }</p>
        <p style="margin-top:20px;">Pensez à réapprovisionner dès que possible.</p>
-       <a href="${baseUrl}/articles" style="display:inline-block;margin-top:12px;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:14px;">Voir les articles</a>`
-    ),
-  });
+       <a href="${baseUrl}/articles" style="display:inline-block;margin-top:12px;padding:12px 24px;background-color:#2563eb;color:#ffffff;text-decoration:none;border-radius:999px;font-weight:700;font-size:14px;">Voir les articles</a>
+       <p style="margin-top:24px;font-size:12px;color:#94a3b8;">Vous recevez cette alerte car votre adresse est destinataire des alertes de stock de ${tenantNom}.</p>`
+  );
+
+  const emails = recipients.map(to => ({ from: getFromAddress(), to: [to], subject, html }));
+  for (let i = 0; i < emails.length; i += BATCH_MAX) {
+    const { error } = await client.batch.send(emails.slice(i, i + BATCH_MAX));
+    if (error) throw new Error(`Resend : ${error.message}`);
+  }
 }
 
 export async function sendSubscriptionCanceledEmail(
