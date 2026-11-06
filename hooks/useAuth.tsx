@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import { api } from '@/lib/api';
 import { User } from '@/types';
 import { logger } from '@/lib/logger';
+import { track } from '@/lib/amplitude';
 import { setToken, getToken, clearToken, hasValidToken, startTokenExpiryCheck } from '@/lib/tokenManager';
 
 interface AuthState {
@@ -95,6 +96,7 @@ function useAuthState(): AuthContextValue {
       setState({ user, loading: false, error: null, isAuthenticated: true });
       isCheckingAuth = false;
       authPromise = null;
+      track('Login Succeeded');
       return { token, user };
     } catch (error) {
       setState({ user: null, loading: false, error: error instanceof Error ? error.message : 'Erreur de connexion', isAuthenticated: false });
@@ -103,6 +105,7 @@ function useAuthState(): AuthContextValue {
   }, []);
 
   const signOut = useCallback(async () => {
+    track('Logout');
     try {
       await api.logout();
       clearToken();

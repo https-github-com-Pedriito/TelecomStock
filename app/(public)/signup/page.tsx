@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { track } from '@/lib/amplitude';
 import { CreditCard, ArrowLeft, Check, Minus, Plus } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -73,6 +74,7 @@ function SignupForm() {
         setError(data.message);
         return;
       }
+      track('Checkout Started', { plan, seats });
       window.location.href = data.url;
     } catch {
       setError('Erreur réseau. Veuillez réessayer.');

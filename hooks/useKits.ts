@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { track } from '@/lib/amplitude';
 import { useRealtime } from '@/hooks/useRealtime';
 import type { Kit, KitInput, KitMouvementData, KitMouvementResult } from '@/types';
 
@@ -47,6 +48,7 @@ export function useKits() {
   const createKit = useCallback(async (input: KitInput) => {
     const kit = await api.post<Kit>('/kits', input);
     setKits(prev => [...prev, kit].sort((a, b) => a.code.localeCompare(b.code)));
+    track('Kit Created');
     return kit;
   }, []);
 

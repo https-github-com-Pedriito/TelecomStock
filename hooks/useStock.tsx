@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { Article, Mouvement, Fournisseur, CreateMouvementData, User } from '@/types';
 import { api } from '@/lib/api';
+import { track } from '@/lib/amplitude';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -131,6 +132,7 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
     try {
       const newArticle = await api.post<Article>('/articles', article);
       setArticles(prev => [...prev, newArticle]);
+      track('Article Created', { has_initial_stock: !!article.quantite_stock && article.quantite_stock > 0 });
       if (article.quantite_stock && article.quantite_stock > 0) {
         try {
           const mouvement = await api.post<Mouvement>('/mouvements', {
@@ -188,6 +190,7 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
       const url = force ? `/articles/${id}?force=true` : `/articles/${id}`;
       const result = await api.delete(url);
       setArticles(prev => prev.filter(a => a.id !== id));
+      track('Article Deleted', { forced: force });
       return result;
     } catch (err: any) {
       if (err.response?.status === 409) throw { ...err, canForceDelete: true, data: err.response.data };
@@ -200,6 +203,7 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
     try {
       const newMouvement = await api.post<Mouvement>('/mouvements', mouvement);
       setMouvements(prev => [...prev, newMouvement]);
+      track('Stock Movement Created', { type: mouvement.type });
       const articlesResponse = await api.get<Article[]>('/articles');
       setArticles(articlesResponse);
       if (onStockChange && mouvement.article_id) {
@@ -217,6 +221,7 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
     try {
       const newFournisseur = await api.post<Fournisseur>('/fournisseurs', fournisseur);
       setFournisseurs(prev => [...prev, newFournisseur]);
+      track('Supplier Created');
       return newFournisseur;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur inconnue');

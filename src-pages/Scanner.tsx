@@ -6,6 +6,7 @@ import { Article, CreateMouvementData, Kit, KitMouvementData } from '@/types';
 import { MouvementModal } from '@/components/MouvementModal';
 import { KitMouvementModal } from '@/components/KitMouvementModal';
 import { parseKitQrPayload } from '@/lib/kits';
+import { track } from '@/lib/amplitude';
 
 const BarcodeScanner = dynamic(() => import('@/components/BarcodeScanner').then(m => m.BarcodeScanner), { ssr: false });
 import { ArrowUp, ArrowDown, ScanLine, Keyboard, CheckCircle } from 'lucide-react';
@@ -44,9 +45,11 @@ export function Scanner(props: ScannerProps) {
     if (codeKit && getKitByCode) {
       const kit = getKitByCode(codeKit);
       if (kit) {
+        track('Barcode Scanned', { result: 'kit' });
         setScannedKit(kit);
         return;
       }
+      track('Barcode Scanned', { result: 'unknown' });
       if (typeof (props as any).addNotification === 'function') {
         (props as any).addNotification({
           type: 'error',
@@ -60,6 +63,7 @@ export function Scanner(props: ScannerProps) {
 
     const article = getArticleByCodeBarres(barcode);
     console.log('📦 Article trouvé:', article);
+    track('Barcode Scanned', { result: article ? 'article' : 'unknown' });
 
     setSelectedArticle(article || {
       id: 'new',

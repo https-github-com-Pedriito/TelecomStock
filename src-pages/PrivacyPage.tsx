@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { ArrowLeft, Shield, Lock, Eye, Database, Share2, Mail } from 'lucide-react';
+import { setConsent } from '@/lib/amplitude';
 
 interface PrivacyPageProps {
   onBack: () => void;
@@ -34,6 +35,11 @@ export function PrivacyPage({ onBack, onLogin }: PrivacyPageProps) {
       title: "5. Vos droits (RGPD)",
       content: "Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, de portabilité et de suppression de vos données. Vous pouvez exercer ces droits à tout moment depuis les paramètres de votre compte ou en nous contactant.",
       icon: Shield
+    },
+    {
+      title: "6. Mesure d'audience (Amplitude)",
+      content: "Nous mesurons l'usage de l'application avec Amplitude (données hébergées dans l'Union Européenne). Sans votre accord, seules des statistiques anonymes sont collectées : aucun cookie, aucune adresse IP, aucun identifiant. Avec votre accord, un cookie est déposé, votre activité est rattachée à un identifiant interne (jamais votre nom ni votre e-mail) et un échantillon de sessions est enregistré avec les textes et champs masqués. Vous pouvez modifier votre choix à tout moment avec le bouton ci-dessous.",
+      icon: Eye
     }
   ];
 
@@ -87,6 +93,14 @@ export function PrivacyPage({ onBack, onLogin }: PrivacyPageProps) {
               </p>
             </section>
           ))}
+          <div className="ml-14">
+            <button
+              onClick={() => setConsent(null)}
+              className="px-6 py-3 rounded-full border border-gray-300 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              Modifier mon choix sur les cookies
+            </button>
+          </div>
         </div>
 
         <div className="bg-blue-50 dark:bg-blue-900/10 p-8 md:p-12 rounded-[2.5rem] border border-blue-100 dark:border-blue-900/20 flex flex-col md:flex-row items-center gap-8">

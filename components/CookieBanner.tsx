@@ -40,7 +40,7 @@ export function CookieBanner({ onAccept, onDecline, onViewPrivacy }: CookieBanne
               </button>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              Nous utilisons des cookies pour améliorer votre expérience et analyser notre trafic. En cliquant sur "Accepter", vous consentez à notre utilisation des cookies. 
+              Nous mesurons l'audience de l'application avec Amplitude (données hébergées dans l'UE). Si vous acceptez, nous utilisons un cookie, associons votre activité à votre compte (sans votre nom ni votre e-mail) et enregistrons un échantillon de sessions avec les textes masqués. Si vous refusez, seules des statistiques anonymes, sans cookie, sont collectées.
               <button 
                 onClick={onViewPrivacy}
                 className="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-2 underline-offset-4"
