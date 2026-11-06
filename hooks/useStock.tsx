@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import { Article, Mouvement, Fournisseur, CreateMouvementData, User } from '@/types';
 import { api } from '@/lib/api';
 import { track } from '@/lib/amplitude';
+import { refreshTargets } from '@/lib/realtimeRefresh';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -121,9 +122,10 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleRealtimeEvent = useCallback((event: { table: string; type: string }) => {
-    if (event.table === 'articles') refreshArticles();
-    else if (event.table === 'mouvements') { refreshArticles(); refreshMouvements(); }
-    else if (event.table === 'fournisseurs') refreshFournisseurs();
+    const targets = refreshTargets(event.table);
+    if (targets.articles) refreshArticles();
+    if (targets.mouvements) refreshMouvements();
+    if (targets.fournisseurs) refreshFournisseurs();
   }, [refreshArticles, refreshMouvements, refreshFournisseurs]);
 
   useRealtime(handleRealtimeEvent);
