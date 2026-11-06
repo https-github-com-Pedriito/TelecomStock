@@ -20,6 +20,8 @@
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build && npm run check:bundle"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "^2.49.1",
+    "@amplitude/plugin-session-replay-browser": "^1.36.6",
     "@types/qrcode": "^1.5.5",
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^1.6.1",

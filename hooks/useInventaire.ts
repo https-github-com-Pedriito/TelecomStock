@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { track } from '@/lib/amplitude';
 import { Inventaire, InventaireEntry } from '@/types';
 
 export const useInventaire = () => {
@@ -52,6 +53,7 @@ export const useInventaire = () => {
       const newInventaire = await api.createInventaire(inventaireData);
       setCurrentInventaire(newInventaire);
       setCurrentEntries([]);
+      track('Inventory Created');
       await loadInventaires();
       return newInventaire;
     } catch (err) {
@@ -67,6 +69,7 @@ export const useInventaire = () => {
     if (!currentInventaire) throw new Error('Aucun inventaire actuel');
     try {
       const newEntry = await api.addInventaireEntry(currentInventaire.id, entryData);
+      track('Inventory Entry Added');
       setCurrentEntries(prev => {
         const existingIndex = prev.findIndex(e => e.article_id === entryData.article_id && e.utilisateur_id === newEntry.utilisateur_id);
         if (existingIndex >= 0) { const updated = [...prev]; updated[existingIndex] = newEntry; return updated; }

@@ -52,6 +52,11 @@ class ApiService {
           throw error;
         }
 
+        // Une ecriture reussie invalide les lectures en cache : sinon le
+        // rechargement qui suit (articles apres un mouvement de kit, par
+        // exemple) pourrait relire l'etat d'avant l'ecriture.
+        if (!isGet) this.cache.clear();
+
         if (response.status === 204) return null;
         const text = await response.text();
         if (!text || text.trim() === '') return null;

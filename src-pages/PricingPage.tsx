@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { track } from '@/lib/amplitude';
 import { Check, ArrowLeft, Zap, Smartphone, Cloud, ArrowRight } from 'lucide-react';
 
 interface PricingPageProps {
@@ -144,7 +145,10 @@ export function PricingPage({ onBack, onLogin }: PricingPageProps) {
                     window.location.href = 'mailto:promer@decimale.net?subject=Demande de devis - Telecom Stock';
                   } else {
                     const slug = PLAN_SLUGS[plan.name];
-                    if (slug) router.push(`/signup?plan=${slug}`);
+                    if (slug) {
+                      track('Plan Selected', { plan: slug });
+                      router.push(`/signup?plan=${slug}`);
+                    }
                   }
                 }}
                 className={`w-full py-4 rounded-2xl font-bold transition-all ${plan.active

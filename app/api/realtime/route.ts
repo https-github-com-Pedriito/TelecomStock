@@ -1,13 +1,16 @@
 import { NextRequest } from 'next/server';
 import { requireAuth, requireTenant } from '@/lib/auth';
 import { Redis } from '@upstash/redis';
+import { currentSeq, eventsKey, readEventsSince } from '@/lib/realtime';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Upstash Redis est un client REST — pas de pub/sub socket natif.
-// On publie avec LPUSH et on poll avec RPOP dans la boucle SSE.
-// Chaque tenant a sa propre liste : tenant:{tenantId}:events
+// publishChange pousse chaque evenement (numero de sequence croissant) dans une
+// liste plafonnee par tenant ; chaque connexion relit cette liste avec son
+// propre curseur, pour que tous les appareils recoivent tous les evenements.
+// Le curseur survit a une reconnexion grace a l'en-tete Last-Event-ID.
 
 export async function GET(request: NextRequest) {
   let auth;
@@ -18,7 +21,7 @@ export async function GET(request: NextRequest) {
   }
 
   const tenantId = requireTenant(auth);
-  const listKey = tenantId ? `tenant:${tenantId}:events` : `super_admin:events`;
+  const listKey = eventsKey(tenantId);
 
   const redis = new Redis({
     url: process.env.UPSTASH_REDIS_REST_URL!,
@@ -32,13 +35,25 @@ export async function GET(request: NextRequest) {
     async start(controller) {
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected' })}\n\n`));
 
+      const lastEventId = Number(request.headers.get('last-event-id'));
+      let cursor: number;
+      try {
+        cursor = Number.isFinite(lastEventId) && lastEventId > 0 ? lastEventId : await currentSeq(redis, tenantId);
+      } catch {
+        controller.close();
+        return;
+      }
+
       while (!closed) {
         try {
-          const message = await redis.rpop<string>(listKey);
-          if (message) {
-            controller.enqueue(encoder.encode(`data: ${typeof message === 'string' ? message : JSON.stringify(message)}\n\n`));
+          const events = await readEventsSince(redis, listKey, cursor);
+          if (events.length > 0) {
+            for (const event of events) {
+              controller.enqueue(encoder.encode(`id: ${event.seq}\ndata: ${JSON.stringify(event)}\n\n`));
+            }
+            cursor = events[events.length - 1].seq;
           } else {
-            // Pas de message — attendre 2 secondes avant de re-poll
+            // Rien de neuf — attendre 2 secondes avant de re-poll
             await new Promise(r => setTimeout(r, 2000));
           }
         } catch {
