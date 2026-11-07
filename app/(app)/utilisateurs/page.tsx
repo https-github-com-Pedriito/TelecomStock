@@ -5,6 +5,7 @@ import { useNotifications } from '@/components/Notification';
 import { Utilisateurs } from '@/src-pages/Utilisateurs';
 import { api } from '@/lib/api';
 import { User } from '@/types';
+import { track } from '@/lib/amplitude';
 
 export default function UtilisateursPage() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function UtilisateursPage() {
     <Utilisateurs
       users={users}
       currentUser={currentUser as User}
-      onAddUser={async (data) => { const u = await api.createUser(data); await refreshUsers(); return u; }}
+      onAddUser={async (data) => { const u = await api.createUser(data); track('User Created', { role: data.role }); await refreshUsers(); return u; }}
       onUpdateUser={async (id, data) => { await api.updateUser(id, data); await refreshUsers(); }}
       onDeleteUser={async (id) => { await api.deleteUser(id); await refreshUsers(); }}
       onRefreshUsers={refreshUsers}

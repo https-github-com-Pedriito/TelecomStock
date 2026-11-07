@@ -6,6 +6,7 @@ import { Article, Localisation } from '@/types';
 import { ArticleCard } from '@/components/ArticleCard';
 import { ArticleModal } from '@/components/ArticleModal';
 import { CSVImport } from '@/components/CSVImport';
+import { track } from '@/lib/amplitude';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { PrintSheet } from '@/components/PrintSheet';
 import {
@@ -145,6 +146,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     for (const articleData of articlesToImport) {
       await onAddArticle(articleData);
     }
+    track('Data Imported', { source: 'articles_csv', rows: articlesToImport.length });
   };
 
   const handlePrintLabel = (article: Article) => setLabelToPrint(article);
@@ -183,6 +185,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
     link.href = URL.createObjectURL(blob);
     link.download = `articles_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
+    track('Data Exported', { source: 'articles', format: 'csv', rows: filteredArticles.length });
   };
 
   return (

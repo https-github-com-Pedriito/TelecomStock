@@ -12,7 +12,9 @@
  *   masque. Le choix est conserve dans localStorage.
  *
  * Sans NEXT_PUBLIC_AMPLITUDE_API_KEY, tout est desactive (no-op).
- * Donnees hebergees dans l'UE (serverZone: 'EU').
+ * Donnees hebergees aux Etats-Unis (serverZone: 'US'), region du projet Amplitude.
+ * Cette region doit rester identique a celle du projet : un SDK en 'EU' face a un
+ * projet 'US' envoie des evenements qui n'apparaissent jamais.
  */
 import * as amplitude from '@amplitude/analytics-browser';
 
@@ -36,7 +38,13 @@ export type AnalyticsEventName =
   | 'Supplier Created'
   | 'Kit Created'
   | 'Inventory Created'
-  | 'Inventory Entry Added';
+  | 'Inventory Entry Added'
+  | 'Kit Movement Created'
+  | 'Stock Alert Raised'
+  | 'Insufficient Stock Rejected'
+  | 'Data Exported'
+  | 'Data Imported'
+  | 'User Created';
 
 /** Proprietes d'evenement : uniquement des valeurs simples, jamais de donnees personnelles. */
 export type AnalyticsEventProps = Record<string, string | number | boolean>;
@@ -126,7 +134,7 @@ export function initAmplitude(): void {
   identifiedMode = getConsent() === 'accepted';
 
   amplitude.init(apiKey, undefined, {
-    serverZone: 'EU',
+    serverZone: 'US',
     // Sans accord : rien n'est ecrit dans le navigateur.
     identityStorage: identifiedMode ? 'cookie' : 'none',
     trackingOptions: { ipAddress: identifiedMode },

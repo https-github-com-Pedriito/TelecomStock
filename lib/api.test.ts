@@ -6,6 +6,8 @@ vi.mock('@/lib/tokenManager', () => ({
   clearToken: vi.fn(),
 }));
 vi.mock('@/lib/logger', () => ({ logger: {}, logApiRequest: vi.fn() }));
+vi.mock('@/lib/amplitude', () => ({ track: vi.fn() }));
+import { track } from '@/lib/amplitude';
 
 import { api } from './api';
 
@@ -42,5 +44,29 @@ describe('ApiService : fusion des requêtes en cours', () => {
     await api.post('/mouvements', { a: 1 });
     await api.get('/articles-b');
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('ApiService : suivi des refus pour stock insuffisant', () => {
+  it('trace un refus 409 STOCK_INSUFFISANT avec sa portée (kit ou article)', async () => {
+    vi.mocked(track).mockClear();
+    fetchMock.mockImplementation(async () =>
+      new Response(JSON.stringify({ message: 'Stock insuffisant', code: 'STOCK_INSUFFISANT' }), { status: 409 }),
+    );
+    await expect(api.post('/kits/mouvement', {})).rejects.toThrow('Stock insuffisant');
+    await expect(api.post('/mouvements', {})).rejects.toThrow('Stock insuffisant');
+    expect(vi.mocked(track).mock.calls).toEqual([
+      ['Insufficient Stock Rejected', { scope: 'kit' }],
+      ['Insufficient Stock Rejected', { scope: 'article' }],
+    ]);
+  });
+
+  it('ne trace pas les autres erreurs 409', async () => {
+    vi.mocked(track).mockClear();
+    fetchMock.mockImplementation(async () =>
+      new Response(JSON.stringify({ message: 'Doublon', code: 'DOUBLON' }), { status: 409 }),
+    );
+    await expect(api.post('/articles', {})).rejects.toThrow('Doublon');
+    expect(track).not.toHaveBeenCalled();
   });
 });

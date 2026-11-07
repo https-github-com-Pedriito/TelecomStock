@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Mouvement } from '@/types';
 import { api } from '@/lib/api';
+import { track } from '@/lib/amplitude';
 import {
   Search,
   Filter,
@@ -276,6 +277,7 @@ export function Mouvements() {
     link.href = URL.createObjectURL(blob);
     link.download = `flux_stock_${format(new Date(), 'yyyy-MM-dd')}.csv`;
     link.click();
+    track('Data Exported', { source: 'movements', format: 'csv', rows: finalFilteredMouvements.length });
   };
 
   // const soldeNet = stats.totalEntrees - stats.totalSorties; // Removed as requested by lint

@@ -3,6 +3,7 @@
 import { User, Mouvement } from '@/types';
 import { logger, logApiRequest } from '@/lib/logger';
 import { getToken, setToken, clearToken } from '@/lib/tokenManager';
+import { track } from '@/lib/amplitude';
 
 class ApiService {
   private baseUrl = '/api';
@@ -49,6 +50,9 @@ class ApiService {
           try { errorData = JSON.parse(errorText); } catch { errorData = { message: errorText || `Erreur HTTP ${response.status}` }; }
           if (response.status === 402 && errorData.code === 'SUBSCRIPTION_INACTIVE') {
             window.dispatchEvent(new CustomEvent('subscription-inactive'));
+          }
+          if (response.status === 409 && errorData.code === 'STOCK_INSUFFISANT') {
+            track('Insufficient Stock Rejected', { scope: endpoint.startsWith('/kits') ? 'kit' : 'article' });
           }
           const error = new Error(errorData.message || errorData.stack || 'Une erreur est survenue');
           (error as any).response = { status: response.status, data: errorData };
