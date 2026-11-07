@@ -5,8 +5,6 @@ import Image from 'next/image';
 import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 import { Article } from '@/types';
-import { api } from '@/lib/api';
-import { useAuth } from '@/hooks/useAuth';
 import {
   Package,
   MapPin,
@@ -23,7 +21,7 @@ interface ArticleCardProps {
   article: Article;
   onEdit?: (article: Article) => void;
   onDelete?: (id: string, force?: boolean) => Promise<void>;
-  onUpdateStock?: (updates: Partial<Article>) => void;
+  onAdjustStock?: (delta: number) => Promise<unknown>;
   onPrintLabel: (article: Article) => void;
   addNotification?: (notif: { type: 'success' | 'warning' | 'info' | 'error' | 'creation' | 'deletion'; title: string; message: string; duration?: number }) => void;
   canDelete?: boolean;
@@ -34,13 +32,12 @@ export function ArticleCard({
   article,
   onEdit,
   onDelete,
-  onUpdateStock,
+  onAdjustStock,
   onPrintLabel,
   addNotification,
   canDelete = false,
   canViewPrice = true
 }: ArticleCardProps) {
-  const { user } = useAuth();
   const isLowStock = article.quantite_stock <= article.seuil_minimum;
   const isOutOfStock = article.quantite_stock === 0;
 
@@ -52,7 +49,6 @@ export function ArticleCard({
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showBarcode, setShowBarcode] = useState(false);
-  const [isUpdatingStock, setIsUpdatingStock] = useState(false);
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -120,47 +116,28 @@ export function ArticleCard({
     }
   };
 
+  // Le stock affiche change au clic (mise a jour optimiste dans le contexte) :
+  // pas de blocage pendant la requete, on peut cliquer plusieurs fois de suite.
   const handleQuickStockChange = async (delta: number) => {
-    if (!onUpdateStock || isUpdatingStock) return;
-
+    if (!onAdjustStock) return;
     const newStock = Math.max(0, article.quantite_stock + delta);
     if (newStock === article.quantite_stock) return;
+    const applied = newStock - article.quantite_stock;
 
-    setIsUpdatingStock(true);
     try {
-      const type = delta > 0 ? 'ENTREE' : 'SORTIE';
-      let utilisateurNom = user?.email || 'Utilisateur';
-      if (user?.prenom && user?.nom) utilisateurNom = `${user.prenom} ${user.nom}`;
-
-      await api.createMouvement({
-        article_id: article.id,
-        quantite: Math.abs(delta),
-        type,
-        utilisateur: utilisateurNom,
-        commentaire: `Ajustement rapide (±${Math.abs(delta)})`
+      await onAdjustStock(applied);
+      addNotification?.({
+        type: newStock <= article.seuil_minimum ? 'warning' : 'success',
+        title: applied > 0 ? 'Entrée enregistrée' : 'Sortie enregistrée',
+        message: `${article.nom}: ${applied > 0 ? '+' : ''}${applied} (stock : ${newStock})`,
+        duration: 3000,
       });
-
-      onUpdateStock({ quantite_stock: newStock });
-
-      if (addNotification) {
-        const isLow = newStock <= article.seuil_minimum;
-        addNotification({
-          type: isLow ? 'warning' : 'success',
-          title: 'Stock mis à jour',
-          message: `${article.nom}: ${newStock} unités (${delta > 0 ? '+' : ''}${delta})`,
-          duration: 3000
-        });
-      }
-    } catch (error) {
-      if (addNotification) {
-        addNotification({
-          type: 'error',
-          title: 'Erreur de stock',
-          message: 'La mise à jour du stock a échoué.'
-        });
-      }
-    } finally {
-      setIsUpdatingStock(false);
+    } catch {
+      addNotification?.({
+        type: 'error',
+        title: 'Erreur de stock',
+        message: `La mise à jour du stock de "${article.nom}" a échoué ; la quantité d'origine est rétablie.`,
+      });
     }
   };
 
@@ -253,18 +230,17 @@ export function ArticleCard({
               <span className="text-[10px] font-black uppercase text-gray-400 tracking-tighter">Unités</span>
             </div>
 
-            {onUpdateStock && (
+            {onAdjustStock && (
               <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800/60 p-1 rounded-xl border border-white/10 dark:border-gray-700/50 shadow-inner">
                 <button
                   onClick={() => handleQuickStockChange(-1)}
-                  disabled={isOutOfStock || isUpdatingStock}
+                  disabled={isOutOfStock}
                   className="p-1.5 hover:bg-white dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-red-500 rounded-lg transition-all disabled:opacity-30"
                 >
                   <MinusIcon size={14} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => handleQuickStockChange(1)}
-                  disabled={isUpdatingStock}
                   className="p-1.5 hover:bg-white dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-green-500 rounded-lg transition-all disabled:opacity-30"
                 >
                   <PlusIcon size={14} strokeWidth={3} />
@@ -275,7 +251,7 @@ export function ArticleCard({
 
           <div className="relative w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden border border-white/10 dark:border-gray-700/50">
             <div
-              className={`absolute left-0 top-0 h-full transition-all duration-700 ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-orange-500' : 'bg-blue-600'
+              className={`absolute left-0 top-0 h-full transition-all duration-300 ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-orange-500' : 'bg-blue-600'
                 }`}
               style={{ width: `${Math.min(stockPercentage, 100)}%` }}
             />

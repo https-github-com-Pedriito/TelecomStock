@@ -7,6 +7,7 @@ import { Article } from '@/entities/Article';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
 import { notifyStockAlerts } from '@/lib/stockAlerts';
+import { runAfterResponse } from '@/lib/background';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
@@ -62,36 +63,53 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
   }
 
   const db = await getDb();
-  const articleRepo = db.getRepository(Article);
-  const article = await articleRepo.findOne({ where: { id: article_id, tenant_id: tenantId } });
-  if (!article) return Response.json({ message: 'Article introuvable' }, { status: 404 });
 
-  if (type === MouvementType.SORTIE) {
-    const newQty = (article.quantite_stock ?? 0) - Number(quantite);
-    article.quantite_stock = Math.max(0, newQty);
-  } else {
-    article.quantite_stock = (article.quantite_stock ?? 0) + Number(quantite);
-  }
-  await articleRepo.save(article);
+  // Article verrouille le temps de la mise a jour : des clics rapides sur « + »
+  // (ou deux appareils) ne perdent plus d'increments en se lisant l'un l'autre.
+  const result = await db.transaction(async manager => {
+    const articleRepo = manager.getRepository(Article);
+    const article = await articleRepo.findOne({
+      where: { id: article_id, tenant_id: tenantId },
+      lock: { mode: 'pessimistic_write' },
+    });
+    if (!article) return null;
 
-  const mouvement = db.getRepository(Mouvement).create({
-    tenant_id: tenantId,
-    article,
-    type,
-    quantite: Number(quantite),
-    utilisateur,
-    projet,
-    technicien,
-    commentaire,
+    if (type === MouvementType.SORTIE) {
+      const newQty = (article.quantite_stock ?? 0) - Number(quantite);
+      article.quantite_stock = Math.max(0, newQty);
+    } else {
+      article.quantite_stock = (article.quantite_stock ?? 0) + Number(quantite);
+    }
+    await articleRepo.save(article);
+
+    const mouvementRepo = manager.getRepository(Mouvement);
+    const saved = await mouvementRepo.save(
+      mouvementRepo.create({
+        tenant_id: tenantId,
+        article,
+        type,
+        quantite: Number(quantite),
+        utilisateur,
+        projet,
+        technicien,
+        commentaire,
+      })
+    );
+    return { article, saved };
   });
-  const saved = await db.getRepository(Mouvement).save(mouvement);
 
-  await Promise.all([
-    publishChange(tenantId, 'mouvement', 'create', saved),
-    publishChange(tenantId, 'article', 'update', article),
-  ]);
+  if (!result) return Response.json({ message: 'Article introuvable' }, { status: 404 });
+  const { article, saved } = result;
 
-  await notifyStockAlerts(db, tenantId, [article]);
+  // Apres la reponse : ni la diffusion temps reel ni les e-mails d'alerte ne
+  // doivent faire attendre la personne qui vient de cliquer.
+  await runAfterResponse(async () => {
+    await Promise.all([
+      publishChange(tenantId, 'mouvement', 'create', saved),
+      publishChange(tenantId, 'article', 'update', article),
+    ]);
+    await notifyStockAlerts(db, tenantId, [article]);
+  });
 
   return Response.json(saved, { status: 201 });
 });

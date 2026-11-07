@@ -8,6 +8,7 @@ import { Mouvement, MouvementType } from '@/entities/Mouvement';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
 import { notifyStockAlerts } from '@/lib/stockAlerts';
+import { runAfterResponse } from '@/lib/background';
 import {
   MAX_KITS_PAR_MOUVEMENT,
   checkKitAvailability,
@@ -190,12 +191,13 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
 
   // Hors transaction : ni la diffusion temps reel ni l'e-mail ne doivent
   // pouvoir annuler un mouvement deja valide.
-  await Promise.all([
-    publishChange(tenantId, 'mouvement', 'create', resultat.mouvements),
-    publishChange(tenantId, 'article', 'update', resultat.articles),
-  ]);
-
-  await notifyStockAlerts(db, tenantId, resultat.articles);
+  await runAfterResponse(async () => {
+    await Promise.all([
+      publishChange(tenantId, 'mouvement', 'create', resultat.mouvements),
+      publishChange(tenantId, 'article', 'update', resultat.articles),
+    ]);
+    await notifyStockAlerts(db, tenantId, resultat.articles);
+  });
 
   return Response.json(
     {

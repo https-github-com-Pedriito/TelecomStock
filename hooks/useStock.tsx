@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { Article, Mouvement, Fournisseur, CreateMouvementData, User } from '@/types';
 import { api } from '@/lib/api';
 import { track } from '@/lib/amplitude';
@@ -33,6 +33,10 @@ interface StockContextValue {
   updateArticle: (id: string, data: Partial<Article>) => Promise<Article>;
   deleteArticle: (id: string, force?: boolean) => Promise<unknown>;
   createMouvement: (mouvement: CreateMouvementData) => Promise<Mouvement>;
+  /** Integre dans l'etat un resultat serveur deja connu (ex. sortie de kit) sans rechargement. */
+  applyStockUpdate: (articles: Article[], mouvements?: Mouvement[]) => void;
+  /** Ajuste le stock d'un article de +/- delta : affichage immediat, une seule requete. */
+  adjustStock: (articleId: string, delta: number) => Promise<Mouvement | null>;
   createFournisseur: (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Fournisseur>;
   updateFournisseur: (id: string, data: Partial<Fournisseur>) => Promise<Fournisseur>;
   deleteFournisseur: (id: string) => Promise<void>;
@@ -151,41 +155,43 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
     }
   }, []);
 
+  const utilisateurNom = useMemo(() => {
+    if (user?.prenom && user?.nom) return `${user.prenom.trim()} ${user.nom.trim()}`.trim();
+    return user?.email || 'Utilisateur inconnu';
+  }, [user]);
+
+  // Les callbacks ci-dessous lisent le stock courant via cette ref : ils
+  // gardent ainsi une identite stable et ne voient jamais un etat perime.
+  const articlesRef = useRef<Article[]>([]);
+  useEffect(() => { articlesRef.current = articles; }, [articles]);
+
   const updateArticle = useCallback(async (id: string, data: Partial<Article>) => {
+    const avant = articlesRef.current.find(a => a.id === id);
+    // Affichage immediat : la liste reflete la saisie sans attendre le serveur.
+    if (avant) setArticles(prev => prev.map(a => (a.id === id ? { ...a, ...data } : a)));
     try {
-      let ancienneQuantite = 0;
-      if (data.quantite_stock !== undefined) {
-        const articleActuel = articles.find(a => a.id === id);
-        if (articleActuel) ancienneQuantite = articleActuel.quantite_stock || 0;
-      }
       const updatedArticle = await api.put<Article>(`/articles/${id}`, data);
-      setArticles(prev => prev.map(a => a.id === id ? updatedArticle : a));
+      setArticles(prev => prev.map(a => (a.id === id ? updatedArticle : a)));
+      const ancienneQuantite = avant?.quantite_stock ?? 0;
+      // Le serveur cree lui-meme le mouvement d'ajustement : on ne fait que
+      // le rapatrier et confirmer a l'utilisateur.
       if (data.quantite_stock !== undefined && data.quantite_stock !== ancienneQuantite) {
-        const difference = data.quantite_stock - ancienneQuantite;
-        if (difference !== 0) {
-          let utilisateurNom = 'Utilisateur inconnu';
-          if (user?.prenom && user?.nom) utilisateurNom = `${user.prenom.trim()} ${user.nom.trim()}`.trim();
-          else if (user?.email) utilisateurNom = user.email;
-          try {
-            const mouvementType = difference > 0 ? 'ENTREE' : 'SORTIE';
-            const mouvement = await api.post<Mouvement>('/mouvements', {
-              type: mouvementType, quantite: Math.abs(difference),
-              article_id: id, utilisateur: utilisateurNom,
-              commentaire: `Ajustement de stock: ${ancienneQuantite} → ${data.quantite_stock}`,
-            });
-            setMouvements(prev => [...prev, mouvement]);
-            if (onStockChange) {
-              onStockChange(updatedArticle.nom, updatedArticle.quantite_stock, mouvementType, updatedArticle.seuil_minimum);
-            }
-          } catch {}
-        }
+        void refreshMouvements();
+        onStockChange?.(
+          updatedArticle.nom,
+          updatedArticle.quantite_stock,
+          data.quantite_stock > ancienneQuantite ? 'ENTREE' : 'SORTIE',
+          updatedArticle.seuil_minimum
+        );
       }
       return updatedArticle;
     } catch (err) {
+      // Retour arriere de l'affichage optimiste.
+      if (avant) setArticles(prev => prev.map(a => (a.id === id ? avant : a)));
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
       throw err;
     }
-  }, [articles, user, onStockChange]);
+  }, [onStockChange, refreshMouvements]);
 
   const deleteArticle = useCallback(async (id: string, force: boolean = false) => {
     try {
@@ -206,11 +212,14 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
       const newMouvement = await api.post<Mouvement>('/mouvements', mouvement);
       setMouvements(prev => [...prev, newMouvement]);
       track('Stock Movement Created', { type: mouvement.type });
-      const articlesResponse = await api.get<Article[]>('/articles');
-      setArticles(articlesResponse);
-      if (onStockChange && mouvement.article_id) {
-        const articleConcerne = articlesResponse.find(a => a.id === mouvement.article_id);
-        if (articleConcerne) onStockChange(articleConcerne.nom, articleConcerne.quantite_stock, mouvement.type, articleConcerne.seuil_minimum);
+      // La reponse contient l'article a jour : inutile de recharger tout le
+      // catalogue (c'etait la principale source de lenteur).
+      const articleMaj = newMouvement.article;
+      if (articleMaj && mouvement.article_id) {
+        setArticles(prev =>
+          prev.map(a => (a.id === mouvement.article_id ? { ...a, quantite_stock: articleMaj.quantite_stock } : a))
+        );
+        onStockChange?.(articleMaj.nom, articleMaj.quantite_stock, mouvement.type, articleMaj.seuil_minimum);
       }
       return newMouvement;
     } catch (err) {
@@ -218,6 +227,47 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
       throw err;
     }
   }, [onStockChange]);
+
+  const applyStockUpdate = useCallback((maj: Article[], nouveauxMouvements: Mouvement[] = []) => {
+    if (maj.length > 0) {
+      const parId = new Map(maj.map(a => [a.id, a]));
+      setArticles(prev => prev.map(a => parId.get(a.id) ?? a));
+    }
+    if (nouveauxMouvements.length > 0) setMouvements(prev => [...prev, ...nouveauxMouvements]);
+  }, []);
+
+  const adjustStock = useCallback(async (articleId: string, delta: number) => {
+    const article = articlesRef.current.find(a => a.id === articleId);
+    if (!article || delta === 0) return null;
+    // On borne au stock disponible : une sortie ne peut pas passer sous zero.
+    const applique = Math.max(delta, -(article.quantite_stock ?? 0));
+    if (applique === 0) return null;
+
+    // Affichage immediat ; la requete part en parallele.
+    setArticles(prev =>
+      prev.map(a => (a.id === articleId ? { ...a, quantite_stock: Math.max(0, a.quantite_stock + applique) } : a))
+    );
+    try {
+      const mouvement = await api.post<Mouvement>('/mouvements', {
+        article_id: articleId,
+        quantite: Math.abs(applique),
+        type: applique > 0 ? 'ENTREE' : 'SORTIE',
+        utilisateur: utilisateurNom,
+        commentaire: `Ajustement rapide (±${Math.abs(applique)})`,
+      });
+      setMouvements(prev => [...prev, mouvement]);
+      track('Stock Movement Created', { type: applique > 0 ? 'ENTREE' : 'SORTIE' });
+      return mouvement;
+    } catch (err) {
+      // On annule uniquement NOTRE variation : d'autres clics rapides, encore
+      // en vol, gardent leur effet.
+      setArticles(prev =>
+        prev.map(a => (a.id === articleId ? { ...a, quantite_stock: Math.max(0, a.quantite_stock - applique) } : a))
+      );
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      throw err;
+    }
+  }, [utilisateurNom]);
 
   const createFournisseur = useCallback(async (fournisseur: Omit<Fournisseur, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -258,7 +308,7 @@ function useStockState(user: User | null, onStockChange?: StockNotificationCallb
 
   return {
     articles, mouvements, fournisseurs, localisations, users, loading, error,
-    createArticle, updateArticle, deleteArticle, createMouvement,
+    createArticle, updateArticle, deleteArticle, createMouvement, adjustStock, applyStockUpdate,
     createFournisseur, updateFournisseur, deleteFournisseur,
     refreshArticles, refreshMouvements, refreshFournisseurs,
     refreshLocalisations: fetchData, refreshUsers, refreshAll,

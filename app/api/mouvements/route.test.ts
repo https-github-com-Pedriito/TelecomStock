@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createFakeRepo } from '../../../test/helpers/fakeDb';
+import { createFakeRepo, createFakeDataSource } from '../../../test/helpers/fakeDb';
 import { makeAuthHeader } from '../../../test/helpers/authRequest';
 import { UserRole } from '@/entities/User';
 import { MouvementType } from '@/entities/Mouvement';
@@ -25,15 +25,14 @@ function setupDb(opts: { tenants?: any[]; articles?: any[]; mouvements?: any[]; 
   const articleRepo = createFakeRepo(opts.articles ?? []);
   const mouvementRepo = createFakeRepo(opts.mouvements ?? []);
   const userRepo = createFakeRepo(opts.users ?? []);
-  vi.mocked(getDb).mockResolvedValue({
-    getRepository: (entity: any) => {
-      if (entity.name === 'Tenant') return tenantRepo as any;
-      if (entity.name === 'Article') return articleRepo as any;
-      if (entity.name === 'Mouvement') return mouvementRepo as any;
-      if (entity.name === 'User') return userRepo as any;
-      throw new Error(`Unexpected repo: ${entity.name}`);
-    },
-  } as any);
+  vi.mocked(getDb).mockResolvedValue(
+    createFakeDataSource({
+      Tenant: tenantRepo,
+      Article: articleRepo,
+      Mouvement: mouvementRepo,
+      User: userRepo,
+    }) as any
+  );
   return { tenantRepo, articleRepo, mouvementRepo, userRepo };
 }
 

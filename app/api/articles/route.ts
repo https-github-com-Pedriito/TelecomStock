@@ -4,6 +4,7 @@ import { getDb } from '@/lib/db';
 import { Article } from '@/entities/Article';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
+import { runAfterResponse } from '@/lib/background';
 
 export const GET = withAuth(async (_request, auth) => {
   const tenantId = requireTenant(auth);
@@ -39,6 +40,6 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
   });
 
   const saved = await repo.save(article);
-  await publishChange(tenantId, 'article', 'create', saved);
+  await runAfterResponse(() => publishChange(tenantId, 'article', 'create', saved));
   return Response.json(saved, { status: 201 });
 });

@@ -6,6 +6,7 @@ import { KitLigne } from '@/entities/KitLigne';
 import { Article } from '@/entities/Article';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
+import { runAfterResponse } from '@/lib/background';
 import { normalizeKitCode } from '@/lib/kits';
 import { chargerLignesDuKit } from '@/lib/kitsRepo';
 
@@ -87,7 +88,7 @@ export const PUT = withAuth<Ctx>(async (request: NextRequest, auth, { params }) 
   }
 
   const complet = await chargerLignesDuKit(db, await kitRepo.findOne({ where: { id: kit.id } }));
-  await publishChange(kit.tenant_id, 'kit', 'update', complet ?? kit);
+  await runAfterResponse(() => publishChange(kit.tenant_id, 'kit', 'update', complet ?? kit));
   return Response.json(complet ?? kit);
 });
 
@@ -109,6 +110,6 @@ export const DELETE = withAuth<Ctx>(async (_request, auth, { params }) => {
     await manager.getRepository(KitLigne).delete({ kit_id: kit.id });
     await manager.getRepository(Kit).remove(kit);
   });
-  await publishChange(kit.tenant_id, 'kit', 'delete', { id });
+  await runAfterResponse(() => publishChange(kit.tenant_id, 'kit', 'delete', { id }));
   return new Response(null, { status: 204 });
 });
