@@ -38,8 +38,12 @@ export default function ScannerPage() {
   const handleAddMouvement = (m: CreateMouvementData) => {
     // La confirmation (avec le stock restant) vient du contexte ; ici on ne
     // signale que l'echec.
-    createMouvement(m).catch(() => {
-      addNotification({ type: 'error', title: 'Mouvement non enregistré', message: "L'enregistrement a échoué, réessayez." });
+    createMouvement(m).catch((err: unknown) => {
+      addNotification({
+        type: 'error',
+        title: 'Mouvement non enregistré',
+        message: err instanceof Error && err.message ? err.message : "L'enregistrement a échoué, réessayez.",
+      });
     });
   };
 

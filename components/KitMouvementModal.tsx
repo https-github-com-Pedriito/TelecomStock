@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, PackageCheck, X } from 'lucide-react';
-import type { Kit, KitMouvementData, ManqueStock } from '@/types';
-import { explodeKit } from '@/lib/kits';
+import type { Article, Kit, KitMouvementData, ManqueStock } from '@/types';
+import { computeKitStock, explodeKit } from '@/lib/kits';
 import { createPortal } from 'react-dom';
 
 /**
@@ -13,6 +13,8 @@ import { createPortal } from 'react-dom';
 interface KitMouvementModalProps {
   onClose: () => void;
   kit: Kit;
+  /** Stock courant des articles : sert a calculer, en direct, combien de kits peuvent sortir. */
+  articles: Article[];
   /** Type pre-selectionne quand le scan a ete lance depuis un bouton Entree/Sortie. */
   typeInitial?: 'ENTREE' | 'SORTIE';
   utilisateur: string;
@@ -22,6 +24,7 @@ interface KitMouvementModalProps {
 export function KitMouvementModal({
   onClose,
   kit,
+  articles,
   typeInitial = 'SORTIE',
   utilisateur,
   onSubmit,
@@ -33,6 +36,21 @@ export function KitMouvementModal({
   const [erreur, setErreur] = useState<string | null>(null);
   const [manques, setManques] = useState<ManqueStock[] | null>(null);
   const [enCours, setEnCours] = useState(false);
+
+  // Combien de kits le stock permet-il de sortir ? Meme calcul que la tuile.
+  const stock = useMemo(
+    () => computeKitStock(kit.lignes ?? [], new Map(articles.map(a => [a.id, a]))),
+    [kit, articles]
+  );
+  const n = Number(nbKits);
+  const nValide = Number.isInteger(n) && n > 0;
+  const maxSortie = type === 'SORTIE' ? stock.disponibles : null;
+  // Composants qui ne couvrent pas la quantite demandee (sortie uniquement).
+  const manquesLocaux =
+    type === 'SORTIE' && nValide
+      ? stock.composants.filter(c => c.requis * n > c.disponible)
+      : [];
+  const sortieImpossible = type === 'SORTIE' && (maxSortie === 0 || manquesLocaux.length > 0);
 
   // Apercu de ce qui sera deduit : la meme fonction que le serveur, pour que
   // l'ecran ne puisse pas annoncer autre chose que ce qui sera applique.
@@ -47,9 +65,8 @@ export function KitMouvementModal({
     }));
   }, [kit, nbKits]);
 
-  const envoyer = async (force: boolean) => {
-    const n = Number(nbKits);
-    if (!Number.isInteger(n) || n <= 0) {
+  const envoyer = async () => {
+    if (!nValide) {
       setErreur('Indiquez un nombre entier de kits supérieur à 0.');
       return;
     }
@@ -63,7 +80,6 @@ export function KitMouvementModal({
         utilisateur,
         projet: projet.trim() || undefined,
         commentaire: commentaire.trim() || undefined,
-        ...(force ? { force: true } : {}),
       });
       onClose();
     } catch (err: any) {
@@ -131,6 +147,7 @@ export function KitMouvementModal({
             <input
               type="number"
               min={1}
+              max={maxSortie !== null && maxSortie > 0 ? maxSortie : undefined}
               step={1}
               value={nbKits}
               onChange={e => setNbKits(e.target.value)}
@@ -138,6 +155,32 @@ export function KitMouvementModal({
               className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-3 text-lg font-black text-gray-900 dark:text-white"
             />
           </div>
+
+          {type === 'SORTIE' && maxSortie !== null && (
+            <div
+              data-testid="kit-sortie-dispo"
+              className={`rounded-xl px-4 py-3 text-sm ${
+                sortieImpossible
+                  ? 'bg-red-50 dark:bg-red-500/10 text-red-600'
+                  : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700'
+              }`}
+            >
+              <p className="font-bold">
+                {maxSortie === 0
+                  ? `Aucun kit disponible : ${stock.limitant?.nom} manque.`
+                  : `Disponible : ${maxSortie} kit${maxSortie > 1 ? 's' : ''} (limité par ${stock.limitant?.nom}).`}
+              </p>
+              {manquesLocaux.length > 0 && maxSortie > 0 && (
+                <ul className="mt-1 space-y-0.5 text-xs">
+                  {manquesLocaux.map(c => (
+                    <li key={c.article_id}>
+                      {c.nom} — requis {c.requis * n}, disponible {c.disponible}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
 
           {apercu.length > 0 && (
             <div className="rounded-xl bg-gray-50 dark:bg-gray-800/60 p-4">
@@ -193,20 +236,10 @@ export function KitMouvementModal({
             >
               Annuler
             </button>
-            {manques && manques.length > 0 && (
-              <button
-                type="button"
-                onClick={() => envoyer(true)}
-                disabled={enCours}
-                className="rounded-xl border border-red-500 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-50"
-              >
-                Forcer la sortie
-              </button>
-            )}
             <button
               type="button"
-              onClick={() => envoyer(false)}
-              disabled={enCours}
+              onClick={envoyer}
+              disabled={enCours || sortieImpossible}
               className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {enCours ? 'Enregistrement…' : 'Valider'}

@@ -192,7 +192,6 @@ export interface KitMouvementData {
   projet?: string;
   technicien?: string;
   commentaire?: string;
-  force?: boolean;
 }
 
 /** Composant qu'une sortie de kit ne peut pas couvrir. */

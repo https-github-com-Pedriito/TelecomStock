@@ -72,16 +72,6 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
     );
   }
 
-  // Forcer une sortie creuse le stock sous le reel : c'est une regularisation,
-  // pas un geste d'exploitation courante.
-  const force = Boolean(body?.force);
-  if (force && auth.role !== UserRole.ADMIN && auth.role !== UserRole.MANAGER && auth.role !== UserRole.SUPER_ADMIN) {
-    return Response.json(
-      { message: 'Seuls un administrateur ou un manager peuvent forcer une sortie en stock insuffisant' },
-      { status: 403 }
-    );
-  }
-
   const db = await getDb();
   const kit = await chargerLignesDuKit(
     db,
@@ -134,7 +124,10 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
       const inconnu = aDeduire.find(l => !articlesById.has(l.article_id));
       if (inconnu) throw new ArticleInconnuError(inconnu.article_id);
 
-      if (type === MouvementType.SORTIE && !force) {
+      // Aucune derogation : un kit ne peut pas sortir si un composant manque.
+      // Le stock ne descend jamais sous zero et chaque mouvement enregistre
+      // exactement ce qui a ete retire.
+      if (type === MouvementType.SORTIE) {
         const manques = checkKitAvailability(aDeduire, articlesById);
         if (manques.length > 0) throw new StockInsuffisantError(manques);
       }
@@ -146,7 +139,7 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
         const article = articlesById.get(ligne.article_id)!;
         article.quantite_stock =
           type === MouvementType.SORTIE
-            ? Math.max(0, (article.quantite_stock ?? 0) - ligne.quantite)
+            ? (article.quantite_stock ?? 0) - ligne.quantite
             : (article.quantite_stock ?? 0) + ligne.quantite;
         aSauver.push(article);
 

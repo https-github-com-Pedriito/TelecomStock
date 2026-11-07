@@ -66,7 +66,10 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
 
   // Article verrouille le temps de la mise a jour : des clics rapides sur « + »
   // (ou deux appareils) ne perdent plus d'increments en se lisant l'un l'autre.
-  const result = await db.transaction(async manager => {
+  type Resultat =
+    | { ok: true; article: Article; saved: Mouvement }
+    | { ok: false; nom: string; disponible: number };
+  const result: Resultat | null = await db.transaction(async (manager): Promise<Resultat | null> => {
     const articleRepo = manager.getRepository(Article);
     const article = await articleRepo.findOne({
       where: { id: article_id, tenant_id: tenantId },
@@ -75,8 +78,11 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
     if (!article) return null;
 
     if (type === MouvementType.SORTIE) {
-      const newQty = (article.quantite_stock ?? 0) - Number(quantite);
-      article.quantite_stock = Math.max(0, newQty);
+      const disponible = article.quantite_stock ?? 0;
+      // Pas de sortie au-dela du stock : l'ancien plancher a zero enregistrait
+      // un mouvement de 10 alors que le stock n'avait baisse que de 3.
+      if (Number(quantite) > disponible) return { ok: false, nom: article.nom, disponible };
+      article.quantite_stock = disponible - Number(quantite);
     } else {
       article.quantite_stock = (article.quantite_stock ?? 0) + Number(quantite);
     }
@@ -95,10 +101,21 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
         commentaire,
       })
     );
-    return { article, saved };
+    return { ok: true, article, saved };
   });
 
   if (!result) return Response.json({ message: 'Article introuvable' }, { status: 404 });
+  if (!result.ok) {
+    const { nom, disponible } = result;
+    return Response.json(
+      {
+        message: `Stock insuffisant pour ${nom} : ${disponible} disponible(s), ${Number(quantite)} demandé(s)`,
+        code: 'STOCK_INSUFFISANT',
+        disponible,
+      },
+      { status: 409 }
+    );
+  }
   const { article, saved } = result;
 
   // Apres la reponse : ni la diffusion temps reel ni les e-mails d'alerte ne
