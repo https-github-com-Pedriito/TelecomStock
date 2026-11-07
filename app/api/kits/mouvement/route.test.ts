@@ -163,11 +163,11 @@ describe('POST /api/kits/mouvement', () => {
     expect(mouvementRepo._all()).toHaveLength(0);
   });
 
-  it('forces the exit when force is set, clamping stock at zero', async () => {
+  it('ignores a force flag: no exit past available stock, even for an admin', async () => {
     const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
     const articles = articlesEnStock(tenantId);
-    articles.find(a => a.id === 'cable')!.quantite_stock = 50;
-    const { articleRepo } = setupDb({
+    articles.find(a => a.id === 'cable')!.quantite_stock = 3; // 2 kits en demandent 4
+    const { articleRepo, mouvementRepo } = setupDb({
       tenants: [{ id: tenantId, nom: 'Acme', is_active: true }],
       kits: [kitDirectionnel(tenantId)],
       articles,
@@ -184,8 +184,12 @@ describe('POST /api/kits/mouvement', () => {
       {}
     );
 
-    expect(res.status).toBe(201);
-    expect(articleRepo._all().find(a => a.id === 'cable')!.quantite_stock).toBe(0);
+    expect(res.status).toBe(409);
+    expect((await res.json()).code).toBe('STOCK_INSUFFISANT');
+    // Stock intact, aucun mouvement : jamais de stock negatif ni de mouvement
+    // qui ne correspond pas a ce qui a reellement ete retire.
+    expect(articleRepo._all().find(a => a.id === 'cable')!.quantite_stock).toBe(3);
+    expect(mouvementRepo._all()).toHaveLength(0);
   });
 
   it('emails admins and managers for each component that falls under its threshold', async () => {
@@ -321,28 +325,6 @@ describe('POST /api/kits/mouvement', () => {
       {}
     );
     expect(res.status).toBe(400);
-  });
-
-  it('refuses a technicien forcing an exit past available stock', async () => {
-    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.TECHNICIEN as any });
-    const articles = articlesEnStock(tenantId);
-    articles.find(a => a.id === 'cable')!.quantite_stock = 0;
-    const { articleRepo } = setupDb({
-      tenants: [{ id: tenantId, nom: 'Acme', is_active: true }],
-      kits: [kitDirectionnel(tenantId)],
-      articles,
-    });
-
-    const res = await POST(
-      makeRequest(Authorization, {
-        code: 'KIT-NAT-DIR', quantite: 1, type: 'SORTIE', utilisateur: 'Tech', force: true,
-      }),
-      {}
-    );
-
-    expect(res.status).toBe(403);
-    // Aucune ecriture : le refus intervient avant la transaction.
-    expect(articleRepo._all().find(a => a.id === 'antenne')!.quantite_stock).toBe(10);
   });
 
   it('rejects a kit count above the int4 safety cap', async () => {

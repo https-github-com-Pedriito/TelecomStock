@@ -254,6 +254,7 @@ export function Kits({
           key={kitEnMouvement.id}
           onClose={() => setKitEnMouvement(undefined)}
           kit={kitEnMouvement}
+          articles={articles}
           utilisateur={utilisateur}
           onSubmit={onMove}
         />

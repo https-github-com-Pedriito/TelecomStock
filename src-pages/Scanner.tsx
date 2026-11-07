@@ -27,7 +27,7 @@ interface ScannerProps {
 }
 
 export function Scanner(props: ScannerProps) {
-  const { getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [], currentUser, getKitByCode, onKitMouvement } = props;
+  const { articles, getArticleByCodeBarres, onAddMouvement, onAddArticle, fournisseurs = [], currentUser, getKitByCode, onKitMouvement } = props;
   /* Removed unused Article loading state */
   // Use addNotification from props
   const [showScanner, setShowScanner] = useState(false);
@@ -279,6 +279,7 @@ export function Scanner(props: ScannerProps) {
           key={scannedKit.id}
           onClose={() => setScannedKit(undefined)}
           kit={scannedKit}
+          articles={articles}
           typeInitial={mouvementType}
           utilisateur={currentUser ? `${currentUser.prenom} ${currentUser.nom}`.trim() : 'Utilisateur inconnu'}
           onSubmit={onKitMouvement}

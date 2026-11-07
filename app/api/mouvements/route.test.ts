@@ -73,9 +73,9 @@ describe('POST /api/mouvements', () => {
     expect(res.status).toBe(404);
   });
 
-  it('floors the stock at zero instead of going negative on a SORTIE', async () => {
+  it('refuses a SORTIE larger than the stock instead of flooring it at zero', async () => {
     const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
-    const { articleRepo } = setupDb({
+    const { articleRepo, mouvementRepo } = setupDb({
       tenants: [{ id: tenantId, is_active: true, nom: 'ACME' }],
       articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble RJ45', quantite_stock: 3, seuil_minimum: 1 }],
     });
@@ -85,9 +85,26 @@ describe('POST /api/mouvements', () => {
       body: JSON.stringify({ type: MouvementType.SORTIE, quantite: 10, article_id: 'a1', utilisateur: 'Jane' }),
     });
     const res = await POST(req, {});
-    expect(res.status).toBe(201);
-    const [article] = articleRepo._all();
-    expect(article.quantite_stock).toBe(0);
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body).toMatchObject({ code: 'STOCK_INSUFFISANT', disponible: 3 });
+    expect(articleRepo._all()[0].quantite_stock).toBe(3);
+    expect(mouvementRepo._all()).toHaveLength(0);
+  });
+
+  it('allows a SORTIE of exactly the remaining stock', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const { articleRepo } = setupDb({
+      tenants: [{ id: tenantId, is_active: true, nom: 'ACME' }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble RJ45', quantite_stock: 3, seuil_minimum: 1 }],
+    });
+    const req = new NextRequest('http://localhost/api/mouvements', {
+      method: 'POST',
+      headers: { Authorization },
+      body: JSON.stringify({ type: MouvementType.SORTIE, quantite: 3, article_id: 'a1', utilisateur: 'Jane' }),
+    });
+    expect((await POST(req, {})).status).toBe(201);
+    expect(articleRepo._all()[0].quantite_stock).toBe(0);
   });
 
   it('increases stock on an ENTREE', async () => {
@@ -166,7 +183,7 @@ describe('POST /api/mouvements', () => {
     const req = new NextRequest('http://localhost/api/mouvements', {
       method: 'POST',
       headers: { Authorization },
-      body: JSON.stringify({ type: MouvementType.SORTIE, quantite: 5, article_id: 'a1', utilisateur: 'Jane' }),
+      body: JSON.stringify({ type: MouvementType.SORTIE, quantite: 2, article_id: 'a1', utilisateur: 'Jane' }),
     });
     await POST(req, {});
     const [, , , quantite, niveau] = vi.mocked(sendStockAlertEmail).mock.calls.at(-1)!;
