@@ -84,7 +84,7 @@ describe('amplitude', () => {
       expect(key).toBe('test-key');
       expect(userId).toBeUndefined();
       expect(config).toMatchObject({
-        serverZone: 'EU',
+        serverZone: 'US',
         identityStorage: 'none',
         trackingOptions: { ipAddress: false },
         autocapture: {
@@ -123,7 +123,7 @@ describe('amplitude', () => {
       await flush();
 
       expect(sdk.init.mock.calls[0][2]).toMatchObject({
-        serverZone: 'EU',
+        serverZone: 'US',
         identityStorage: 'cookie',
         trackingOptions: { ipAddress: true },
         autocapture: { attribution: true },

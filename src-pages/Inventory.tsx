@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { InventaireDetailModal } from '@/components/InventaireDetailModal';
 import { useInventaire } from '@/hooks/useInventaire';
 import { api } from '@/lib/api';
+import { track } from '@/lib/amplitude';
 import { FileText, Plus, Eye, List, Package, Trash2, CheckCircle, Rocket, Upload, Download, Info, Sparkles, History, Activity, ChevronRight, ChevronLeft, ArrowRight, ClipboardCheck, Search, X } from 'lucide-react';
 import { Portal } from '@/components/Portal';
 
@@ -502,6 +503,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
         throw new Error(`Impossible de finaliser l'inventaire: ${finalizeError.message}`);
       }
 
+      track('Data Imported', { source: 'inventory_csv', rows: lines.length - 1 });
       console.log('🎉 [SUCCÈS] Recharge des inventaires');
       setExpressProgress(prev => ({
         ...prev,
@@ -655,6 +657,7 @@ export function Inventory({ articles, currentUser, users, getArticleByCodeBarres
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
+    track('Data Exported', { source: 'inventory', format: 'xlsx', rows: entries.length });
   };
 
   const handleFinalize = async () => {

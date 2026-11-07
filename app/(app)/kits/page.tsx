@@ -6,6 +6,7 @@ import { useKits } from '@/hooks/useKits';
 import { Kits } from '@/src-pages/Kits';
 import { hasPermissionFn } from '@/lib/permissions';
 import { addNotification } from '@/lib/notificationStore';
+import { track } from '@/lib/amplitude';
 import { diffKitLignes, formatKitDiff, formatKitResume, kitDiffEstVide, summarizeKitMovement } from '@/lib/kits';
 import type { Kit, KitInput, KitMouvementData } from '@/types';
 
@@ -86,6 +87,7 @@ export default function KitsPage() {
     if (result) {
       applyStockUpdate(result.articles, result.mouvements);
       const { level, title, message } = summarizeKitMovement(result);
+      if (level !== 'success') track('Stock Alert Raised', { level: level === 'error' ? 'rupture' : 'critique', source: 'kit' });
       addNotification({ type: level, title, message, duration: level === 'success' ? 5000 : 9000 });
     }
   };

@@ -68,7 +68,9 @@ export function useKits() {
    * l'appelant doit donc rafraichir les articles apres coup.
    */
   const moveKit = useCallback(async (data: KitMouvementData) => {
-    return api.post<KitMouvementResult>('/kits/mouvement', data);
+    const result = await api.post<KitMouvementResult>('/kits/mouvement', data);
+    track('Kit Movement Created', { type: data.type, quantity: data.quantite });
+    return result;
   }, []);
 
   return { kits, loading, error, refresh, createKit, updateKit, deleteKit, moveKit };

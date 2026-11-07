@@ -6,6 +6,7 @@ import { FileText, X, CheckCircle, Package, Loader2, Download, TrendingDown, Cal
 import { Portal } from '@/components/Portal';
 import { Inventaire, InventaireEntry } from '@/types';
 import { api } from '@/lib/api';
+import { track } from '@/lib/amplitude';
 
 interface InventaireDetailModalProps {
   inventaire: Inventaire;
@@ -136,6 +137,7 @@ export function InventaireDetailModal({ inventaire, onClose }: InventaireDetailM
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      track('Data Exported', { source: 'inventory', format: 'xlsx' });
     } catch (err) {
       console.error('Erreur export:', err);
       alert('Erreur lors de l\'export Excel: ' + (err instanceof Error ? err.message : 'Erreur inconnue'));

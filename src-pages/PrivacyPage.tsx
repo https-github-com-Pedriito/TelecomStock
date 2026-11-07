@@ -38,7 +38,7 @@ export function PrivacyPage({ onBack, onLogin }: PrivacyPageProps) {
     },
     {
       title: "6. Mesure d'audience (Amplitude)",
-      content: "Nous mesurons l'usage de l'application avec Amplitude (données hébergées dans l'Union Européenne). Sans votre accord, seules des statistiques anonymes sont collectées : aucun cookie, aucune adresse IP, aucun identifiant. Avec votre accord, un cookie est déposé, votre activité est rattachée à un identifiant interne (jamais votre nom ni votre e-mail) et un échantillon de sessions est enregistré avec les textes et champs masqués. Vous pouvez modifier votre choix à tout moment avec le bouton ci-dessous.",
+      content: "Nous mesurons l'usage de l'application avec Amplitude (données hébergées aux États-Unis). Sans votre accord, seules des statistiques anonymes sont collectées : aucun cookie, aucune adresse IP, aucun identifiant. Avec votre accord, un cookie est déposé, votre activité est rattachée à un identifiant interne (jamais votre nom ni votre e-mail) et un échantillon de sessions est enregistré avec les textes et champs masqués. Vous pouvez modifier votre choix à tout moment avec le bouton ci-dessous.",
       icon: Eye
     }
   ];

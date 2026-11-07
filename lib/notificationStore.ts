@@ -7,6 +7,7 @@
  * toutes les pages ecrivent dans la meme liste, rendue une seule fois.
  */
 import { getStockLevel } from '@/lib/stock';
+import { track } from '@/lib/amplitude';
 
 export type NotificationType = 'success' | 'warning' | 'info' | 'error' | 'creation' | 'deletion';
 
@@ -75,6 +76,7 @@ export function showStockNotification(
   const niveau = getStockLevel(nouvelleQuantite, seuilMinimum ?? 0);
   const isRupture = niveau === 'rupture';
   const isCritique = niveau === 'critique';
+  if (isRupture || isCritique) track('Stock Alert Raised', { level: niveau, source: 'article' });
 
   return addNotification({
     type: isRupture ? 'error' : isCritique ? 'warning' : 'success',

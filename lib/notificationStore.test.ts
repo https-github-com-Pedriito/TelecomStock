@@ -8,7 +8,13 @@ import {
   subscribe,
 } from './notificationStore';
 
-beforeEach(() => clearNotifications());
+vi.mock('@/lib/amplitude', () => ({ track: vi.fn() }));
+import { track } from '@/lib/amplitude';
+
+beforeEach(() => {
+  clearNotifications();
+  vi.mocked(track).mockClear();
+});
 
 describe('notificationStore', () => {
   it('partage une seule liste entre tous les appelants', () => {
@@ -59,5 +65,17 @@ describe('showStockNotification', () => {
     expect(critique.message).toContain('critique');
     expect(rupture.type).toBe('error');
     expect(rupture.message).toContain('Rupture');
+  });
+});
+
+describe('showStockNotification : suivi des alertes', () => {
+  it('trace une rupture et un niveau critique, pas un stock normal', () => {
+    showStockNotification('Câble', 0, 'SORTIE', 5);
+    showStockNotification('Câble', 3, 'SORTIE', 5);
+    showStockNotification('Câble', 20, 'ENTREE', 5);
+    expect(vi.mocked(track).mock.calls).toEqual([
+      ['Stock Alert Raised', { level: 'rupture', source: 'article' }],
+      ['Stock Alert Raised', { level: 'critique', source: 'article' }],
+    ]);
   });
 });
