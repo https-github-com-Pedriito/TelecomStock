@@ -6,7 +6,7 @@ import { BarcodeGenerator } from '@/components/BarcodeGenerator';
 import { KitModal } from '@/components/KitModal';
 import { KitMouvementModal } from '@/components/KitMouvementModal';
 import { PrintSheet } from '@/components/PrintSheet';
-import { buildKitQrPayload } from '@/lib/kits';
+import { buildKitQrPayload, computeKitStock } from '@/lib/kits';
 import type { Article, Kit, KitInput, KitMouvementData } from '@/types';
 
 interface KitsProps {
@@ -123,6 +123,16 @@ export function Kits({
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 print:hidden">
         {kits.map(kit => {
           const lignes = kit.lignes ?? [];
+          const stock = computeKitStock(lignes, articlesParId);
+          const composantsParId = new Map(stock.composants.map(c => [c.article_id, c]));
+          const dispo = stock.disponibles;
+          const niveau = dispo === null ? 'inconnu' : dispo === 0 ? 'rupture' : dispo <= 2 ? 'faible' : 'ok';
+          const styleNiveau = {
+            inconnu: 'bg-gray-50 dark:bg-gray-800/60 text-gray-500',
+            rupture: 'bg-red-50 dark:bg-red-500/10 text-red-600',
+            faible: 'bg-amber-50 dark:bg-amber-500/10 text-amber-600',
+            ok: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600',
+          }[niveau];
           return (
             <div
               key={kit.id}
@@ -143,15 +153,48 @@ export function Kits({
                 </div>
               </div>
 
+              {lignes.length > 0 && (
+                <div
+                  data-testid={`kit-stock-${kit.code}`}
+                  className={`mb-4 flex items-center justify-between gap-3 rounded-xl px-4 py-3 ${styleNiveau}`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-wide opacity-80">En stock</p>
+                    <p className="text-xs font-medium opacity-90">
+                      {niveau === 'inconnu'
+                        ? 'Calcul en cours…'
+                        : niveau === 'rupture'
+                          ? `Rupture : ${stock.limitant?.nom} manque`
+                          : `Limité par ${stock.limitant?.nom}`}
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-right leading-none">
+                    <span className="text-3xl font-black tabular-nums">{dispo ?? '–'}</span>
+                    <span className="ml-1 text-xs font-bold">{dispo === 1 ? 'kit' : 'kits'}</span>
+                  </p>
+                </div>
+              )}
+
               <ul className="mb-4 flex-1 space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                {lignes.map(ligne => (
-                  <li key={ligne.id ?? ligne.article_id} className="flex justify-between gap-3">
-                    <span className="truncate">
-                      {ligne.article?.nom ?? articlesParId.get(ligne.article_id)?.nom ?? ligne.article_id}
-                    </span>
-                    <span className="font-bold">×{ligne.quantite}</span>
-                  </li>
-                ))}
+                {lignes.map(ligne => {
+                  const composant = composantsParId.get(ligne.article_id);
+                  const manque = composant !== undefined && composant.kitsPossibles === 0;
+                  return (
+                    <li key={ligne.id ?? ligne.article_id} className="flex justify-between gap-3">
+                      <span className="truncate">
+                        {ligne.article?.nom ?? articlesParId.get(ligne.article_id)?.nom ?? ligne.article_id}
+                      </span>
+                      <span className="shrink-0">
+                        <span className="font-bold">×{ligne.quantite}</span>
+                        {composant && (
+                          <span className={`ml-2 text-xs ${manque ? 'font-bold text-red-600' : 'text-gray-400'}`}>
+                            {composant.disponible} en stock
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
                 {lignes.length === 0 && <li className="text-amber-600">Nomenclature vide</li>}
               </ul>
 

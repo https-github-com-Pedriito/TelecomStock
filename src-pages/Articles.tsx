@@ -1,7 +1,6 @@
 ﻿'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { Article, Localisation } from '@/types';
 import { ArticleCard } from '@/components/ArticleCard';
@@ -22,13 +21,13 @@ interface ArticlesProps {
   hasPermission: (permission: string) => boolean;
   fournisseurs?: Array<{ id: string; nom: string }>;
   onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
-  onUpdateArticle: (id: string, updates: Partial<Article>) => void;
+  onUpdateArticle: (id: string, updates: Partial<Article>) => Promise<unknown>;
+  onAdjustStock?: (id: string, delta: number) => Promise<unknown>;
   onDeleteArticle: (id: string) => void;
   addNotification?: (notif: { type: 'success' | 'warning' | 'info' | 'error' | 'creation' | 'deletion'; title: string; message: string; duration?: number }) => void;
 }
 
-export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onDeleteArticle, addNotification }: ArticlesProps) {
-  const { user } = useAuth();
+export function Articles({ articles, hasPermission, fournisseurs = [], onAddArticle, onUpdateArticle, onAdjustStock, onDeleteArticle, addNotification }: ArticlesProps) {
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -122,33 +121,19 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
 
   const handleSaveArticle = (articleData: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => {
     if (editingArticle) {
-      // Vérifier si le stock a changé
-      const oldStock = editingArticle.quantite_stock;
-      const newStock = articleData.quantite_stock;
-      onUpdateArticle(editingArticle.id, articleData);
-      // Si le stock a changé, créer un mouvement
-      if (typeof newStock === 'number' && typeof oldStock === 'number' && newStock !== oldStock) {
-        const type = newStock > oldStock ? 'ENTREE' : 'SORTIE';
-        const quantite = Math.abs(newStock - oldStock);
-
-        // Gestion robuste du nom d'utilisateur
-        let utilisateurNom = 'Utilisateur inconnu';
-
-        if (user && user.prenom && user.nom) {
-          utilisateurNom = `${user.prenom.trim()} ${user.nom.trim()}`.trim();
-        } else if (user && user.email) {
-          utilisateurNom = user.email;
-        }
-        // Sinon, l'API utilisera les informations du token JWT
-
-        api.createMouvement({
-          article_id: editingArticle.id,
-          quantite,
-          type,
-          utilisateur: utilisateurNom,
-          commentaire: `Modification du stock via fiche article`
+      // La modale se ferme tout de suite et la liste est deja a jour (mise a
+      // jour optimiste) ; le serveur cree lui-meme le mouvement si le stock a
+      // change. La modale confirme deja la mise a jour : on ne signale ici que
+      // l'echec (avec retour a l'ancienne valeur).
+      const { id, nom } = editingArticle;
+      onUpdateArticle(id, articleData)
+        .catch(() => {
+          addNotification?.({
+            type: 'error',
+            title: 'Échec de la modification',
+            message: `"${nom}" n'a pas pu être modifié ; les valeurs d'origine sont rétablies.`,
+          });
         });
-      }
     } else {
       onAddArticle(articleData);
     }
@@ -379,7 +364,7 @@ export function Articles({ articles, hasPermission, fournisseurs = [], onAddArti
                 article={article}
                 onEdit={hasPermission('edit_articles') ? handleEditArticle : undefined}
                 onDelete={hasPermission('delete_articles') ? handleDeleteArticle : undefined}
-                onUpdateStock={hasPermission('edit_articles') ? (updates) => onUpdateArticle(article.id, updates) : undefined}
+                onAdjustStock={hasPermission('edit_articles') && onAdjustStock ? (delta) => onAdjustStock(article.id, delta) : undefined}
                 onPrintLabel={handlePrintLabel}
                 addNotification={addNotification}
                 canDelete={hasPermission('delete_articles')}

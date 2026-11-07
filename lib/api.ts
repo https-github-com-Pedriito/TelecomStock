@@ -25,7 +25,10 @@ class ApiService {
       if (cached && Date.now() - cached.timestamp < this.CACHE_DURATION) return cached.data;
     }
 
-    if (this.inFlightRequests.has(cacheKey)) return this.inFlightRequests.get(cacheKey);
+    // Seules les lectures sont fusionnees : deux ecritures identiques (deux
+    // clics rapides sur « + », par exemple) sont deux actions distinctes. Les
+    // fusionner perdait des mouvements : l'ecran comptait 2, le serveur 1.
+    if (isGet && this.inFlightRequests.has(cacheKey)) return this.inFlightRequests.get(cacheKey);
 
     const requestPromise = (async () => {
       try {
@@ -67,11 +70,11 @@ class ApiService {
           return jsonData;
         } catch { return text; }
       } finally {
-        this.inFlightRequests.delete(cacheKey);
+        if (isGet) this.inFlightRequests.delete(cacheKey);
       }
     })();
 
-    this.inFlightRequests.set(cacheKey, requestPromise);
+    if (isGet) this.inFlightRequests.set(cacheKey, requestPromise);
     return requestPromise;
   }
 

@@ -1,5 +1,6 @@
 ﻿'use client';
 
+import type { NotificationType } from '@/lib/notificationStore';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Article, CreateMouvementData, Kit, KitMouvementData } from '@/types';
@@ -16,7 +17,7 @@ interface ScannerProps {
   getArticleByCodeBarres: (codeBarres: string) => Article | undefined;
   onAddMouvement: (mouvement: CreateMouvementData) => void;
   onAddArticle: (article: Omit<Article, 'id' | 'created_at' | 'updated_at'>) => Article;
-  addNotification?: (notif: { type: string; title: string; message: string; duration?: number }) => void;
+  addNotification?: (notif: { type: NotificationType; title: string; message: string; duration?: number }) => void;
   fournisseurs: Array<{ id: string; nom: string; }>;
   currentUser: { id: string; nom: string; prenom: string; };
   /** Retrouve un kit a partir du code lu dans le QR (ex. KIT-NAT-DIR). */
@@ -108,14 +109,6 @@ export function Scanner(props: ScannerProps) {
         utilisateur: utilisateurNom,
         commentaire: data.commentaire
       });
-      if (typeof (props as any).addNotification === 'function') {
-        (props as any).addNotification({
-          type: 'success',
-          title: 'Mouvement enregistré',
-          message: 'Mouvement enregistré avec succès !',
-          duration: 4000,
-        });
-      }
     }
     setSelectedArticle(undefined);
     setShowMouvementModal(false);

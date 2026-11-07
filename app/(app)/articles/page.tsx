@@ -7,7 +7,7 @@ import { Article } from '@/types';
 
 export default function ArticlesPage() {
   const { user } = useAuth();
-  const { articles, fournisseurs, createArticle, updateArticle, deleteArticle } = useStock();
+  const { articles, fournisseurs, createArticle, updateArticle, adjustStock, deleteArticle } = useStock();
   const { addNotification } = useNotifications();
 
   const hasPermission = (permission: string) => {
@@ -31,6 +31,7 @@ export default function ArticlesPage() {
       fournisseurs={fournisseurs}
       onAddArticle={handleAdd}
       onUpdateArticle={updateArticle}
+      onAdjustStock={adjustStock}
       onDeleteArticle={deleteArticle}
       addNotification={addNotification}
     />

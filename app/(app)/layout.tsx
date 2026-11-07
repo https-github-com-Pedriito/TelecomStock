@@ -5,7 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useStock, StockProvider } from '@/hooks/useStock';
 import { useDarkMode } from '@/hooks/useDarkMode';
-import { useNotifications } from '@/components/Notification';
+import { NotificationContainer } from '@/components/Notification';
+import { showStockNotification } from '@/lib/notificationStore';
 import { Layout } from '@/components/Layout';
 import { ViewMode } from '@/types';
 import { api } from '@/lib/api';
@@ -22,15 +23,14 @@ const pathnameToView = (pathname: string): ViewMode => {
 };
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { showStockNotification, NotificationContainer } = useNotifications();
   return (
     <StockProvider onStockChange={showStockNotification}>
-      <AppLayoutInner NotificationContainer={NotificationContainer}>{children}</AppLayoutInner>
+      <AppLayoutInner>{children}</AppLayoutInner>
     </StockProvider>
   );
 }
 
-function AppLayoutInner({ children, NotificationContainer }: { children: React.ReactNode; NotificationContainer: () => React.ReactElement }) {
+function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();

@@ -3,11 +3,13 @@ import { In } from 'typeorm';
 import { withAuth, requireRole, requireTenant } from '@/lib/auth';
 import { getDb } from '@/lib/db';
 import { Article } from '@/entities/Article';
-import { Mouvement } from '@/entities/Mouvement';
+import { Mouvement, MouvementType } from '@/entities/Mouvement';
 import { KitLigne } from '@/entities/KitLigne';
 import { Kit } from '@/entities/Kit';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
+import { notifyStockAlerts } from '@/lib/stockAlerts';
+import { runAfterResponse } from '@/lib/background';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -22,21 +24,125 @@ export const GET = withAuth<Ctx>(async (_request, auth, { params }) => {
   return Response.json(article);
 });
 
+const TEXT_FIELDS = ['categorie', 'fournisseur', 'localisation', 'image_url'] as const;
+
+type ParsedArticleUpdate = {
+  nom?: string;
+  seuil_minimum?: number;
+  quantite_stock?: number;
+  prix_unitaire?: number | null;
+  code_barres?: string | null;
+  texts: Partial<Record<(typeof TEXT_FIELDS)[number], string | null>>;
+};
+
+/**
+ * Ne retient que les champs modifiables et les valide. Avant, `Object.assign`
+ * recopiait tout le corps (id, tenant, dates...) et acceptait par exemple un
+ * stock negatif ou une chaine a la place d'un nombre.
+ */
+function parseArticleUpdate(body: unknown): ParsedArticleUpdate | string {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return 'Corps de requête invalide';
+  const input = body as Record<string, unknown>;
+  const out: ParsedArticleUpdate = { texts: {} };
+
+  if (input.nom !== undefined) {
+    if (typeof input.nom !== 'string' || input.nom.trim() === '') return 'Le nom est requis';
+    out.nom = input.nom;
+  }
+  for (const field of ['quantite_stock', 'seuil_minimum'] as const) {
+    if (input[field] === undefined) continue;
+    const value = Number(input[field]);
+    if (!Number.isInteger(value) || value < 0) return `${field} doit être un entier positif ou nul`;
+    out[field] = value;
+  }
+  if (input.prix_unitaire !== undefined) {
+    if (input.prix_unitaire === null || input.prix_unitaire === '') {
+      out.prix_unitaire = null;
+    } else {
+      const value = Number(input.prix_unitaire);
+      if (!Number.isFinite(value) || value < 0) return 'prix_unitaire invalide';
+      out.prix_unitaire = value;
+    }
+  }
+  if (input.code_barres !== undefined) {
+    if (input.code_barres !== null && typeof input.code_barres !== 'string') return 'code_barres invalide';
+    // Chaine vide = pas de code : l'index unique ne porte que sur les codes renseignes.
+    out.code_barres = input.code_barres ? input.code_barres : null;
+  }
+  for (const field of TEXT_FIELDS) {
+    const value = input[field];
+    if (value === undefined) continue;
+    if (value !== null && typeof value !== 'string') return `${field} invalide`;
+    out.texts[field] = value;
+  }
+  return out;
+}
+
 export const PUT = withAuth<Ctx>(async (request: NextRequest, auth, { params }) => {
   requireRole(auth, UserRole.ADMIN, UserRole.MANAGER);
   const tenantId = requireTenant(auth);
   const { id } = await params;
 
-  const db = await getDb();
-  const repo = db.getRepository(Article);
-  const article = await repo.findOne({ where: tenantId ? { id, tenant_id: tenantId } : { id } });
-  if (!article) return Response.json({ message: 'Article introuvable' }, { status: 404 });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ message: 'Corps de requête invalide' }, { status: 400 });
+  }
+  const parsed = parseArticleUpdate(body);
+  if (typeof parsed === 'string') return Response.json({ message: parsed }, { status: 400 });
 
-  const body = await request.json();
-  Object.assign(article, body);
-  if (tenantId) article.tenant_id = tenantId;
-  const updated = await repo.save(article);
-  await publishChange(tenantId ?? article.tenant_id, 'article', 'update', updated);
+  const db = await getDb();
+
+  // Lecture, modification et mouvement dans une seule transaction, sur la ligne
+  // verrouillee : deux editions simultanees ne s'ecrasent plus, et le mouvement
+  // d'ajustement est cree ici, une seule fois, plutot que par un second appel du
+  // navigateur (qui doublait le stock quand les deux appels partaient).
+  const result = await db.transaction(async manager => {
+    const repo = manager.getRepository(Article);
+    const article = await repo.findOne({
+      where: tenantId ? { id, tenant_id: tenantId } : { id },
+      lock: { mode: 'pessimistic_write' },
+    });
+    if (!article) return null;
+
+    const ancienneQuantite = article.quantite_stock ?? 0;
+    const { texts, ...fields } = parsed;
+    Object.assign(article, fields, texts);
+    if (tenantId) article.tenant_id = tenantId;
+    const updated = await repo.save(article);
+
+    const difference = (updated.quantite_stock ?? 0) - ancienneQuantite;
+    let mouvement: Mouvement | null = null;
+    if (difference !== 0) {
+      const utilisateur =
+        [auth.prenom, auth.nom].filter(Boolean).join(' ').trim() || auth.email || 'Utilisateur inconnu';
+      mouvement = await manager.getRepository(Mouvement).save(
+        manager.getRepository(Mouvement).create({
+          tenant_id: updated.tenant_id,
+          article: updated,
+          type: difference > 0 ? MouvementType.ENTREE : MouvementType.SORTIE,
+          quantite: Math.abs(difference),
+          utilisateur,
+          commentaire: `Ajustement de stock: ${ancienneQuantite} → ${updated.quantite_stock}`,
+        })
+      );
+    }
+    return { updated, mouvement };
+  });
+
+  if (!result) return Response.json({ message: 'Article introuvable' }, { status: 404 });
+  const { updated, mouvement } = result;
+
+  // La reponse part tout de suite ; diffusion temps reel et alertes e-mail
+  // suivent sans allonger le temps d'attente de l'utilisateur.
+  await runAfterResponse(async () => {
+    const publications = [publishChange(tenantId ?? updated.tenant_id, 'article', 'update', updated)];
+    if (mouvement) publications.push(publishChange(updated.tenant_id, 'mouvement', 'create', mouvement));
+    await Promise.all(publications);
+    if (mouvement) await notifyStockAlerts(db, updated.tenant_id, [updated]);
+  });
+
   return Response.json(updated);
 });
 
@@ -88,6 +194,6 @@ export const DELETE = withAuth<Ctx>(async (request: NextRequest, auth, { params 
 
   const articleTenantId = article.tenant_id;
   await db.getRepository(Article).remove(article);
-  await publishChange(tenantId ?? articleTenantId, 'article', 'delete', { id });
+  await runAfterResponse(() => publishChange(tenantId ?? articleTenantId, 'article', 'delete', { id }));
   return Response.json({ message: 'Article supprimé' });
 });

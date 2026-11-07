@@ -6,6 +6,7 @@ import { KitLigne } from '@/entities/KitLigne';
 import { Article } from '@/entities/Article';
 import { UserRole } from '@/entities/User';
 import { publishChange } from '@/lib/realtime';
+import { runAfterResponse } from '@/lib/background';
 import { normalizeKitCode } from '@/lib/kits';
 import { chargerLignesDesKits, chargerLignesDuKit } from '@/lib/kitsRepo';
 
@@ -88,6 +89,6 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
   });
 
   const complet = await chargerLignesDuKit(db, await kitRepo.findOne({ where: { id: saved.id } }));
-  await publishChange(tenantId, 'kit', 'create', complet ?? saved);
+  await runAfterResponse(() => publishChange(tenantId, 'kit', 'create', complet ?? saved));
   return Response.json(complet ?? saved, { status: 201 });
 });

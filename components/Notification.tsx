@@ -1,12 +1,20 @@
-﻿'use client';
+'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { CheckCircle, AlertCircle, X, Trash2, PlusCircle, Info } from 'lucide-react';
-import { getStockLevel } from '@/lib/stock';
+import {
+  addNotification,
+  getServerSnapshot,
+  getSnapshot,
+  removeNotification,
+  showStockNotification,
+  subscribe,
+  type NotificationType,
+} from '@/lib/notificationStore';
 
 interface NotificationProps {
   id: string;
-  type: 'success' | 'warning' | 'info' | 'error' | 'creation' | 'deletion';
+  type: NotificationType;
   title: string;
   message: string;
   duration?: number;
@@ -96,10 +104,9 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
   return (
     <div
       className={`
-        fixed z-[10000] right-4 md:right-8 transition-all duration-500 transform rounded-[1.25rem] ${styles.shadow}
+        transition-all duration-500 transform rounded-[1.25rem] ${styles.shadow}
         ${isLeaving ? 'opacity-0 translate-x-12 scale-90' : 'opacity-100 translate-x-0 scale-100 animate-slide-in-right'}
       `}
-      style={{ top: '2rem' }}
     >
       <div
         className={`relative glass overflow-hidden rounded-[1.25rem] border ${styles.border} ${styles.bg} p-4 flex items-start gap-4 backdrop-blur-xl group`}
@@ -113,7 +120,7 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
           <p className="text-sm font-black text-gray-900 dark:text-white tracking-tight leading-tight mb-1">
             {title}
           </p>
-          <p className="text-xs font-medium text-gray-600 dark:text-gray-400 line-clamp-2">
+          <p className="text-xs font-medium text-gray-600 dark:text-gray-400 line-clamp-4">
             {message}
           </p>
         </div>
@@ -137,50 +144,26 @@ export function Notification({ id, type, title, message, duration = 5000, onClos
   );
 }
 
-export function useNotifications() {
-  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
-
-  const addNotification = (notification: Omit<NotificationProps, 'id' | 'onClose'>) => {
-    const id = crypto.randomUUID();
-    const newNotification: NotificationProps = {
-      ...notification,
-      id,
-      onClose: removeNotification,
-    };
-
-    setNotifications(prev => [...prev, newNotification]);
-    return id;
-  };
-
-  const removeNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
-  };
-
-  const showStockNotification = (articleNom: string, nouvelleQuantite: number, type: 'ENTREE' | 'SORTIE', seuilMinimum?: number) => {
-    const niveau = getStockLevel(nouvelleQuantite, seuilMinimum ?? 0);
-    const isRupture = niveau === 'rupture';
-    const isCritique = niveau === 'critique';
-
-    addNotification({
-      type: isRupture ? 'error' : isCritique ? 'warning' : 'success',
-      title: `${type === 'ENTREE' ? 'Entrée' : 'Sortie'} confirmée`,
-      message: `${articleNom}: ${nouvelleQuantite} unités actuellement en stock.${
-        isRupture ? ' Rupture de stock !' : isCritique ? ' Attention: niveau critique !' : ''
-      }`,
-      duration: isRupture || isCritique ? 8000 : 4000,
-    });
-  };
-
-  const NotificationContainer = () => (
-    <div className="fixed top-0 right-0 z-[10000] p-4 flex flex-col items-end pointer-events-none">
-      {notifications.map((notification, index) => (
-        <div key={notification.id} className="pointer-events-auto" style={{ top: `${index * 90}px` }}>
-          <Notification {...notification} />
+/**
+ * Conteneur unique des toasts, rendu par le layout. Les toasts sont empiles
+ * verticalement : sans cela, plusieurs notifications simultanees se
+ * superposeraient au meme endroit.
+ */
+export function NotificationContainer() {
+  const notifications = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  return (
+    <div className="fixed top-8 right-4 md:right-8 z-[10000] flex flex-col items-end gap-3 pointer-events-none">
+      {notifications.map(notification => (
+        <div key={notification.id} className="pointer-events-auto">
+          <Notification {...notification} onClose={removeNotification} />
         </div>
       ))}
     </div>
   );
+}
 
+export function useNotifications() {
+  const notifications = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   return {
     notifications,
     addNotification,

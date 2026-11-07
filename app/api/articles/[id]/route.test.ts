@@ -63,6 +63,97 @@ describe('PUT /api/articles/[id]', () => {
   });
 });
 
+describe('PUT /api/articles/[id] : stock et validation', () => {
+  function put(id: string, Authorization: string, body: unknown) {
+    return PUT(
+      new NextRequest(`http://localhost/api/articles/${id}`, {
+        method: 'PUT',
+        headers: { Authorization },
+        body: JSON.stringify(body),
+      }),
+      ctx(id)
+    );
+  }
+
+  it('crée lui-même le mouvement quand le stock change (une seule fois)', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const { articleRepo, mouvementRepo } = setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble', quantite_stock: 5, seuil_minimum: 2 }],
+    });
+    const res = await put('a1', Authorization, { quantite_stock: 8 });
+    expect(res.status).toBe(200);
+    expect(articleRepo._all()[0].quantite_stock).toBe(8);
+    const mouvements = mouvementRepo._all();
+    expect(mouvements).toHaveLength(1);
+    expect(mouvements[0]).toMatchObject({ type: 'ENTREE', quantite: 3, tenant_id: tenantId });
+    expect(mouvements[0].commentaire).toContain('5 → 8');
+  });
+
+  it('crée une sortie quand le stock diminue', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const { mouvementRepo } = setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble', quantite_stock: 5 }],
+    });
+    await put('a1', Authorization, { quantite_stock: 1 });
+    expect(mouvementRepo._all()[0]).toMatchObject({ type: 'SORTIE', quantite: 4 });
+  });
+
+  it('ne crée aucun mouvement si le stock est inchangé', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const { mouvementRepo } = setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble', quantite_stock: 5 }],
+    });
+    await put('a1', Authorization, { nom: 'Câble blindé', quantite_stock: 5 });
+    expect(mouvementRepo._all()).toHaveLength(0);
+  });
+
+  it('ignore les champs non modifiables (id, tenant, dates)', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const { articleRepo } = setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble', quantite_stock: 5 }],
+    });
+    await put('a1', Authorization, { id: 'pirate', tenant_id: 'autre', created_at: '2000-01-01', nom: 'Câble 2' });
+    const [article] = articleRepo._all();
+    expect(article.id).toBe('a1');
+    expect(article.tenant_id).toBe(tenantId);
+    expect(article.created_at).toBeUndefined();
+    expect(article.nom).toBe('Câble 2');
+  });
+
+  it.each([
+    [{ quantite_stock: -1 }],
+    [{ quantite_stock: 1.5 }],
+    [{ quantite_stock: 'beaucoup' }],
+    [{ seuil_minimum: -3 }],
+    [{ nom: '   ' }],
+    [{ prix_unitaire: -2 }],
+  ])('refuse %j avec une 400 sans rien écrire', async body => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    const { articleRepo, mouvementRepo } = setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      articles: [{ id: 'a1', tenant_id: tenantId, nom: 'Câble', quantite_stock: 5 }],
+    });
+    const res = await put('a1', Authorization, body);
+    expect(res.status).toBe(400);
+    expect(articleRepo._all()[0].quantite_stock).toBe(5);
+    expect(mouvementRepo._all()).toHaveLength(0);
+  });
+
+  it('renvoie 404 pour un article d\'un autre tenant', async () => {
+    const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });
+    setupDb({
+      tenants: [{ id: tenantId, is_active: true }],
+      articles: [{ id: 'a1', tenant_id: 'autre', nom: 'Câble', quantite_stock: 5 }],
+    });
+    const res = await put('a1', Authorization, { quantite_stock: 9 });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('DELETE /api/articles/[id]', () => {
   it('blocks deletion when the article has associated mouvements', async () => {
     const { Authorization, tenantId } = makeAuthHeader({ role: UserRole.ADMIN as any });

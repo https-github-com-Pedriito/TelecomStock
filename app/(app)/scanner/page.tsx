@@ -3,12 +3,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useStock } from '@/hooks/useStock';
 import { useKits } from '@/hooks/useKits';
 import { Scanner } from '@/src-pages/Scanner';
-import { normalizeKitCode } from '@/lib/kits';
+import { normalizeKitCode, summarizeKitMovement } from '@/lib/kits';
+import { addNotification } from '@/lib/notificationStore';
 import { Article, CreateMouvementData, KitMouvementData } from '@/types';
 
 export default function ScannerPage() {
   const { user } = useAuth();
-  const { articles, fournisseurs, createArticle, createMouvement, refreshArticles, refreshMouvements } = useStock();
+  const { articles, fournisseurs, createArticle, createMouvement, applyStockUpdate } = useStock();
   const { kits, moveKit } = useKits();
 
   if (!user) return null;
@@ -25,9 +26,21 @@ export default function ScannerPage() {
   };
 
   const handleKitMouvement = async (data: KitMouvementData) => {
-    await moveKit(data);
-    // Un kit touche plusieurs articles d'un coup : on resynchronise le stock.
-    await Promise.all([refreshArticles(), refreshMouvements()]);
+    const result = await moveKit(data);
+    if (result) {
+      // Un kit touche plusieurs articles : le serveur les renvoie a jour.
+      applyStockUpdate(result.articles, result.mouvements);
+      const { level, title, message } = summarizeKitMovement(result);
+      addNotification({ type: level, title, message, duration: level === 'success' ? 5000 : 9000 });
+    }
+  };
+
+  const handleAddMouvement = (m: CreateMouvementData) => {
+    // La confirmation (avec le stock restant) vient du contexte ; ici on ne
+    // signale que l'echec.
+    createMouvement(m).catch(() => {
+      addNotification({ type: 'error', title: 'Mouvement non enregistré', message: "L'enregistrement a échoué, réessayez." });
+    });
   };
 
   return (
@@ -36,7 +49,8 @@ export default function ScannerPage() {
       getArticleByCodeBarres={getByCode}
       getKitByCode={getKitByCode}
       onKitMouvement={handleKitMouvement}
-      onAddMouvement={(m: CreateMouvementData) => void createMouvement(m)}
+      addNotification={addNotification}
+      onAddMouvement={handleAddMouvement}
       onAddArticle={handleAddArticle}
       fournisseurs={fournisseurs}
       currentUser={{ id: user.id, nom: user.nom, prenom: user.prenom }}
